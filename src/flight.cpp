@@ -12,9 +12,12 @@ constexpr float kMaxPitch = 60.0f;
 constexpr float kMaxRoll = 75.0f;
 constexpr float kLevelRate = 50.0f;    // deg/sec auto-level when no input
 constexpr float kAccel = 15.0f;        // m/s^2 while throttling
-constexpr float kMinSpeed = 8.0f;
+constexpr float kMinSpeed = 0.0f;
 constexpr float kMaxSpeed = 60.0f;
-constexpr float kMinAltitude = 1.0f;
+constexpr float kMinAltitudeAboveGround = 1.0f;
+constexpr float kWheelHeight = 0.3f;
+constexpr float kLiftoffSpeed = 18.0f;
+constexpr float kLiftoffPitch = 5.0f;
 
 float MoveToward(float current, float target, float maxDelta) {
     if (fabsf(target - current) <= maxDelta) return target;
@@ -23,18 +26,18 @@ float MoveToward(float current, float target, float maxDelta) {
 
 }  // namespace
 
-void UpdatePlaneControls(PlaneState &plane, float dt) {
+void UpdatePlaneControls(PlaneState &plane, float dt, float groundHeight) {
     float pitchInput = 0.0f;
-    if (IsKeyDown(KEY_UP)) pitchInput += 1.0f;
-    if (IsKeyDown(KEY_DOWN)) pitchInput -= 1.0f;
+    if (IsKeyDown(KEY_DOWN)) pitchInput += 1.0f;
+    if (IsKeyDown(KEY_UP)) pitchInput -= 1.0f;
 
     float rollInput = 0.0f;
-    if (IsKeyDown(KEY_RIGHT)) rollInput += 1.0f;
-    if (IsKeyDown(KEY_LEFT)) rollInput -= 1.0f;
+    if (IsKeyDown(KEY_LEFT)) rollInput += 1.0f;
+    if (IsKeyDown(KEY_RIGHT)) rollInput -= 1.0f;
 
     float yawInput = 0.0f;
-    if (IsKeyDown(KEY_D)) yawInput += 1.0f;
-    if (IsKeyDown(KEY_A)) yawInput -= 1.0f;
+    if (IsKeyDown(KEY_A)) yawInput += 1.0f;
+    if (IsKeyDown(KEY_D)) yawInput -= 1.0f;
 
     float throttleInput = 0.0f;
     if (IsKeyDown(KEY_W)) throttleInput += 1.0f;
@@ -61,11 +64,25 @@ void UpdatePlaneControls(PlaneState &plane, float dt) {
     plane.speed += throttleInput * kAccel * dt;
     plane.speed = Clamp(plane.speed, kMinSpeed, kMaxSpeed);
 
-    Vector3 forward = GetPlaneForward(plane);
-    plane.position = Vector3Add(plane.position, Vector3Scale(forward, plane.speed * dt));
+    if (!plane.airborne) {
+        // On the ground: wheels follow the terrain, nose direction only
+        // steers left/right (yaw), pitch is cosmetic until liftoff.
+        float yawRad = plane.yaw * DEG2RAD;
+        Vector3 groundForward = {sinf(yawRad), 0.0f, cosf(yawRad)};
+        plane.position = Vector3Add(plane.position, Vector3Scale(groundForward, plane.speed * dt));
+        plane.position.y = groundHeight + kWheelHeight;
 
-    if (plane.position.y < kMinAltitude) {
-        plane.position.y = kMinAltitude;
+        if (plane.speed >= kLiftoffSpeed && plane.pitch > kLiftoffPitch) {
+            plane.airborne = true;
+        }
+    } else {
+        Vector3 forward = GetPlaneForward(plane);
+        plane.position = Vector3Add(plane.position, Vector3Scale(forward, plane.speed * dt));
+
+        float minY = groundHeight + kMinAltitudeAboveGround;
+        if (plane.position.y < minY) {
+            plane.position.y = minY;
+        }
     }
 }
 
