@@ -26,6 +26,9 @@ int main() {
     camera.fovy = 60.0f;
     camera.projection = CAMERA_PERSPECTIVE;
 
+    PlaneModel planeModel;
+    LoadPlaneModel(planeModel, "assets/models/biplane-1920.glb");
+
     WorldState world;
     GenerateWorld(world);
 
@@ -69,7 +72,7 @@ int main() {
         DrawWorldObject(world);
         DrawFinishGate(level);
         DrawCheckpoints(level);
-        DrawPlaneObject(plane.position, plane.yaw, plane.pitch, plane.roll);
+        DrawPlaneObject(planeModel, plane.position, plane.yaw, plane.pitch, plane.roll);
         DrawCharacterObject((Vector3){-3.0f, GetGroundHeight(world, -3.0f, 3.0f), 3.0f}, 20.0f, BLUE);
         DrawCharacterObject((Vector3){3.0f, GetGroundHeight(world, 3.0f, 3.0f), 3.0f}, -20.0f, ORANGE);
         EndMode3D();
@@ -86,6 +89,7 @@ int main() {
 
     UnloadEngineAudio(engineAudio);
     CloseAudioDevice();
+    UnloadPlaneModel(planeModel);
     UnloadLevel(level);
     UnloadWorld(world);
     CloseWindow();

@@ -4,16 +4,27 @@
 
 namespace {
 
-float ComputeRawHeight(float x, float z, float maxHeight, float flatHalfWidth) {
+float SmoothStep01(float t) {
+    t = Clamp(t, 0.0f, 1.0f);
+    return t * t * (3.0f - 2.0f * t);
+}
+
+float ComputeRawHeight(float x, float z, float maxHeight, float flatHalfWidth, float u, float v) {
     float h = 0.5f + 0.25f * sinf(x * 0.015f) + 0.25f * cosf(z * 0.012f) +
                0.12f * sinf(x * 0.05f + z * 0.04f);
     h = Clamp(h, 0.0f, 1.0f) * maxHeight;
 
     // Keep a flat flight corridor around x=0 regardless of z, so the runway
     // and straight-line flight path stay clear of hills.
-    float t = Clamp(fabsf(x) / flatHalfWidth, 0.0f, 1.0f);
-    float smooth = t * t * (3.0f - 2.0f * t);
-    return h * smooth;
+    h *= SmoothStep01(fabsf(x) / flatHalfWidth);
+
+    // Fade height back to 0 near the heightmap's outer edge so this finite
+    // patch blends into the flat backdrop plane instead of showing as a
+    // raised square with a visible cliff around it.
+    float edgeDist = fminf(fminf(u, 1.0f - u), fminf(v, 1.0f - v));
+    h *= SmoothStep01(edgeDist / 0.12f);
+
+    return h;
 }
 
 }  // namespace
@@ -31,7 +42,7 @@ void GenerateWorld(WorldState &world) {
             float x = -halfSize + u * world.worldSize;
             float z = -halfSize + v * world.worldSize;
 
-            float h = ComputeRawHeight(x, z, world.maxHeight, world.flatHalfWidth);
+            float h = ComputeRawHeight(x, z, world.maxHeight, world.flatHalfWidth, u, v);
             world.heights[j * world.gridSize + i] = h;
 
             unsigned char gray = (unsigned char)Clamp((h / world.maxHeight) * 255.0f, 0.0f, 255.0f);
@@ -59,7 +70,7 @@ void GenerateWorld(WorldState &world) {
 void DrawWorldObject(const WorldState &world) {
     // Huge flat backdrop so the ground reaches the horizon in every
     // direction, even past the edge of the detailed heightmap below.
-    DrawPlane((Vector3){0.0f, -0.05f, 0.0f}, (Vector2){50000.0f, 50000.0f}, (Color){70, 130, 80, 255});
+    DrawPlane((Vector3){0.0f, -0.05f, 0.0f}, (Vector2){50000.0f, 50000.0f}, (Color){80, 150, 90, 255});
 
     float halfSize = world.worldSize * 0.5f;
     DrawModel(world.terrainModel, (Vector3){-halfSize, 0.0f, -halfSize}, 1.0f, WHITE);
