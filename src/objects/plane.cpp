@@ -1,10 +1,15 @@
 #include "plane.h"
 #include "rlgl.h"
 
-void DrawPlaneObject(Vector3 position, float headingDegrees) {
+void DrawPlaneObject(Vector3 position, float yawDegrees, float pitchDegrees, float rollDegrees) {
     rlPushMatrix();
     rlTranslatef(position.x, position.y, position.z);
-    rlRotatef(headingDegrees, 0.0f, 1.0f, 0.0f);
+    rlRotatef(yawDegrees, 0.0f, 1.0f, 0.0f);
+    // Pitch/roll signs are negated here to match PlaneState's flight
+    // convention (positive pitch climbs, positive roll banks right) under
+    // rlRotatef's right-hand rotation direction.
+    rlRotatef(-pitchDegrees, 1.0f, 0.0f, 0.0f);
+    rlRotatef(-rollDegrees, 0.0f, 0.0f, 1.0f);
 
     // Fuselage
     DrawCube((Vector3){0.0f, 0.0f, 0.0f}, 1.0f, 1.0f, 4.0f, RED);
