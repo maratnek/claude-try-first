@@ -9,5 +9,11 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(raylib REQUIRED)
 
-add_executable(FlightGame src/main.cpp)
+add_executable(FlightGame
+    src/main.cpp
+    src/objects/plane.cpp
+    src/objects/world.cpp
+    src/objects/character.cpp
+)
+target_include_directories(FlightGame PRIVATE src)
 target_link_libraries(FlightGame PRIVATE raylib)
