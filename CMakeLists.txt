@@ -11,6 +11,7 @@ find_package(raylib REQUIRED)
 
 add_executable(FlightGame
     src/main.cpp
+    src/audio.cpp
     src/flight.cpp
     src/level.cpp
     src/objects/plane.cpp

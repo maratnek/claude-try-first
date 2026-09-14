@@ -1,6 +1,7 @@
 #include "raylib.h"
 #include "raymath.h"
 #include "rlgl.h"
+#include "audio.h"
 #include "flight.h"
 #include "level.h"
 #include "objects/plane.h"
@@ -11,9 +12,14 @@ int main() {
     const int screenWidth = 1280;
     const int screenHeight = 720;
 
-    InitWindow(screenWidth, screenHeight, "Flight Game - Step 4: Terrain, Takeoff, Obstacles, Checkpoints");
+    InitWindow(screenWidth, screenHeight, "Flight Game - Step 5: Engine Audio");
     SetTargetFPS(60);
     rlSetClipPlanes(0.1, 20000.0);
+
+    InitAudioDevice();
+    EngineAudio engineAudio;
+    LoadEngineAudio(engineAudio);
+    const float kMaxPlaneSpeedForAudio = 60.0f;  // must match flight.cpp's kMaxSpeed
 
     Camera3D camera = {0};
     camera.up = (Vector3){0.0f, 1.0f, 0.0f};
@@ -49,6 +55,8 @@ int main() {
             }
         }
 
+        UpdateEngineAudio(engineAudio, plane.speed / kMaxPlaneSpeedForAudio);
+
         float yawRad = plane.yaw * DEG2RAD;
         Vector3 chaseOffset = {-12.0f * sinf(yawRad), 5.0f, -12.0f * cosf(yawRad)};
         camera.position = Vector3Add(plane.position, chaseOffset);
@@ -76,6 +84,8 @@ int main() {
         EndDrawing();
     }
 
+    UnloadEngineAudio(engineAudio);
+    CloseAudioDevice();
     UnloadLevel(level);
     UnloadWorld(world);
     CloseWindow();
