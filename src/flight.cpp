@@ -26,22 +26,11 @@ float MoveToward(float current, float target, float maxDelta) {
 
 }  // namespace
 
-void UpdatePlaneControls(PlaneState &plane, float dt, float groundHeight) {
-    float pitchInput = 0.0f;
-    if (IsKeyDown(KEY_DOWN)) pitchInput += 1.0f;
-    if (IsKeyDown(KEY_UP)) pitchInput -= 1.0f;
-
-    float rollInput = 0.0f;
-    if (IsKeyDown(KEY_LEFT)) rollInput += 1.0f;
-    if (IsKeyDown(KEY_RIGHT)) rollInput -= 1.0f;
-
-    float yawInput = 0.0f;
-    if (IsKeyDown(KEY_A)) yawInput += 1.0f;
-    if (IsKeyDown(KEY_D)) yawInput -= 1.0f;
-
-    float throttleInput = 0.0f;
-    if (IsKeyDown(KEY_W)) throttleInput += 1.0f;
-    if (IsKeyDown(KEY_S)) throttleInput -= 1.0f;
+void UpdatePlaneControls(PlaneState &plane, const FlightInput &input, float dt, float groundHeight) {
+    float pitchInput = input.pitch;
+    float rollInput = input.roll;
+    float yawInput = input.yaw;
+    float throttleInput = input.throttle;
 
     if (pitchInput != 0.0f) {
         plane.pitch += pitchInput * kPitchRate * dt;
