@@ -12,6 +12,13 @@ owner can skim what happened without digging through git log. Format:
 - PR: <link or branch, if one was opened>
 ```
 
+## 2026-10-01 night run (2)
+- Did: Animated the rigged biplane. New src/objects/glb_nodes.{h,cpp} parses the GLB node tree (own small JSON parser, no cgltf, so no duplicate-symbol risk with raylib and identical on Conan/Web builds); plane.cpp maps raylib's per-primitive meshes to nodes and draws them with per-part transforms. Propeller spins with speed/throttle (blur disc only at high RPM), elevator follows pitch, ailerons follow roll (opposite), rudder follows yaw, wheels spin with ground speed. Falls back to the old static DrawModel if the node mapping doesn't match. Physics and rotation convention untouched.
+- Why: owner-requested next roadmap item (CLAUDE.md). Hinge axes/neutral pose are derived from the exported matrices, not assumed (exported pivots are posed: rudder 7.4 deg, elevator 11.8, ailerons 20; neutral = identity, so the plane at zero input looks different from the old static pose).
+- Verified: game-developer hand-built raylib 5.5 + project sources, ran 9s under Xvfb, screenshots with deflected parts; game-tester independently rebuilt/ran (pass, no static-fallback warning, no regressions by code reading); code-reviewer found no blockers. Reviewer flagged the rudder direction as backwards (developer had reasoned from tail motion); I applied that one fix pass (negated rudder angle, re-syntax-checked) and did not re-render it. Conan/CMake and Emscripten builds NOT run locally; CI status: see PR.
+- Open: Human look needed at in-flight visuals and direction signs (game +X appears screen-left, existing behaviour). Pilot head not animated. Not reset on R restart / keeps spinning after crash (cosmetic). kMaxSpeed duplicated in plane.cpp and flight.cpp. Parser has no depth limit / cyclic-children guard (first-party asset only). Roadmap text in CLAUDE.md still lists this item as next-up; owner may want to prune it.
+- PR: see PR into dev from agents
+
 ## 2026-10-01 night run
 - Did: Added touch controls. New src/input.cpp builds a FlightInput from keyboard + touch (left-half virtual stick for pitch/roll, bottom-right +/- throttle buttons, on-screen restart after a crash, overlay shown only once a touch is seen). Flight code now consumes FlightInput instead of reading keys. Fixed a misleading comment about mouse-to-touch mapping.
 - Why: Mobile launch is the priority; Web/iOS builds are useless without a non-keyboard way to fly.

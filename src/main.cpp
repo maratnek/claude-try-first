@@ -20,6 +20,7 @@ struct Game {
     EngineAudio engineAudio;
     Camera3D camera = {0};
     PlaneModel planeModel;
+    PlaneAnim planeAnim;
     WorldState world;
     PlaneState planeStart;
     PlaneState plane;
@@ -64,6 +65,7 @@ void UpdateFrame(Game &g) {
         }
     }
 
+    UpdatePlaneAnimation(g.planeAnim, plane, input, dt);
     UpdateEngineAudio(engineAudio, plane.speed / kMaxPlaneSpeedForAudio);
 
     float yawRad = plane.yaw * DEG2RAD;
@@ -78,7 +80,7 @@ void UpdateFrame(Game &g) {
     DrawWorldObject(world);
     DrawFinishGate(level);
     DrawCheckpoints(level);
-    DrawPlaneObject(planeModel, plane.position, plane.yaw, plane.pitch, plane.roll);
+    DrawPlaneObject(planeModel, g.planeAnim, plane.position, plane.yaw, plane.pitch, plane.roll);
     DrawCharacterObject((Vector3){-3.0f, GetGroundHeight(world, -3.0f, 3.0f), 3.0f}, 20.0f, BLUE);
     DrawCharacterObject((Vector3){3.0f, GetGroundHeight(world, 3.0f, 3.0f), 3.0f}, -20.0f, ORANGE);
     EndMode3D();
