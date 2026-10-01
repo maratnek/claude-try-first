@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.24)
 
-if(NOT EMSCRIPTEN)
+# EMSCRIPTEN is only defined once the toolchain file is processed inside project(), too late for this check.
+if(NOT CMAKE_TOOLCHAIN_FILE MATCHES "Emscripten")
     set(CMAKE_PROJECT_TOP_LEVEL_INCLUDES "${CMAKE_CURRENT_SOURCE_DIR}/cmake/conan_provider.cmake")
 endif()
 
