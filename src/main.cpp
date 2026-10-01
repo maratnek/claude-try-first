@@ -3,6 +3,7 @@
 #include "rlgl.h"
 #include "audio.h"
 #include "flight.h"
+#include "input.h"
 #include "level.h"
 #include "objects/plane.h"
 #include "objects/world.h"
@@ -23,6 +24,7 @@ struct Game {
     PlaneState planeStart;
     PlaneState plane;
     LevelState level;
+    InputState inputState;
 };
 
 // Emscripten preloads assets into the virtual FS root; there is no meaningful application directory.
@@ -45,14 +47,16 @@ void UpdateFrame(Game &g) {
 
     float dt = GetFrameTime();
 
+    FlightInput input = ReadFlightInput(g.inputState);
+
     if (level.crashed) {
-        if (IsKeyPressed(KEY_R)) {
+        if (input.restart) {
             plane = planeStart;
             ResetLevelProgress(level);
         }
     } else {
         float groundHeight = GetGroundHeight(world, plane.position.x, plane.position.z);
-        UpdatePlaneControls(plane, dt, groundHeight);
+        UpdatePlaneControls(plane, input, dt, groundHeight);
         UpdateLevel(level, plane.position);
 
         if (CheckObstacleHit(world, plane.position, 1.5f)) {
@@ -85,6 +89,7 @@ void UpdateFrame(Game &g) {
              10, 35, 20, DARKGRAY);
     DrawLevelHUD(level);
     DrawFPS(10, 60);
+    DrawTouchOverlay(g.inputState, level.crashed);
     EndDrawing();
 }
 
