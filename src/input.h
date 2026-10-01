@@ -20,7 +20,7 @@ struct InputState {
     bool restartHeld = false;
 };
 
-// Combines keyboard and touch (raylib also maps the mouse to touch point 0).
+// Combines keyboard and touch (touch needs a touch device or the web build; desktop mouse does not register).
 FlightInput ReadFlightInput(InputState &state);
 
 // Draws the stick and buttons; does nothing until touch has been used.
