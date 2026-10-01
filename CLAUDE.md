@@ -61,9 +61,41 @@ so the game runs regardless of the launcher's working directory.
 6. A real 3D biplane model (1920s style, `assets/models/biplane-1920.glb`,
    generated externally — see "3D assets" below) replaces the procedural
    plane mesh, using the same rotation convention so physics is unaffected.
+7. Web (Emscripten) build target + CI job, and touch controls (virtual
+   stick, throttle buttons, on-screen restart) via `src/input.cpp`.
+8. The biplane model was replaced with a rigged version (74 meshes): same
+   path, but its glTF node hierarchy now has named pivot nodes for moving
+   parts. It is currently drawn as one static model via `LoadModel()`.
 
 ## Roadmap / known follow-up work
 
+- **Animate the biplane's moving parts (next up — owner-requested).** The
+  model at `assets/models/biplane-1920.glb` has named pivot nodes, each
+  with a node matrix whose translation is the hinge point:
+  `propeller` (children `prop_hub`, `prop_blur_disc`), `rudder_pivot`,
+  `elevator_pivot`, `aileron_right_pivot`, `aileron_left_pivot`,
+  `wheel_right`, `wheel_left`, `gear_suspension`, `pilot_head_pivot`,
+  `pilot_arm_pivot`. There are no animation clips in the file — motion is
+  meant to be driven from code. Target behavior: propeller spins with
+  throttle/speed (show `prop_blur_disc` only at high RPM, so blades read
+  as spinning); elevator follows pitch input; ailerons follow roll input
+  (opposite directions); rudder follows yaw input; wheels spin with ground
+  speed while grounded; pilot head turns slightly into turns.
+  Known obstacles to solve, not assume away:
+  - raylib's `LoadModel()` flattens the glTF hierarchy (bakes node
+    transforms into vertices, drops node names), so per-part animation
+    needs its own node-aware loading — e.g. via cgltf (on ConanCenter;
+    raylib 5.5 bundles cgltf 1.14 internally). raylib's static lib already
+    compiles cgltf's implementation, so defining `CGLTF_IMPLEMENTATION`
+    again may cause duplicate symbols — verify, don't guess. The Web build
+    gets raylib via FetchContent instead of Conan; the solution must work
+    in both.
+  - The exported pivot matrices are a posed snapshot (propeller rotated,
+    control surfaces already deflected by a few degrees to ~20°), not a
+    neutral rest pose. Work out each hinge's axis and neutral angle rather
+    than treating the exported rotation as zero deflection.
+  - Keep the existing rotation convention in `src/objects/plane.cpp` so
+    flight physics is unaffected.
 - Landing (takeoff exists; there is no touchdown/landing mechanic yet).
 - Customizable/swappable plane parts (tail, etc.) instead of one fixed
   model.
