@@ -111,3 +111,46 @@ specific write-up of what was done and why (in the final summary and in
 commit messages), since that explanation is what the owner's review relies
 on. This elevated autonomy applies to this scheduled routine specifically,
 not to the default behavior of interactive sessions with the owner.
+
+Scope per run should be moderate, not maximal — pick one or two
+well-verified tasks rather than racing through the whole roadmap in one
+pass, even on a run that fires more frequently (e.g. a nighttime run).
+Extra throughput should come from running more often, not from inflating
+the size of any single run.
+
+## Merging: open a PR, don't merge silently
+
+Instead of a plain `git merge`, push the `agents` branch and open a pull
+request into `dev` (`gh pr create --base dev --head agents --title "..."
+--body "..."`), then merge it yourself (`gh pr merge --merge`) — you still
+have full autonomy to do this without waiting for a human approval. The
+point of the PR is a visible, diffable record on GitHub, not a gate. Write
+the PR body as the same clear explanation described above.
+
+## CI
+
+`.github/workflows/build.yml` builds this project on GitHub Actions for
+every push to main/dev/agents/start-with-raylib and every PR into
+main/dev, independent of any agent's self-reported build result. After
+pushing, check that this workflow is passing (e.g. `gh run list
+--branch agents --limit 1` or check the PR's checks) before treating the
+change as verified — don't rely solely on your own local build/run check.
+If CI is red on `dev` after your merge and you cannot fix it this run,
+say so prominently in your write-up rather than moving on.
+
+## Progress log
+
+Append one dated entry to `PROGRESS_LOG.md` (newest first, format at the
+top of that file) every run, covering what you did, why, how it was
+verified (including CI status), what's still open, and the PR link if you
+opened one. This is the first thing the project owner should be able to
+read to catch up on a day or night of runs without reading raw git log.
+
+## Safety: stop on repeated failure
+
+Before starting new work, check whether the last 2 merges into `dev`
+failed CI or were reported as broken in `PROGRESS_LOG.md`. If so, do not
+push further changes on top — stop, investigate and describe the problem
+in your write-up, and leave it for the project owner or the next run to
+decide how to proceed, rather than continuing to build on a known-broken
+base.

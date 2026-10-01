@@ -1,0 +1,25 @@
+name: Build
+
+on:
+  push:
+    branches: [main, dev, agents, start-with-raylib]
+  pull_request:
+    branches: [main, dev]
+
+jobs:
+  build:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install build tools
+        run: brew install cmake conan
+
+      - name: Configure Conan profile
+        run: conan profile detect --force
+
+      - name: Configure
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        run: cmake --build build
