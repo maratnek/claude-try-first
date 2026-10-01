@@ -12,6 +12,13 @@ owner can skim what happened without digging through git log. Format:
 - PR: <link or branch, if one was opened>
 ```
 
+## 2026-10-01 night run
+- Did: Added touch controls. New src/input.cpp builds a FlightInput from keyboard + touch (left-half virtual stick for pitch/roll, bottom-right +/- throttle buttons, on-screen restart after a crash, overlay shown only once a touch is seen). Flight code now consumes FlightInput instead of reading keys. Fixed a misleading comment about mouse-to-touch mapping.
+- Why: Mobile launch is the priority; Web/iOS builds are useless without a non-keyboard way to fly.
+- Verified: Built all sources against real raylib 5.5 (desktop, hand-rolled link, not the Conan path), ran 8s under Xvfb: no crash, model loaded (audio warnings are sandbox-only). Keyboard sign mapping diffed against old code: identical. Web path code-reviewed only (no emcc). CI status: see PR.
+- Open: Touch is untested on a real device (stick feel/sensitivity, multi-touch, page scroll/zoom prevention on web). Desktop mouse does not register as touch in raylib 5.5, so it can only be tried on web/touch hardware. HUD text still lists only keyboard controls. Landing and iOS build remain.
+- PR: see PR into dev from agents
+
 ## 2026-10-01 15:15 UTC — day run
 - Did: Added an Emscripten (Web) build target: main loop split into UpdateFrame + emscripten_set_main_loop_arg on web, AssetPath helper, CMake FetchContent raylib 5.5 + HTML output with preloaded assets, new `web` CI job. Follow-up commit fixed Conan provider still running on web (EMSCRIPTEN var is undefined before project(); now detected via toolchain file).
 - Why: Mobile launch is the priority and Web (itch.io) is the first step; CI had no web target.
