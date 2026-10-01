@@ -27,7 +27,7 @@ int main() {
     camera.projection = CAMERA_PERSPECTIVE;
 
     PlaneModel planeModel;
-    LoadPlaneModel(planeModel, "assets/models/biplane-1920.glb");
+    LoadPlaneModel(planeModel, TextFormat("%sassets/models/biplane-1920.glb", GetApplicationDirectory()));
 
     WorldState world;
     GenerateWorld(world);

@@ -20,3 +20,11 @@ add_executable(FlightGame
 )
 target_include_directories(FlightGame PRIVATE src)
 target_link_libraries(FlightGame PRIVATE raylib)
+
+# Copy assets next to the built executable so it finds them via
+# GetApplicationDirectory() regardless of the working directory the
+# launcher (terminal, VSCode CMake Tools, Xcode, ...) starts it from.
+add_custom_command(TARGET FlightGame POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${CMAKE_SOURCE_DIR}/assets" "$<TARGET_FILE_DIR:FlightGame>/assets"
+)
