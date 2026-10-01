@@ -30,6 +30,7 @@ add_executable(FlightGame
     src/flight.cpp
     src/input.cpp
     src/level.cpp
+    src/objects/glb_nodes.cpp
     src/objects/plane.cpp
     src/objects/world.cpp
     src/objects/character.cpp
