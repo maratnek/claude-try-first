@@ -86,13 +86,27 @@ integrates it and moves the request to `asset-requests/fulfilled/`.
 - **asset-planner** — manages the asset-requests/ workflow above: files
   new requests, integrates fulfilled ones.
 
+## Branches
+
+- **main** — production. Only the project owner promotes `dev` into
+  `main`; this is the "I reviewed and approved this for production" gate.
+  Never push or merge into `main` from the scheduled routine.
+- **dev** — integration branch for ongoing work.
+- **agents** — the scheduled routine's own working branch. It commits and
+  pushes here freely, and may merge `agents` into `dev` on its own. It
+  must never touch `main`.
+- **start-with-raylib** — the original branch used before this structure
+  existed; left as-is, not part of the new workflow.
+
 ## Autonomy policy for the scheduled product-manager routine
 
 The scheduled/cloud routine that drives ongoing work on this game has the
 project owner's explicit, standing permission to `git commit`, `push`, and
-merge on its own, without waiting for approval first — the owner reviews
-the result asynchronously rather than approving each action in advance.
-The one non-negotiable condition: every run must end with a full, clear,
+merge its `agents` branch into `dev` on its own, without waiting for
+approval first — the owner reviews the result asynchronously rather than
+approving each action in advance. It must never push or merge into `main`;
+promoting `dev` to `main` is the owner's call alone. The one non-negotiable
+condition on everything it does: every run must end with a full, clear,
 specific write-up of what was done and why (in the final summary and in
 commit messages), since that explanation is what the owner's review relies
 on. This elevated autonomy applies to this scheduled routine specifically,
