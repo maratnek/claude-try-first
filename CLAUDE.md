@@ -77,14 +77,41 @@ prompt + expected file path to `asset-requests/pending/<slug>.md`; a human
 generates the model externally and drops it at that path; a later run
 integrates it and moves the request to `asset-requests/fulfilled/`.
 
-## Subagents (`.claude/agents/`)
+## Subagents (`.claude/agents/`) — two teams checking each other
 
-- **game-developer** — implements one scoped feature/fix, builds + briefly
+**Builder team** — proposes/creates:
+- **game-designer** — proposes new content (levels, obstacle/checkpoint
+  layouts, mechanics ideas) as a design-notes/*.md doc. Never writes code.
+- **game-developer** — implements one scoped feature/fix (from a
+  game-designer proposal, or a roadmap item directly), builds + briefly
   runs the game to confirm it starts cleanly.
+- **asset-planner** — manages the asset-requests/ workflow: files new
+  requests, integrates fulfilled ones.
+
+**Verifier team** — skeptically checks the builder team, never rubber-stamps:
 - **game-tester** — read-only: builds, runs, checks logs/code for
-  regressions against previously completed features. Never edits code.
-- **asset-planner** — manages the asset-requests/ workflow above: files
-  new requests, integrates fulfilled ones.
+  regressions against previously completed features.
+- **code-reviewer** — read-only: reviews the actual diff (not just the
+  builder's summary) against CLAUDE.md conventions and whether it really
+  does what it claims. Can call something a blocker.
+
+**Required flow**: every builder-team task must go through at least one
+verifier-team agent before it is merged into `dev`. If a verifier raises a
+real, concrete blocking issue: send it back to the relevant builder agent
+for one fix pass, then re-verify. If it's still unresolved after that one
+round, do NOT merge — report the disagreement plainly in the run's
+write-up and PROGRESS_LOG.md entry instead of forcing it through or
+looping indefinitely.
+
+**Final arbiter**: the project owner outranks every agent and every team.
+Any disagreement that can't be resolved within one builder/verifier
+back-and-forth gets reported, not auto-resolved by picking a side.
+Nothing here changes the existing rule that only the owner promotes `dev`
+to `main`.
+
+**Player feedback**: see `PLAYER_FEEDBACK.md`. It's empty until there are
+real players (nothing is shipped yet), but game-designer must check it
+every run and weigh real entries over invented ideas once any exist.
 
 ## Branches
 
