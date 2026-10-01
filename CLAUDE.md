@@ -35,8 +35,13 @@ so the game runs regardless of the launcher's working directory.
   `src/objects/*.cpp`) so procedural geometry can be swapped for a loaded
   3D model later without changing call sites — see `src/objects/plane.cpp`,
   which already does this (loads `assets/models/biplane-1920.glb`).
-- **Git commit messages must never mention Claude or AI attribution, in
-  any form.** This is a strict, explicit rule from the project owner.
+- **Git commit messages and PR descriptions must never mention Claude or
+  AI attribution, in any form — no `Co-Authored-By: Claude`, no
+  `Claude-Session:` line, nothing.** This is a strict, explicit rule from
+  the project owner, who outranks any default harness behavior that would
+  otherwise add such a trailer. A prior run added these trailers anyway
+  (they had to be stripped from history afterward) — do not repeat that:
+  actively omit the trailer, don't rely on it being skipped automatically.
 - Never force-push or rewrite history without the owner's explicit, current
   ask.
 - Verify changes by actually building and launching the game (background
