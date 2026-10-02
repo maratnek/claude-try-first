@@ -1,0 +1,116 @@
+# Архитектура
+
+Игра — один исполняемый файл на C++17 и raylib 5.5. Код устроен как набор
+простых структур (`PlaneState`, `LevelState`, `WorldState`…) и свободных
+функций над ними, без классов и слоёв абстракции. Один и тот же код
+собирается под macOS (desktop) и Web (Emscripten); iOS — в планах.
+
+## Модули
+
+```mermaid
+flowchart TD
+    main["main.cpp<br/>игровой цикл, экраны, камера"]
+    input["input.cpp<br/>клавиатура + тач → FlightInput"]
+    flight["flight.cpp<br/>физика полёта, PlaneParams"]
+    level["level.cpp<br/>чекпоинты, финиш, HUD, экран краха"]
+    world["objects/world.cpp<br/>рельеф, препятствия"]
+    plane["objects/plane.cpp<br/>модель и анимация самолёта"]
+    glb["objects/glb_nodes.cpp<br/>дерево узлов GLB"]
+    audio["audio.cpp<br/>процедурный звук"]
+    menu["menu.cpp<br/>главное меню"]
+    settings["settings.cpp<br/>пресеты графики"]
+    character["objects/character.cpp<br/>декоративные фигурки"]
+
+    main --> input
+    main --> flight
+    main --> level
+    main --> world
+    main --> plane
+    main --> audio
+    main --> menu
+    main --> settings
+    main --> character
+    plane --> glb
+    world --> settings
+```
+
+| Модуль | Отвечает за | Ключевые типы и функции |
+| --- | --- | --- |
+| `src/main.cpp` | Цикл кадра, переключение экранов, камера, порядок отрисовки, загрузка ассетов | `Game`, `Screen`, `UpdateFrame`, `AssetPath` |
+| `src/input.cpp` | Ввод с клавиатуры и тача в единую структуру; экранный стик и кнопки | `FlightInput`, `ReadFlightInput`, `DrawTouchOverlay` |
+| `src/flight.cpp` | Физика: управляемость зависит от скорости, сопротивление, сваливание, разбег, взлёт, посадка | `PlaneParams`, `BiplaneParams`, `PlaneState`, `UpdatePlaneControls` |
+| `src/level.cpp` | Цель уровня (1 км), чекпоинты-кольца, финишные ворота, HUD, экран краха | `LevelState`, `UpdateLevel`, `DrawLevelHUD`, `DrawCrashScreen` |
+| `src/objects/world.cpp` | Heightmap-рельеф с ровным коридором, жёсткие и мягкие препятствия, высота земли | `WorldState`, `GetGroundHeight`, `CheckObstacleHit` |
+| `src/objects/plane.cpp` | Загрузка биплана, анимация пропеллера, рулей, элеронов, колёс | `PlaneModel`, `PlaneAnim`, `UpdatePlaneAnimation`, `DrawPlaneObject` |
+| `src/objects/glb_nodes.cpp` | Чтение дерева узлов GLB (raylib его теряет) | `GlbNode`, `Mat4`, `LoadGlbNodes` |
+| `src/audio.cpp` | Синтез звука в коде: гул двигателя, удар при краше | `EngineAudio`, `UpdateEngineAudio`, `PlayCrashSound` |
+| `src/menu.cpp` | Главное меню из списка пунктов; клавиатура, мышь, тач | `MenuState`, `UpdateMenu`, `DrawMenu` |
+| `src/settings.cpp` | Пресеты Low/Medium/High и переключатели необязательных эффектов | `GraphicsSettings`, `InitGraphicsSettings` |
+
+## Экраны игры
+
+```mermaid
+stateDiagram-v2
+    [*] --> Menu
+    Menu --> Playing: Играть
+    Playing --> Crashed: удар о препятствие / жёсткая посадка
+    Crashed --> Playing: R — заново
+    Crashed --> Menu: M — в меню
+    Menu --> [*]: Выход (только desktop)
+```
+
+Пока игра не в экране `Playing`, двигатель молчит; при входе в `Crashed`
+один раз звучит удар.
+
+## Кадр
+
+1. `ReadFlightInput` собирает ввод (клавиши + тач).
+2. В зависимости от экрана: меню, перезапуск или шаг физики
+   (`UpdatePlaneControls`) и уровня (`UpdateLevel`), проверка столкновений.
+3. Анимация самолёта и звук подстраиваются под состояние.
+4. Камера следует сзади-сверху за самолётом.
+5. Отрисовка: мир → финиш → чекпоинты → самолёт → фигурки → HUD → оверлеи.
+
+## Самолёт и физика
+
+- Все константы полёта лежат в `PlaneParams` (скорость, разгон,
+  сопротивление, сваливание, взлёт, посадка). Новый тип самолёта = новый
+  набор параметров, без правки кода физики.
+- Знаки: положительный `pitch` — нос вверх, положительный `roll` — крен
+  вправо, `yaw` растёт при повороте вправо. Отрисовка (`plane.cpp`)
+  инвертирует pitch и roll под правило `rlRotatef` — это задокументировано
+  в коде.
+- Модель биплана (`assets/models/biplane-1920.glb`) — 74 меша с
+  именованными узлами-шарнирами. raylib при загрузке «запекает» узлы в
+  вершины, поэтому `glb_nodes.cpp` читает дерево узлов отдельно, и каждая
+  подвижная часть рисуется со своей матрицей.
+
+## Ассеты
+
+- Модели лежат в `assets/models/`. CMake после сборки копирует `assets/`
+  рядом с исполняемым файлом, а код грузит их по пути от
+  `GetApplicationDirectory()`. Поэтому игра запускается из любой рабочей
+  папки (терминал, VS Code).
+- В Web-сборке ассеты упаковываются в виртуальную ФС Emscripten
+  (`--preload-file`), путь — `assets/...`.
+- Звуки генерируются в коде, аудиофайлов нет.
+- Новые 3D-модели заказываются через `asset-requests/` (промт пишет агент,
+  генерирует человек). Процедурный генератор самолётов живёт в ветке
+  `design` (`tools/aircraft-gen/`) и в `dev` пока не входит.
+
+## Сборка
+
+| Цель | Как собирается | Зависимости |
+| --- | --- | --- |
+| macOS desktop | `cmake -S . -B build -DCMAKE_BUILD_TYPE=Release && cmake --build build` | raylib из Conan через cmake-conan provider (ставится автоматически) |
+| Web | `emcmake cmake -S . -B build-web -DCMAKE_BUILD_TYPE=Release && cmake --build build-web` | raylib 5.5 через CMake FetchContent; Conan при Emscripten отключён |
+| iOS | ещё нет | — |
+
+CI (`.github/workflows/build.yml`) собирает обе цели на каждый push и PR.
+
+## Производительность
+
+Всё, что не влияет на игровой процесс (столбики-маркеры, каркасы
+препятствий, фигурки, диск пропеллера, а в будущем погода, частицы,
+декор), отключается через `GraphicsSettings`. На Web и мобильных по
+умолчанию пресет Low; цель — iPhone 11 и слабые ПК.

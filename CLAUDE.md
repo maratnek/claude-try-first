@@ -326,6 +326,26 @@ verified (including CI status), what's still open, and the PR link if you
 opened one. This is the first thing the project owner should be able to
 read to catch up on a day or night of runs without reading raw git log.
 
+## Project docs (owner-requested: the repo must record how it was built)
+
+Besides `PROGRESS_LOG.md`, keep these up to date in the same PR as the
+change that makes them stale (written in Russian, like the existing text):
+
+- `docs/DEVELOPMENT_HISTORY.md` — when a roadmap item is finished, add one
+  row (what, PR/commit) to the current stage's table, plus a line under
+  that stage's decisions if the work involved a real decision or a
+  surprise worth remembering. Start a new stage when the milestone changes.
+- `docs/ARCHITECTURE.md` — when a module, screen, build target or asset
+  path is added, removed or changes responsibility: update the module
+  table, the mermaid diagrams and the relevant section.
+- `docs/PROCESS.md` — when the workflow itself changes (agents, branches,
+  schedule, rules).
+- `README.md` — build/run commands and controls, when they change.
+
+code-reviewer treats a PR that changes structure without updating
+ARCHITECTURE.md, or finishes a roadmap item without a history row, as a
+(non-blocking) finding to fix in the same run.
+
 ## Safety: stop on repeated failure
 
 Before starting new work, check whether the last 2 merges into `dev`
