@@ -23,6 +23,7 @@ struct Game {
     WorldState world;
     PlaneState planeStart;
     PlaneState plane;
+    PlaneParams planeParams = BiplaneParams();
     LevelState level;
     InputState inputState;
     GraphicsSettings gfx;
@@ -65,7 +66,12 @@ void UpdateFrame(Game &g) {
         ResetLevelProgress(level);
     } else if (!level.crashed) {
         float groundHeight = GetGroundHeight(world, plane.position.x, plane.position.z);
-        UpdatePlaneControls(plane, input, dt, groundHeight);
+        float slopeYaw = plane.yaw * DEG2RAD;
+        float sx = sinf(slopeYaw) * 2.0f, sz = cosf(slopeYaw) * 2.0f;
+        float slopeDeg = atan2f(GetGroundHeight(world, plane.position.x + sx, plane.position.z + sz) -
+                                    GetGroundHeight(world, plane.position.x - sx, plane.position.z - sz),
+                                4.0f) * RAD2DEG;
+        UpdatePlaneControls(plane, g.planeParams, input, dt, groundHeight, slopeDeg);
         UpdateLevel(level, plane.position);
 
         if (CheckObstacleHit(world, plane.position, 1.5f) || plane.landing == LandingResult::Hard) {
@@ -73,8 +79,8 @@ void UpdateFrame(Game &g) {
         }
     }
 
-    UpdatePlaneAnimation(g.planeAnim, plane, input, level.crashed, dt);
-    UpdateEngineAudio(engineAudio, plane.speed / kMaxSpeed);
+    UpdatePlaneAnimation(g.planeAnim, plane, input, level.crashed, g.planeParams.maxSpeed, dt);
+    UpdateEngineAudio(engineAudio, plane.speed / g.planeParams.maxSpeed);
 
     float yawRad = plane.yaw * DEG2RAD;
     Vector3 chaseOffset = {-12.0f * sinf(yawRad), 5.0f, -12.0f * cosf(yawRad)};
