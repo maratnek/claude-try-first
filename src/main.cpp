@@ -26,6 +26,10 @@ struct Game {
     InputState inputState;
 };
 
+bool HasLandedSafely(const PlaneState &plane) {
+    return plane.landing == LandingResult::Safe && !plane.airborne;
+}
+
 // Emscripten preloads assets into the virtual FS root; there is no meaningful application directory.
 const char *AssetPath(const char *relative) {
 #ifdef __EMSCRIPTEN__
@@ -48,18 +52,16 @@ void UpdateFrame(Game &g) {
 
     FlightInput input = ReadFlightInput(g.inputState);
 
-    if (level.crashed) {
-        if (input.restart) {
-            plane = planeStart;
-            g.planeAnim = PlaneAnim{};
-            ResetLevelProgress(level);
-        }
-    } else {
+    if (input.restart && (level.crashed || HasLandedSafely(plane))) {
+        plane = planeStart;
+        g.planeAnim = PlaneAnim{};
+        ResetLevelProgress(level);
+    } else if (!level.crashed) {
         float groundHeight = GetGroundHeight(world, plane.position.x, plane.position.z);
         UpdatePlaneControls(plane, input, dt, groundHeight);
         UpdateLevel(level, plane.position);
 
-        if (CheckObstacleHit(world, plane.position, 1.5f)) {
+        if (CheckObstacleHit(world, plane.position, 1.5f) || plane.landing == LandingResult::Hard) {
             level.crashed = true;
         }
     }
@@ -91,6 +93,11 @@ void UpdateFrame(Game &g) {
                          plane.speed, plane.position.y, plane.airborne ? "AIRBORNE" : "ON GROUND - throttle up, pull up to take off"),
              10, 35, 20, DARKGRAY);
     DrawLevelHUD(level);
+    if (plane.landing == LandingResult::Hard) {
+        DrawText("Hard landing!", 10, 150, 30, MAROON);
+    } else if (HasLandedSafely(plane)) {
+        DrawText("Landed safely - take off again", 10, 150, 30, DARKGREEN);
+    }
     DrawFPS(10, 60);
     DrawTouchOverlay(g.inputState, level.crashed);
     EndDrawing();
