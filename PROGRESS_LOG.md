@@ -12,6 +12,13 @@ owner can skim what happened without digging through git log. Format:
 - PR: <link or branch, if one was opened>
 ```
 
+## 2026-10-02 day run
+- Did: Roadmap A0. Wrote design-notes/release-plan.md: minimum scope for Web v0.1 (~day 10) and iOS v1.0 (submit ~day 21), cuts/deferrals, nine risks with mitigations, day-by-day order of A1-A5, and the owner's hand tasks (Apple Developer enrolment, itch.io page, device tests, promoting dev to main). Docs only, no code changed.
+- Why: Next unfinished Track A item (A-fix already merged); the plan sets the order for later runs.
+- Verified: code-reviewer checked every "actual code state" claim against src/, CMakeLists.txt and CI config: no blockers. Applied its nits (CI wording, explicit note of deviations from strict A order, run-frequency assumption). Docs only, so no build run. Base dev CI was green on the last merge (run 43).
+- Open: Owner should confirm the plan's assumptions (no Apple account yet, one iPhone 11-class device, a Mac with Xcode, day-21 target). Day estimates are rough. Next up: A1 graphics settings, plus a browser smoke test of the web build.
+- PR: see PR into dev from agents
+
 ## 2026-10-02 night run (3)
 - Did: Roadmap A-fix. Verified the propeller blur disc by rendering it (RPM forced to 1.0 in a temporary local change, reverted) from the chase camera under Xvfb. It was not culled, but at the asset's ~0.22 alpha it was a barely visible ghost circle. Added kBlurMinAlpha = 140 in plane.cpp so the disc's effective alpha is max(material alpha, 140) * fade; the RPM fade-in is unchanged and the .glb is untouched.
 - Why: First Track A item; owner reported seeing no disc at speed.
