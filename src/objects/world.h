@@ -6,7 +6,10 @@
 struct Obstacle {
     Vector3 position;
     float radius;
+    bool soft = false;
 };
+
+enum class ObstacleHit { None, Soft, Hard };
 
 struct WorldState {
     int gridSize = 64;
@@ -27,7 +30,13 @@ void DrawWorldObject(const WorldState &world, const GraphicsSettings &gfx);
 // Ground height (meters) at the given world X/Z, bilinear-free nearest sample.
 float GetGroundHeight(const WorldState &world, float worldX, float worldZ);
 
-// True if planePosition is within radius of any obstacle.
-bool CheckObstacleHit(const WorldState &world, Vector3 planePosition, float planeRadius);
+// Adds a hard obstacle (crashes the plane) centered height meters above the ground.
+void AddHardObstacle(WorldState &world, float x, float z, float height, float radius);
+
+// Adds a soft obstacle (bush/treetop canopy; damages the plane) centered height meters above the ground.
+void AddSoftObstacle(WorldState &world, float x, float z, float height, float radius);
+
+// Hard wins over soft when the plane overlaps both.
+ObstacleHit CheckObstacleHit(const WorldState &world, Vector3 planePosition, float planeRadius);
 
 void UnloadWorld(WorldState &world);

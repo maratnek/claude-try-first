@@ -46,6 +46,7 @@ FlightInput ReadFlightInput(InputState &state) {
     in.yaw = KeyAxis(KEY_A, KEY_D);
     in.throttle = KeyAxis(KEY_W, KEY_S);
     in.restart = IsKeyPressed(KEY_R);
+    in.exit = IsKeyPressed(KEY_Q);
 
     int count = GetTouchPointCount();
     if (count > 0) state.touchUsed = true;

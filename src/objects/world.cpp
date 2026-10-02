@@ -59,12 +59,27 @@ void GenerateWorld(WorldState &world) {
     world.obstacles.clear();
     float obstacleZs[] = {300.0f, 500.0f, 700.0f, 850.0f};
     float obstacleXs[] = {-8.0f, 10.0f, -6.0f, 9.0f};
-    for (int i = 0; i < 4; i++) {
-        Obstacle o;
-        o.position = (Vector3){obstacleXs[i], GetGroundHeight(world, obstacleXs[i], obstacleZs[i]) + 6.0f, obstacleZs[i]};
-        o.radius = 3.0f;
-        world.obstacles.push_back(o);
-    }
+    for (int i = 0; i < 4; i++) AddHardObstacle(world, obstacleXs[i], obstacleZs[i], 6.0f, 3.0f);
+
+    AddSoftObstacle(world, 9.0f, 120.0f, 0.8f, 1.6f);
+    AddSoftObstacle(world, -4.0f, 220.0f, 9.0f, 2.5f);
+    AddSoftObstacle(world, 6.0f, 420.0f, 14.0f, 2.5f);
+    AddSoftObstacle(world, -5.0f, 620.0f, 10.0f, 2.5f);
+}
+
+void AddHardObstacle(WorldState &world, float x, float z, float height, float radius) {
+    Obstacle o;
+    o.position = (Vector3){x, GetGroundHeight(world, x, z) + height, z};
+    o.radius = radius;
+    world.obstacles.push_back(o);
+}
+
+void AddSoftObstacle(WorldState &world, float x, float z, float height, float radius) {
+    Obstacle o;
+    o.position = (Vector3){x, GetGroundHeight(world, x, z) + height, z};
+    o.radius = radius;
+    o.soft = true;
+    world.obstacles.push_back(o);
 }
 
 void DrawWorldObject(const WorldState &world, const GraphicsSettings &gfx) {
@@ -84,8 +99,18 @@ void DrawWorldObject(const WorldState &world, const GraphicsSettings &gfx) {
     }
 
     for (const Obstacle &o : world.obstacles) {
-        DrawSphere(o.position, o.radius, (Color){180, 30, 30, 255});
-        if (gfx.obstacleWires) DrawSphereWires(o.position, o.radius, 8, 8, BLACK);
+        if (o.soft) {
+            float groundY = GetGroundHeight(world, o.position.x, o.position.z);
+            float trunkTop = o.position.y - o.radius * 0.6f;
+            if (trunkTop - groundY > 0.5f) {
+                DrawCylinder((Vector3){o.position.x, groundY, o.position.z}, 0.35f, 0.45f, trunkTop - groundY, 6, (Color){110, 75, 40, 255});
+            }
+            DrawSphere(o.position, o.radius, (Color){40, 120, 50, 255});
+            if (gfx.obstacleWires) DrawSphereWires(o.position, o.radius, 8, 8, (Color){20, 70, 30, 255});
+        } else {
+            DrawSphere(o.position, o.radius, (Color){180, 30, 30, 255});
+            if (gfx.obstacleWires) DrawSphereWires(o.position, o.radius, 8, 8, BLACK);
+        }
     }
 }
 
@@ -102,13 +127,15 @@ float GetGroundHeight(const WorldState &world, float worldX, float worldZ) {
     return world.heights[j * world.gridSize + i];
 }
 
-bool CheckObstacleHit(const WorldState &world, Vector3 planePosition, float planeRadius) {
+ObstacleHit CheckObstacleHit(const WorldState &world, Vector3 planePosition, float planeRadius) {
+    ObstacleHit result = ObstacleHit::None;
     for (const Obstacle &o : world.obstacles) {
         if (Vector3Distance(planePosition, o.position) < (o.radius + planeRadius)) {
-            return true;
+            if (!o.soft) return ObstacleHit::Hard;
+            result = ObstacleHit::Soft;
         }
     }
-    return false;
+    return result;
 }
 
 void UnloadWorld(WorldState &world) {

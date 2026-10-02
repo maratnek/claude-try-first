@@ -27,6 +27,7 @@ struct Game {
     LevelState level;
     InputState inputState;
     GraphicsSettings gfx;
+    bool quitRequested = false;
 };
 
 bool HasLandedSafely(const PlaneState &plane) {
@@ -74,13 +75,18 @@ void UpdateFrame(Game &g) {
         UpdatePlaneControls(plane, g.planeParams, input, dt, groundHeight, slopeDeg);
         UpdateLevel(level, plane.position);
 
-        if (CheckObstacleHit(world, plane.position, 1.5f) || plane.landing == LandingResult::Hard) {
+        ObstacleHit hit = CheckObstacleHit(world, plane.position, 1.5f);
+        if (hit == ObstacleHit::Soft) plane.damaged = true;
+        if (hit == ObstacleHit::Hard || plane.landing == LandingResult::Hard) {
             level.crashed = true;
         }
     }
+#ifndef SETTINGS_MOBILE_OR_WEB
+    if (level.crashed && input.exit) g.quitRequested = true;
+#endif
 
     UpdatePlaneAnimation(g.planeAnim, plane, input, level.crashed, g.planeParams.maxSpeed, dt);
-    UpdateEngineAudio(engineAudio, plane.speed / g.planeParams.maxSpeed);
+    UpdateEngineAudio(engineAudio, level.crashed ? 0.0f : plane.speed / g.planeParams.maxSpeed);
 
     float yawRad = plane.yaw * DEG2RAD;
     Vector3 chaseOffset = {-12.0f * sinf(yawRad), 5.0f, -12.0f * cosf(yawRad)};
@@ -107,7 +113,7 @@ void UpdateFrame(Game &g) {
     DrawText(TextFormat("Speed: %.1f m/s   Altitude: %.1f m   %s",
                          plane.speed, plane.position.y, plane.airborne ? "AIRBORNE" : "ON GROUND - throttle up, pull up to take off"),
              10, 35, 20, DARKGRAY);
-    DrawLevelHUD(level);
+    DrawLevelHUD(level, plane.damaged);
     if (plane.landing == LandingResult::Hard) {
         DrawText("Hard landing!", 10, 150, 30, MAROON);
     } else if (HasLandedSafely(plane)) {
@@ -115,6 +121,7 @@ void UpdateFrame(Game &g) {
     }
     DrawFPS(10, 60);
     DrawText(TextFormat("Graphics: %s (F1)", GraphicsPresetName(g.gfx)), 110, 60, 20, DARKGRAY);
+    if (level.crashed) DrawCrashScreen();
     DrawTouchOverlay(g.inputState, level.crashed);
     EndDrawing();
 }
@@ -154,7 +161,7 @@ int main() {
     emscripten_set_main_loop_arg(UpdateFrameCallback, &game, 0, 1);
 #else
     SetTargetFPS(60);
-    while (!WindowShouldClose()) {
+    while (!WindowShouldClose() && !game.quitRequested) {
         UpdateFrame(game);
     }
 

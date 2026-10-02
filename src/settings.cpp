@@ -1,13 +1,6 @@
 #include "settings.h"
 #include "raylib.h"
 #include <cstdlib>
-#ifdef __APPLE__
-#include <TargetConditionals.h>
-#endif
-
-#if defined(__EMSCRIPTEN__) || (defined(__APPLE__) && TARGET_OS_IPHONE)
-#define SETTINGS_MOBILE_OR_WEB 1
-#endif
 
 namespace {
 

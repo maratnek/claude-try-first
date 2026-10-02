@@ -1,5 +1,6 @@
 #include "level.h"
 #include "raymath.h"
+#include "settings.h"
 #include <cmath>
 
 void InitLevel(LevelState &level) {
@@ -53,7 +54,7 @@ void DrawCheckpoints(const LevelState &level) {
     }
 }
 
-void DrawLevelHUD(const LevelState &level) {
+void DrawLevelHUD(const LevelState &level, bool damaged) {
     int passedCount = 0;
     for (const Checkpoint &cp : level.checkpoints) {
         if (cp.passed) passedCount++;
@@ -64,11 +65,24 @@ void DrawLevelHUD(const LevelState &level) {
                          passedCount, (int)level.checkpoints.size()),
              10, 85, 20, DARKGRAY);
 
-    if (level.crashed) {
-        DrawText("CRASHED! Press R to restart", 10, 115, 30, MAROON);
-    } else if (level.completed) {
+    DrawText(damaged ? "Plane: DAMAGED" : "Plane: OK", 10, 180, 20, damaged ? MAROON : DARKGREEN);
+
+    if (level.completed && !level.crashed) {
         DrawText("LEVEL COMPLETE! 1 km reached", 10, 115, 30, DARKGREEN);
     }
+}
+
+void DrawCrashScreen() {
+    int w = GetScreenWidth(), h = GetScreenHeight();
+    DrawRectangle(0, 0, w, h, (Color){0, 0, 0, 150});
+    const char *title = "CRASHED";
+    DrawText(title, (w - MeasureText(title, 60)) / 2, h / 2 - 150, 60, RED);
+#ifdef SETTINGS_MOBILE_OR_WEB
+    const char *hint = "R: Restart";
+#else
+    const char *hint = "R: Restart     Esc / Q: Exit";
+#endif
+    DrawText(hint, (w - MeasureText(hint, 28)) / 2, h / 2 + 70, 28, WHITE);
 }
 
 void ResetLevelProgress(LevelState &level) {

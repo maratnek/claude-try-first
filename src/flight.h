@@ -41,6 +41,7 @@ struct PlaneState {
     float roll = 0.0f;   // degrees; positive = banking right
     float speed = 0.0f;  // forward speed, m/s
     bool airborne = false;
+    bool damaged = false;
     float airTime = 0.0f;  // seconds since liftoff
     LandingResult landing = LandingResult::None;
 };
