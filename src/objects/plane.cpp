@@ -12,6 +12,8 @@ constexpr float kRudderMaxDeg = 30.0f;
 constexpr float kIdleRpm = 0.2f;
 constexpr float kBlurStartRpm = 0.45f;
 constexpr float kBlurFullRpm = 0.75f;
+// The exported disc material is only ~0.22 alpha, which vanishes against terrain from the chase camera.
+constexpr unsigned char kBlurMinAlpha = 140;
 // The rigged export has only a hub and a blur disc (radius 0.87), no blades, so blades are drawn procedurally.
 constexpr Vector3 kBladeSize = {0.13f, 1.72f, 0.04f};
 constexpr Vector3 kBladeOffset = {0.0f, 0.0f, 0.02f};
@@ -270,7 +272,7 @@ void DrawPlaneObject(const PlaneModel &planeModel, const PlaneAnim &anim, Vector
                 Material &material = planeModel.model.materials[planeModel.model.meshMaterial[i]];
                 Color original = material.maps[MATERIAL_MAP_DIFFUSE].color;
                 if (blur) {
-                    material.maps[MATERIAL_MAP_DIFFUSE].color.a = (unsigned char)(original.a * blurAlpha);
+                    material.maps[MATERIAL_MAP_DIFFUSE].color.a = (unsigned char)(fmaxf(original.a, kBlurMinAlpha) * blurAlpha);
                     // The disc is a single-sided plane facing forward and raylib ignores glTF doubleSided,
                     // so it would be culled from the chase camera behind the plane.
                     rlDisableBackfaceCulling();
