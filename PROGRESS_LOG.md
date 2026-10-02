@@ -12,6 +12,13 @@ owner can skim what happened without digging through git log. Format:
 - PR: <link or branch, if one was opened>
 ```
 
+## 2026-10-02 night run (2)
+- Did: Added landing. Touching the 1 m ground floor after 1.5 s airborne is judged: safe (pitch within the liftoff pitch, speed <= 30 m/s, roll <= 15 deg) returns the plane to ground roll so it can take off again; anything else is a hard landing through the existing crash path. HUD shows the result; keyboard R restarts after a safe landing. Touch restart button still only appears after a crash.
+- Why: Landing was the next roadmap item after the mobile work I could do without a toolchain for iOS.
+- Verified: game-tester built all sources against raylib 5.5 by hand (not the Conan path) and ran 9 s under Xvfb: clean, model loaded, no warnings. code-reviewer found a real bug (safe-landing window overlapped the liftoff test, causing a bounce loop); one fix pass tied the pitch limit to kLiftoffPitch, re-review found no blockers. Flight feel NOT play-tested. CI status: see PR.
+- Open: Behaviour change needing an owner look: the old 1 m soft floor is now a landing check, so flying low (<1 m above ground, >30 m/s, or after 1.5 s of low climb-out) crashes. Landing needs pitch within 5 deg, so flared landings are hard landings. kLandingMaxSinkRate can never trigger (dead given the other limits). Landing does not affect level completion. Touch users get no restart button after a safe landing (they can just take off). iOS build still outstanding.
+- PR: see PR into dev from agents
+
 ## 2026-10-02 night run
 - Did: Mobile polish. HUD shows touch hints (instead of keyboard ones) once a touch has been seen; plane animation state resets on restart; propeller and wheels wind down after a crash; kMaxSpeed now defined once in flight.h (was duplicated in plane.cpp/flight.cpp/main.cpp). Physics unchanged.
 - Why: Closes small open items from the previous two runs; keyboard-only HUD text was misleading on mobile.
