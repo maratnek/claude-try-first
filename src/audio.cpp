@@ -59,6 +59,68 @@ void LoadEngineAudio(EngineAudio &audio) {
     wave.frameCount = crashFrames;
     wave.data = crash.data();
     audio.crashSound = LoadSoundFromWave(wave);
+
+    constexpr float kChimeSeconds = 0.7f;
+    constexpr float kChimeNoteFreqs[2] = {880.0f, 1318.5f};
+    constexpr float kChimeSecondNoteStart = 0.12f;
+    int chimeFrames = (int)(kSampleRate * kChimeSeconds);
+    std::vector<short> chime(chimeFrames);
+    for (int i = 0; i < chimeFrames; i++) {
+        float t = (float)i / (float)kSampleRate;
+        float value = 0.0f;
+        for (int n = 0; n < 2; n++) {
+            float nt = t - (n == 0 ? 0.0f : kChimeSecondNoteStart);
+            if (nt < 0.0f) continue;
+            float attack = Clamp(nt / 0.005f, 0.0f, 1.0f);
+            float tone = sinf(2.0f * PI * kChimeNoteFreqs[n] * nt) +
+                         0.25f * sinf(2.0f * PI * kChimeNoteFreqs[n] * 2.0f * nt);
+            value += 0.4f * tone * attack * expf(-nt * 6.0f);
+        }
+        chime[i] = (short)(Clamp(value, -1.0f, 1.0f) * 16000.0f);
+    }
+    wave.frameCount = chimeFrames;
+    wave.data = chime.data();
+    audio.chimeSound = LoadSoundFromWave(wave);
+
+    constexpr float kTouchdownSeconds = 0.35f;
+    int touchdownFrames = (int)(kSampleRate * kTouchdownSeconds);
+    std::vector<short> touchdown(touchdownFrames);
+    float touchdownPhase = 0.0f;
+    for (int i = 0; i < touchdownFrames; i++) {
+        float t = (float)i / (float)kSampleRate;
+        float freq = 45.0f + 55.0f * expf(-t * 25.0f);
+        touchdownPhase += 2.0f * PI * freq / (float)kSampleRate;
+        float value = sinf(touchdownPhase) * expf(-t * 12.0f);
+        touchdown[i] = (short)(Clamp(value, -1.0f, 1.0f) * 26000.0f);
+    }
+    wave.frameCount = touchdownFrames;
+    wave.data = touchdown.data();
+    audio.touchdownSound = LoadSoundFromWave(wave);
+
+    constexpr float kWindSeconds = 2.0f;
+    int windFrames = (int)(kSampleRate * kWindSeconds);
+    std::vector<short> wind(windFrames);
+    constexpr int kFade = 2000;
+    std::vector<float> raw(windFrames + kFade);
+    float windLowpass = 0.0f;
+    for (int i = 0; i < windFrames + kFade; i++) {
+        rng = rng * 1664525u + 1013904223u;
+        float noise = ((rng >> 8) & 0xFFFF) / 32768.0f - 1.0f;
+        windLowpass += 0.12f * (noise - windLowpass);
+        raw[i] = windLowpass;
+    }
+    // The head blends from the noise that follows the tail, so wind[N-1] -> wind[0] is continuous.
+    for (int i = 0; i < windFrames; i++) {
+        float v = raw[i];
+        if (i < kFade) {
+            float k = (float)i / (float)kFade;
+            v = raw[i] * k + raw[windFrames + i] * (1.0f - k);
+        }
+        wind[i] = (short)(Clamp(v * 2.5f, -1.0f, 1.0f) * 20000.0f);
+    }
+    wave.frameCount = windFrames;
+    wave.data = wind.data();
+    audio.windSound = LoadSoundFromWave(wave);
 }
 
 void StopEngineAudio(EngineAudio &audio) {
@@ -67,6 +129,36 @@ void StopEngineAudio(EngineAudio &audio) {
 
 void PlayCrashSound(EngineAudio &audio) {
     PlaySound(audio.crashSound);
+}
+
+void PlayChimeSound(EngineAudio &audio) {
+    PlaySound(audio.chimeSound);
+}
+
+void PlayTouchdownSound(EngineAudio &audio) {
+    PlaySound(audio.touchdownSound);
+}
+
+void StopWindAudio(EngineAudio &audio) {
+    if (IsSoundPlaying(audio.windSound)) StopSound(audio.windSound);
+}
+
+void StopOneShotSounds(EngineAudio &audio) {
+    StopSound(audio.chimeSound);
+    StopSound(audio.touchdownSound);
+    StopSound(audio.crashSound);
+}
+
+void UpdateWindAudio(EngineAudio &audio, float speedFraction, bool airborne) {
+    float t = Clamp(speedFraction, 0.0f, 1.0f);
+    float volume = t * t * 0.7f * (airborne ? 1.0f : 0.25f);
+    if (volume < 0.01f) {
+        StopWindAudio(audio);
+        return;
+    }
+    if (!IsSoundPlaying(audio.windSound)) PlaySound(audio.windSound);
+    SetSoundPitch(audio.windSound, 0.6f + t * 0.9f);
+    SetSoundVolume(audio.windSound, volume);
 }
 
 void UpdateEngineAudio(EngineAudio &audio, float speedFraction) {
@@ -82,4 +174,7 @@ void UpdateEngineAudio(EngineAudio &audio, float speedFraction) {
 void UnloadEngineAudio(EngineAudio &audio) {
     UnloadSound(audio.engineSound);
     UnloadSound(audio.crashSound);
+    UnloadSound(audio.chimeSound);
+    UnloadSound(audio.windSound);
+    UnloadSound(audio.touchdownSound);
 }

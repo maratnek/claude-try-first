@@ -8,14 +8,6 @@ constexpr int kStarsFinished = 1;
 constexpr int kStarsCleanOrAllCheckpoints = 2;
 constexpr int kStarsPerfect = 3;
 
-int CountPassed(const LevelState &level) {
-    int n = 0;
-    for (const Checkpoint &cp : level.checkpoints) {
-        if (cp.passed) n++;
-    }
-    return n;
-}
-
 void DrawStar(Vector2 c, float r, Color color) {
     Vector2 pts[10];
     for (int i = 0; i < 10; i++) {
@@ -28,6 +20,14 @@ void DrawStar(Vector2 c, float r, Color color) {
     }
 }
 }  // namespace
+
+int CountPassed(const LevelState &level) {
+    int n = 0;
+    for (const Checkpoint &cp : level.checkpoints) {
+        if (cp.passed) n++;
+    }
+    return n;
+}
 
 void InitLevel(LevelState &level) {
     Vector3 s = level.startPosition;

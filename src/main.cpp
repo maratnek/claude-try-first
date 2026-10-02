@@ -72,7 +72,8 @@ void UpdateFrame(Game &g) {
         plane = planeStart;
         g.planeAnim = PlaneAnim{};
         ResetLevelProgress(level);
-        StopSound(engineAudio.crashSound);
+        StopOneShotSounds(engineAudio);
+        StopWindAudio(engineAudio);
     };
 
     if (g.screen == Screen::Menu) {
@@ -96,8 +97,12 @@ void UpdateFrame(Game &g) {
         float slopeDeg = atan2f(GetGroundHeight(world, plane.position.x + sx, plane.position.z + sz) -
                                     GetGroundHeight(world, plane.position.x - sx, plane.position.z - sz),
                                 4.0f) * RAD2DEG;
+        bool wasAirborne = plane.airborne;
+        int passedBefore = CountPassed(level);
         UpdatePlaneControls(plane, g.planeParams, input, dt, groundHeight, slopeDeg);
         UpdateLevel(level, plane.position, dt);
+        if (CountPassed(level) > passedBefore) PlayChimeSound(engineAudio);
+        if (wasAirborne && !plane.airborne && plane.landing == LandingResult::Safe) PlayTouchdownSound(engineAudio);
 
         ObstacleHit hit = CheckObstacleHit(world, plane.position, 1.5f);
         if (hit == ObstacleHit::Soft) plane.damaged = true;
@@ -117,8 +122,10 @@ void UpdateFrame(Game &g) {
     UpdatePlaneAnimation(g.planeAnim, plane, input, level.crashed, g.planeParams.maxSpeed, dt);
     if (g.screen == Screen::Playing) {
         UpdateEngineAudio(engineAudio, plane.speed / g.planeParams.maxSpeed);
+        UpdateWindAudio(engineAudio, plane.speed / g.planeParams.maxSpeed, plane.airborne);
     } else {
         StopEngineAudio(engineAudio);
+        StopWindAudio(engineAudio);
     }
 
     float yawRad = plane.yaw * DEG2RAD;
