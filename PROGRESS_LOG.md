@@ -12,6 +12,13 @@ owner can skim what happened without digging through git log. Format:
 - PR: <link or branch, if one was opened>
 ```
 
+## 2026-10-02 night run (15)
+- Did: Design pass only, no code. New design-notes/a4-full-level-loop.md for A4 full: gate stops the clock, run ends on a landing and rollout (`gateCrossed && !plane.airborne && plane.speed <= 8`), post-gate hard landing goes to the Crashed screen, Gold/Silver/Bronze medals at 24/30/40 s (par about 19 s, derived from code constants, not flown), star checklist, best-time delta, and a 4-item implementation checklist. Also found an existing bug: touch Restart/Menu rects are hit-tested while invisible.
+- Why: Sprint is done; A4 full is next in Track order and it changes the rules of the level, so it needs an owner-visible design before code.
+- Verified: code-reviewer checked every cited constant, function and file against src/ and found one real contradiction (grounded gate crossing never finishing) plus several corrections; game-designer fixed them in one pass; second review found no blockers, and I applied its small nits. No build was run (doc-only change). CI status: see PR.
+- Open: Owner decisions are listed in the note (landing mandatory on web v0.1 or not, medal times, rollout rule, 844x390 results layout). Medal times and par are estimates; flight acceptance checks need a human pilot. Next run can implement checklist item 1 once the owner confirms, or default to the recommended landing-on setting.
+- PR: see PR into dev from agents
+
 ## 2026-10-02 night run (14)
 - Did: A5 full, remaining pieces. Procedural UI click (60 ms blip) on menu actions and on R/M/Q buttons of the crash and results screens; procedural damage hit played once when a soft obstacle first damages the plane; master volume via SetMasterVolume, `-`/`=` keys in 10% steps (clamped 0..1), "Volume: N%" shown top-right for 1.5 s. ARCHITECTURE.md audio row updated.
 - Why: Sprint is done, so back to the Track order; A5 was the smallest unfinished piece (A4 full needs a design pass and is larger).
