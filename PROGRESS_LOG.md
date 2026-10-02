@@ -12,6 +12,13 @@ owner can skim what happened without digging through git log. Format:
 - PR: <link or branch, if one was opened>
 ```
 
+## 2026-10-02 night run (6)
+- Did: Roadmap A3 (v1). Soft obstacles (one bush, three treetops) via AddSoftObstacle: a hit sets plane.damaged and flight continues; hard obstacles and hard landings still crash. HUD shows "Plane: OK/DAMAGED"; R restart clears it. Crash now freezes the sim and shows a crash screen (dim overlay, "R: Restart", "Esc / Q: Exit" on desktop only). Engine sound is silenced while crashed. SETTINGS_MOBILE_OR_WEB moved to settings.h so level.cpp/main.cpp share it. Landing thresholds unchanged.
+- Why: Next unfinished Track A item after A2. Breakup animation and smoke are Track B.
+- Verified: game-developer and game-tester hand-built raylib 5.5 + all sources and ran under Xvfb (clean, only sandbox audio-device warnings). code-reviewer read the diff: no blockers; I applied three nits (engine audio at crash, bush moved from x=3 to x=9 so the takeoff roll cannot clip it, blank line) and rebuilt/ran 6 s clean. Soft/hard hit behaviour, crash screen and Q exit were checked by code reading only, NOT exercised in a run. Conan/CMake, Emscripten and iOS NOT run locally; CI status: see PR.
+- Open: Owner should fly into a bush/treetop and a red sphere to check feel and placement. Touch has no Exit button, and the touch Restart button may overlap the "R: Restart" hint. Esc closes the game anywhere on desktop (raylib default). "Damaged" is not in any results text yet (A4 must add it). Damage has no gameplay effect beyond the HUD flag. Crash screen text offsets untested on small screens.
+- PR: see PR into dev from agents
+
 ## 2026-10-02 night run (5)
 - Did: Roadmap A2. New PlaneParams struct + BiplaneParams() in flight.h holds all flight constants (rates, accel, drag, stall speed, liftoff, landing limits, wheel height); kMaxSpeed removed (main.cpp/plane.cpp use params.maxSpeed). Pitch/roll/yaw authority scales with airspeed squared (full at 25 m/s), so a standing plane does not rotate from input. Ground: roll input ignored, rudder steers at taxi speed, pitch settles to the terrain slope (clamped to half the liftoff pitch so slope alone never lifts off). Drag decays speed without throttle (about 2 m/s per second at 40 m/s), climbing costs and diving gains speed. Stall below 14 m/s drops the nose (floored at -20 deg) with reduced authority; landing window widened to 25 deg nose-down so a gentle stalled touchdown is Safe.
 - Why: Next unfinished Track A item; later planes need different physics from per-plane params.

@@ -28,7 +28,10 @@ void UpdateLevel(LevelState &level, Vector3 planePosition);
 
 void DrawFinishGate(const LevelState &level);
 void DrawCheckpoints(const LevelState &level);
-void DrawLevelHUD(const LevelState &level);
+void DrawLevelHUD(const LevelState &level, bool damaged);
+
+// Dimmed overlay with the Restart/Exit prompts; Exit is omitted on Web/iOS. The touch Restart button is drawn by DrawTouchOverlay.
+void DrawCrashScreen();
 
 // Clears progress (distance, completed, crashed, passed checkpoints) so the
 // level can be retried after a crash. Keeps the loaded model.

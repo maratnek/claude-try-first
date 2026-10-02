@@ -10,6 +10,7 @@ struct FlightInput {
     float yaw = 0.0f;
     float throttle = 0.0f;
     bool restart = false;
+    bool exit = false;
 };
 
 struct InputState {

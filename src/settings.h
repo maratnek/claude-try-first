@@ -1,4 +1,11 @@
 #pragma once
+#ifdef __APPLE__
+#include <TargetConditionals.h>
+#endif
+
+#if defined(__EMSCRIPTEN__) || (defined(__APPLE__) && TARGET_OS_IPHONE)
+#define SETTINGS_MOBILE_OR_WEB 1
+#endif
 
 enum class GraphicsPreset { Low, Medium, High };
 
