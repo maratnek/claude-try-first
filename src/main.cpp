@@ -16,7 +16,7 @@
 #endif
 
 namespace {
-enum class Screen { Menu, Playing, Crashed };
+enum class Screen { Menu, Playing, Crashed, Finished };
 
 struct Game {
     Screen screen = Screen::Menu;
@@ -82,11 +82,11 @@ void UpdateFrame(Game &g) {
         } else if (menuAction == MenuAction::Exit) {
             g.quitRequested = true;
         }
-    } else if (g.screen == Screen::Crashed && input.menu) {
+    } else if ((g.screen == Screen::Crashed || g.screen == Screen::Finished) && input.menu) {
         resetRun();
         EnterMenu(g.menu);
         g.screen = Screen::Menu;
-    } else if (input.restart && (level.crashed || HasLandedSafely(plane))) {
+    } else if (input.restart && (level.crashed || g.screen == Screen::Finished || HasLandedSafely(plane))) {
         resetRun();
         g.screen = Screen::Playing;
     } else if (g.screen == Screen::Playing) {
@@ -97,7 +97,7 @@ void UpdateFrame(Game &g) {
                                     GetGroundHeight(world, plane.position.x - sx, plane.position.z - sz),
                                 4.0f) * RAD2DEG;
         UpdatePlaneControls(plane, g.planeParams, input, dt, groundHeight, slopeDeg);
-        UpdateLevel(level, plane.position);
+        UpdateLevel(level, plane.position, dt);
 
         ObstacleHit hit = CheckObstacleHit(world, plane.position, 1.5f);
         if (hit == ObstacleHit::Soft) plane.damaged = true;
@@ -105,6 +105,9 @@ void UpdateFrame(Game &g) {
             level.crashed = true;
             g.screen = Screen::Crashed;
             PlayCrashSound(engineAudio);
+        } else if (level.completed) {
+            RecordFinish(level);
+            g.screen = Screen::Finished;
         }
     }
 #ifndef SETTINGS_MOBILE_OR_WEB
@@ -158,7 +161,8 @@ void UpdateFrame(Game &g) {
     DrawFPS(10, 60);
     DrawText(TextFormat("Graphics: %s (F1)", GraphicsPresetName(g.gfx)), 110, 60, 20, DARKGRAY);
     if (level.crashed) DrawCrashScreen();
-    DrawTouchOverlay(g.inputState, level.crashed);
+    if (g.screen == Screen::Finished) DrawResultsScreen(level, plane.damaged);
+    DrawTouchOverlay(g.inputState, level.crashed || g.screen == Screen::Finished);
     EndDrawing();
 }
 

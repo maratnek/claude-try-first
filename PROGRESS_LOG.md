@@ -12,6 +12,13 @@ owner can skim what happened without digging through git log. Format:
 - PR: <link or branch, if one was opened>
 ```
 
+## 2026-10-02 day run
+- Did: Weekend sprint item 2 (A4-min results screen). New Screen::Finished: reaching 1000 m freezes the run and shows time, checkpoints x/total, CLEAN/DAMAGED, 1-3 stars (3 = clean and all checkpoints, 2 = either, 1 = finished), session-only best time with NEW BEST, and R Restart / M Menu (touch buttons reuse the crash ones). Timer starts when Play is pressed, so takeoff counts. Removed the old in-HUD "LEVEL COMPLETE" text that showed through the overlay and moved the stats block up so it no longer sits under the touch Restart button. ARCHITECTURE.md updated.
+- Why: Next unchecked item of the Web v0.1 sprint; players need an end-of-level result.
+- Verified: game-tester built a scratch copy (hand-built raylib 5.5, Conan removed) and flew the real 1 km under Xvfb with real keys: Finished screen appears, R restarts, M returns to menu, best time kept across restart and menu, slower run does not overwrite it, crash flow unchanged. code-reviewer read the diff: no blockers; I applied the overlap and duplicate-text nits and rebuilt (compiles). CI status: see PR.
+- Open: 3-star case, damaged finish and checkpoint count above 0 never seen. Touch buttons on the results screen untested. Emscripten build only syntax-checked for level.cpp. Propeller still spins on the frozen Finished plane (cosmetic); input.cpp parameter `crashed` now also means finished (rename later). Timer is unclamped on a backgrounded web tab. Next: sprint item 3, A5-min sounds.
+- PR: see PR into dev from agents
+
 ## 2026-10-02 night run (8)
 - Did: Weekend sprint item 1 (Web build runs in a browser). Built the web target with a fresh emsdk (emcc 6.0.10), served it and loaded it in headless Chromium. It loads: menu, biplane model, terrain, HUD and gameplay all render (about 31-38 FPS under software GL). Found one real bug: miniaudio threw `Cannot read properties of undefined (reading 'buffer')` on every audio callback because newer emsdk no longer exports Module.HEAPF32, so the web build would have had no sound. Fix: one link flag, `-sEXPORTED_RUNTIME_METHODS=HEAPF32`, in the Emscripten branch of CMakeLists.txt.
 - Why: First unchecked item of the weekend Web v0.1 sprint; the web build had only ever been compiled by CI. CI's setup-emsdk is unpinned (latest), so it would hit the same thing.

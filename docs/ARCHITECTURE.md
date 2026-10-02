@@ -12,7 +12,7 @@ flowchart TD
     main["main.cpp<br/>игровой цикл, экраны, камера"]
     input["input.cpp<br/>клавиатура + тач → FlightInput"]
     flight["flight.cpp<br/>физика полёта, PlaneParams"]
-    level["level.cpp<br/>чекпоинты, финиш, HUD, экран краха"]
+    level["level.cpp<br/>чекпоинты, финиш, HUD, экраны краха и результатов"]
     world["objects/world.cpp<br/>рельеф, препятствия"]
     plane["objects/plane.cpp<br/>модель и анимация самолёта"]
     glb["objects/glb_nodes.cpp<br/>дерево узлов GLB"]
@@ -39,7 +39,7 @@ flowchart TD
 | `src/main.cpp` | Цикл кадра, переключение экранов, камера, порядок отрисовки, загрузка ассетов | `Game`, `Screen`, `UpdateFrame`, `AssetPath` |
 | `src/input.cpp` | Ввод с клавиатуры и тача в единую структуру; экранный стик и кнопки | `FlightInput`, `ReadFlightInput`, `DrawTouchOverlay` |
 | `src/flight.cpp` | Физика: управляемость зависит от скорости, сопротивление, сваливание, разбег, взлёт, посадка | `PlaneParams`, `BiplaneParams`, `PlaneState`, `UpdatePlaneControls` |
-| `src/level.cpp` | Цель уровня (1 км), чекпоинты-кольца, финишные ворота, HUD, экран краха | `LevelState`, `UpdateLevel`, `DrawLevelHUD`, `DrawCrashScreen` |
+| `src/level.cpp` | Цель уровня (1 км), чекпоинты-кольца, финишные ворота, HUD, экраны краха и результатов | `LevelState`, `UpdateLevel`, `DrawLevelHUD`, `DrawCrashScreen`, `DrawResultsScreen` |
 | `src/objects/world.cpp` | Heightmap-рельеф с ровным коридором, жёсткие и мягкие препятствия, высота земли | `WorldState`, `GetGroundHeight`, `CheckObstacleHit` |
 | `src/objects/plane.cpp` | Загрузка биплана, анимация пропеллера, рулей, элеронов, колёс | `PlaneModel`, `PlaneAnim`, `UpdatePlaneAnimation`, `DrawPlaneObject` |
 | `src/objects/glb_nodes.cpp` | Чтение дерева узлов GLB (raylib его теряет) | `GlbNode`, `Mat4`, `LoadGlbNodes` |
@@ -56,11 +56,17 @@ stateDiagram-v2
     Playing --> Crashed: удар о препятствие / жёсткая посадка
     Crashed --> Playing: R — заново
     Crashed --> Menu: M — в меню
+    Playing --> Finished: пройдены 1000 м
+    Finished --> Playing: R — заново
+    Finished --> Menu: M — в меню
     Menu --> [*]: Выход (только desktop)
 ```
 
 Пока игра не в экране `Playing`, двигатель молчит; при входе в `Crashed`
-один раз звучит удар.
+один раз звучит удар. На экране `Finished` физика заморожена, показываются
+время, чекпоинты, состояние самолёта и 1–3 звезды (3 = без повреждений и все
+чекпоинты, 2 = одно из двух, 1 = просто финиш); лучшее время хранится только
+в памяти на время сессии.
 
 ## Кадр
 
