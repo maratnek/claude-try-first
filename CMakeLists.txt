@@ -42,6 +42,7 @@ target_link_libraries(FlightGame PRIVATE raylib)
 
 if(EMSCRIPTEN)
     set(CMAKE_EXECUTABLE_SUFFIX ".html")
+    set_target_properties(FlightGame PROPERTIES OUTPUT_NAME index)
     target_link_options(FlightGame PRIVATE
         -sUSE_GLFW=3
         -sALLOW_MEMORY_GROWTH=1
