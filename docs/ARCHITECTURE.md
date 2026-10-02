@@ -43,7 +43,7 @@ flowchart TD
 | `src/objects/world.cpp` | Heightmap-рельеф с ровным коридором, жёсткие и мягкие препятствия, высота земли | `WorldState`, `GetGroundHeight`, `CheckObstacleHit` |
 | `src/objects/plane.cpp` | Загрузка биплана, анимация пропеллера, рулей, элеронов, колёс | `PlaneModel`, `PlaneAnim`, `UpdatePlaneAnimation`, `DrawPlaneObject` |
 | `src/objects/glb_nodes.cpp` | Чтение дерева узлов GLB (raylib его теряет) | `GlbNode`, `Mat4`, `LoadGlbNodes` |
-| `src/audio.cpp` | Синтез звука в коде: гул двигателя, удар при краше, звон чекпоинта, ветер (зависит от скорости), глухой удар при мягкой посадке | `EngineAudio`, `UpdateEngineAudio`, `UpdateWindAudio`, `PlayCrashSound`, `PlayChimeSound`, `PlayTouchdownSound` |
+| `src/audio.cpp` | Синтез звука в коде: гул двигателя, удар при краше, звон чекпоинта, ветер (зависит от скорости), глухой удар при мягкой посадке, щелчок кнопки UI (не обрывается сбросом `StopOneShotSounds`), глухой стук при мягком ударе о препятствие, общая громкость (`-`/`=`, шаг 0.1) | `EngineAudio`, `UpdateEngineAudio`, `UpdateWindAudio`, `PlayCrashSound`, `PlayChimeSound`, `PlayTouchdownSound`, `PlayClickSound`, `PlayDamageSound`, `SetMasterVolumeClamped` |
 | `src/menu.cpp` | Главное меню из списка пунктов; клавиатура, мышь, тач | `MenuState`, `UpdateMenu`, `DrawMenu` |
 | `src/settings.cpp` | Пресеты Low/Medium/High и переключатели необязательных эффектов | `GraphicsSettings`, `InitGraphicsSettings` |
 

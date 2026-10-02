@@ -33,6 +33,8 @@ struct Game {
     InputState inputState;
     GraphicsSettings gfx;
     bool quitRequested = false;
+    float masterVolume = 1.0f;
+    float volumeShownSeconds = 0.0f;
 };
 
 bool HasLandedSafely(const PlaneState &plane) {
@@ -64,9 +66,22 @@ void UpdateFrame(Game &g) {
         SaveGraphicsSettings(g.gfx);
     }
 
+    if (IsKeyPressed(KEY_MINUS) || IsKeyPressed(KEY_EQUAL)) {
+        g.masterVolume = SetMasterVolumeClamped(g.masterVolume + (IsKeyPressed(KEY_EQUAL) ? 0.1f : -0.1f));
+        g.volumeShownSeconds = 1.5f;
+    }
+    g.volumeShownSeconds = fmaxf(g.volumeShownSeconds - dt, 0.0f);
+
     FlightInput input = ReadFlightInput(g.inputState);
     MenuAction menuAction = MenuAction::None;
     if (g.screen == Screen::Menu) menuAction = UpdateMenu(g.menu);
+
+    bool crashOrResultsButton = (g.screen == Screen::Crashed || g.screen == Screen::Finished) &&
+                                (input.menu || input.restart);
+#ifndef SETTINGS_MOBILE_OR_WEB
+    if (level.crashed && input.exit) crashOrResultsButton = true;
+#endif
+    if (menuAction != MenuAction::None || crashOrResultsButton) PlayClickSound(engineAudio);
 
     auto resetRun = [&]() {
         plane = planeStart;
@@ -105,7 +120,10 @@ void UpdateFrame(Game &g) {
         if (wasAirborne && !plane.airborne && plane.landing == LandingResult::Safe) PlayTouchdownSound(engineAudio);
 
         ObstacleHit hit = CheckObstacleHit(world, plane.position, 1.5f);
-        if (hit == ObstacleHit::Soft) plane.damaged = true;
+        if (hit == ObstacleHit::Soft) {
+            if (!plane.damaged) PlayDamageSound(engineAudio);
+            plane.damaged = true;
+        }
         if (hit == ObstacleHit::Hard || plane.landing == LandingResult::Hard) {
             level.crashed = true;
             g.screen = Screen::Crashed;
@@ -147,6 +165,11 @@ void UpdateFrame(Game &g) {
         DrawCharacterObject((Vector3){3.0f, GetGroundHeight(world, 3.0f, 3.0f), 3.0f}, -20.0f, ORANGE);
     }
     EndMode3D();
+
+    if (g.volumeShownSeconds > 0.0f) {
+        const char *volumeText = TextFormat("Volume: %d%%", (int)roundf(g.masterVolume * 100.0f));
+        DrawText(volumeText, GetScreenWidth() - MeasureText(volumeText, 20) - 10, 85, 20, DARKGRAY);
+    }
 
     if (g.screen == Screen::Menu) {
         DrawMenu(g.menu);

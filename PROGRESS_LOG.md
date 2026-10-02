@@ -12,6 +12,13 @@ owner can skim what happened without digging through git log. Format:
 - PR: <link or branch, if one was opened>
 ```
 
+## 2026-10-02 night run (14)
+- Did: A5 full, remaining pieces. Procedural UI click (60 ms blip) on menu actions and on R/M/Q buttons of the crash and results screens; procedural damage hit played once when a soft obstacle first damages the plane; master volume via SetMasterVolume, `-`/`=` keys in 10% steps (clamped 0..1), "Volume: N%" shown top-right for 1.5 s. ARCHITECTURE.md audio row updated.
+- Why: Sprint is done, so back to the Track order; A5 was the smallest unfinished piece (A4 full needs a design pass and is larger).
+- Verified: game-tester hand-built raylib 5.5, compiled all sources with -std=gnu++23 with no warnings, and ran about 68 s under Xvfb with injected keys (menu, play, volume keys hitting both clamps, restart, menu): alive, no errors beyond no-audio-device warnings. code-reviewer found one real blocker: the click was started and then cut in the same frame by StopOneShotSounds inside resetRun, so it was silent on Play, M and R. One fix pass: the click is no longer stopped by StopOneShotSounds; also fixed the Q click firing where Q does not quit, right-aligned the volume text, clamped the timer, removed added what-comments. The tester re-ran on the fixed tree: pass. CI status: see PR.
+- Open: No sound has been heard (no audio device here); owner should check click, damage hit and volume steps by ear. Volume text placement not screenshotted. Volume has no touch control and is not persisted. Web build not run locally (no emsdk this run); CI only. Not done: crash screen "Exit" click on web, A4 full (landing-to-results flow, stars tuning) and then Track B.
+- PR: see PR into dev from agents
+
 ## 2026-10-02 night run (13)
 - Did: Weekend sprint item 6 (blob shadow). New DrawBlobShadow in src/objects/world.cpp: a dark translucent ellipse (2.2 m x 3.0 m, yawed with the plane, not plane-silhouette shaped) on the terrain under the plane, drawn with rlgl and no depth write after the world and before the plane. It grows 1x to 2.5x and fades out over 0-60 m altitude and is not drawn above 60 m. Ground height is the max of five nearest-cell samples to avoid sinking under the interpolated mesh. New GraphicsSettings::blobShadow flag, on in every preset including Low (about 20 triangles, and the altitude cue matters most on web/touch). ARCHITECTURE.md updated.
 - Why: Last unchecked item of the Web v0.1 sprint; helps judge altitude and landing on touch.
