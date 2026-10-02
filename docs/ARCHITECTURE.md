@@ -113,7 +113,7 @@ stateDiagram-v2
 | Web | `emcmake cmake -S . -B build-web -DCMAKE_BUILD_TYPE=Release && cmake --build build-web` | raylib 5.5 через CMake FetchContent; Conan при Emscripten отключён |
 | iOS | ещё нет | — |
 
-CI (`.github/workflows/build.yml`) собирает обе цели на каждый push и PR.
+CI (`.github/workflows/build.yml`) собирает обе цели на каждый push и PR. Web-job дополнительно выкладывает артефакт `FlightGame-web` (`index.html`, `index.js`, `index.wasm`, `index.data` в корне архива) — его можно сразу загружать на itch.io.
 
 ## Производительность
 

@@ -12,6 +12,13 @@ owner can skim what happened without digging through git log. Format:
 - PR: <link or branch, if one was opened>
 ```
 
+## 2026-10-02 night run (12)
+- Did: Weekend sprint item 5 (itch.io package). The web CMake target now has OUTPUT_NAME index (Emscripten branch only), so the build emits index.html/js/wasm/data. The CI `web` job copies those four files into web-dist/ and uploads them as the `FlightGame-web` artifact (GitHub zips it, index.html at the zip root, if-no-files-found: error). ARCHITECTURE.md CI section updated.
+- Why: Next unchecked item of the Web v0.1 sprint; the owner needs a ready-to-upload itch.io zip.
+- Verified: game-developer could not build web (no emsdk); game-tester installed emsdk, built the web target (index.html 2.7 KB, index.js 181 KB, index.wasm 501 KB, index.data 195 KB), ran the workflow's packaging script literally, confirmed index.html at zip root with matching js/wasm/data names, and loaded it in headless Chromium: all 200s, no page errors. code-reviewer read the diff: no blockers (nits: hard-coded file list, README does not mention the artifact). CI status: see PR.
+- Open: upload-artifact step itself only proven by CI. Not uploaded to itch.io; itch size limits and the 134 MB INITIAL_MEMORY not checked. Flight feel/input/audio in the browser not exercised. Next: sprint item 6, blob shadow under the plane.
+- PR: see PR into dev from agents
+
 ## 2026-10-02 night run (11)
 - Did: Weekend sprint item 4b (C++23). CMAKE_CXX_STANDARD 17 -> 23; README.md and docs/ARCHITECTURE.md updated. No source changes were needed. cmake/conan_provider.cmake derives compiler.cppstd from CMAKE_CXX_STANDARD, so the generated Conan profile now says gnu23 (valid for apple-clang 15); the Conan-Center raylib recipe removes compiler.cppstd in configure(), so raylib's package id should not change.
 - Why: Owner asked to leave C++17; 23 chosen because every toolchain we could test accepts it (clang 18, g++ 13, emcc 6.0.10), so there was no reason to stop at 20.
