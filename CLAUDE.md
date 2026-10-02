@@ -70,6 +70,43 @@ so the game runs regardless of the launcher's working directory.
    into the blur disc with RPM; an asset request for a bladed model is in
    `asset-requests/pending/`.
 9. Landing: safe touchdown returns to ground roll, hard landing crashes.
+10. A1 graphics presets, A2 per-plane physics params + airspeed-scaled
+    controls/drag/stall/ground handling, A3 soft obstacles + damage +
+    crash screen, A3b main menu (Play/Exit) + procedural crash sound.
+
+## Weekend sprint: Web v0.1 on itch.io (overrides the Track order below)
+
+The owner plans to put a first Web build in front of 5–10 real players
+this weekend (Sat 3 – Sun 4 Oct 2026), before any App Store work. Until
+that ships, pick the NEXT unchecked item from this list, in this order,
+instead of following Track A/B/C. Each item = one run.
+
+1. **Web build actually runs in a browser.** It has never been opened —
+   CI only compiles it. Verify it loads (model, terrain, menu, audio after
+   the first tap) with a headless browser if your sandbox has one
+   (e.g. build with emsdk, serve the output, load it in headless
+   Chromium/Playwright, screenshot, check the console for errors); fix
+   what breaks. If you cannot run a browser, say so plainly — the
+   interactive session will test it on the owner's machine.
+2. **A4-min results screen:** time, checkpoints hit, damaged or clean, 1–3
+   stars, best time kept in memory for the session; shown at the finish
+   gate with Restart and Menu.
+3. **A5-min sounds:** checkpoint chime, wind rising with speed, touchdown
+   thump. Procedural, no files.
+4. **Web page shell:** a custom shell instead of raylib's minshell —
+   no page scroll/zoom/pull-to-refresh on phones (`touch-action: none`),
+   canvas fills the window, fullscreen button, landscape hint on portrait
+   phones.
+5. **itch.io package:** a CI job that uploads a zip artifact with
+   `index.html` at the zip root (plus the .js/.wasm/.data files), built
+   from the web target.
+6. **Blob shadow under the plane** (B1's shadow only, switchable per A1).
+
+The release ships the **original biplane** (`assets/models/biplane-1920.glb`)
+— the owner tried the procedural `war-1` aircraft and prefers the
+biplane. The aircraft generator stays on the `design` branch and is not
+merged into `dev` until the owner says so. After the sprint, return to
+the Track order below (A4 full, A5 full, then Track B).
 
 ## Roadmap
 
