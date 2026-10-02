@@ -140,6 +140,7 @@ void UpdateFrame(Game &g) {
     DrawWorldObject(world, g.gfx);
     DrawFinishGate(level);
     DrawCheckpoints(level);
+    if (g.gfx.blobShadow) DrawBlobShadow(world, plane.position, plane.yaw);
     DrawPlaneObject(planeModel, g.planeAnim, plane.position, plane.yaw, plane.pitch, plane.roll, g.gfx.propBlur);
     if (g.gfx.characters) {
         DrawCharacterObject((Vector3){-3.0f, GetGroundHeight(world, -3.0f, 3.0f), 3.0f}, 20.0f, BLUE);

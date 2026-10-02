@@ -15,6 +15,7 @@ struct GraphicsSettings {
     bool obstacleWires = true;
     bool characters = true;
     bool propBlur = true;
+    bool blobShadow = true;
 };
 
 void ApplyGraphicsPreset(GraphicsSettings &settings, GraphicsPreset preset);

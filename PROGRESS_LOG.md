@@ -12,6 +12,13 @@ owner can skim what happened without digging through git log. Format:
 - PR: <link or branch, if one was opened>
 ```
 
+## 2026-10-02 night run (13)
+- Did: Weekend sprint item 6 (blob shadow). New DrawBlobShadow in src/objects/world.cpp: a dark translucent ellipse (2.2 m x 3.0 m, yawed with the plane, not plane-silhouette shaped) on the terrain under the plane, drawn with rlgl and no depth write after the world and before the plane. It grows 1x to 2.5x and fades out over 0-60 m altitude and is not drawn above 60 m. Ground height is the max of five nearest-cell samples to avoid sinking under the interpolated mesh. New GraphicsSettings::blobShadow flag, on in every preset including Low (about 20 triangles, and the altitude cue matters most on web/touch). ARCHITECTURE.md updated.
+- Why: Last unchecked item of the Web v0.1 sprint; helps judge altitude and landing on touch.
+- Verified: game-developer only got a syntax check. game-tester built raylib 5.5 from source, compiled all sources with -std=gnu++23, ran under Xvfb with injected keys: starts, takeoff, 53-60 FPS, no errors beyond no-audio warnings; screenshots show the shadow on the runway and behind the menu without covering the plane, HUD or buttons. code-reviewer read the diff: no blockers; rlgl draw order, depth-mask restore, batch flush and Emscripten-safety judged correct. CI status: see PR.
+- Open: Shadow not seen at 5-55 m (fade/grow untested visually), nor over hills or on landing; edges may clip on steep slopes (flat disc). The flag is on in every preset, so F1 does not toggle it; owner may want Low off. Emscripten/Conan paths proven only by CI. Sprint items 1-6 are now all done; next run should return to the Track order (A4 full, A5 full).
+- PR: see PR into dev from agents
+
 ## 2026-10-02 night run (12)
 - Did: Weekend sprint item 5 (itch.io package). The web CMake target now has OUTPUT_NAME index (Emscripten branch only), so the build emits index.html/js/wasm/data. The CI `web` job copies those four files into web-dist/ and uploads them as the `FlightGame-web` artifact (GitHub zips it, index.html at the zip root, if-no-files-found: error). ARCHITECTURE.md CI section updated.
 - Why: Next unchecked item of the Web v0.1 sprint; the owner needs a ready-to-upload itch.io zip.
