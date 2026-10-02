@@ -12,6 +12,13 @@ owner can skim what happened without digging through git log. Format:
 - PR: <link or branch, if one was opened>
 ```
 
+## 2026-10-02 night run (3)
+- Did: Roadmap A-fix. Verified the propeller blur disc by rendering it (RPM forced to 1.0 in a temporary local change, reverted) from the chase camera under Xvfb. It was not culled, but at the asset's ~0.22 alpha it was a barely visible ghost circle. Added kBlurMinAlpha = 140 in plane.cpp so the disc's effective alpha is max(material alpha, 140) * fade; the RPM fade-in is unchanged and the .glb is untouched.
+- Why: First Track A item; owner reported seeing no disc at speed.
+- Verified: game-developer hand-built raylib 5.5 + sources (not the Conan path), screenshots before/after show the disc clearly visible after the change. code-reviewer read the diff: no blockers (alpha restored after draw, no overflow, <cmath> included). CI status: see PR.
+- Open: Needs a human look at actual flight speed (screenshot was at 0 m/s with RPM forced) and whether alpha 140 (~55%) is the right strength, over sky and terrain. Next up: A0 release plan, then A1 graphics settings.
+- PR: see PR into dev from agents
+
 ## 2026-10-02 night run (2)
 - Did: Added landing. Touching the 1 m ground floor after 1.5 s airborne is judged: safe (pitch within the liftoff pitch, speed <= 30 m/s, roll <= 15 deg) returns the plane to ground roll so it can take off again; anything else is a hard landing through the existing crash path. HUD shows the result; keyboard R restarts after a safe landing. Touch restart button still only appears after a crash.
 - Why: Landing was the next roadmap item after the mobile work I could do without a toolchain for iOS.
