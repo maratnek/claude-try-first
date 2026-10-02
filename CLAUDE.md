@@ -97,6 +97,17 @@ instead of following Track A/B/C. Each item = one run.
    no page scroll/zoom/pull-to-refresh on phones (`touch-action: none`),
    canvas fills the window, fullscreen button, landscape hint on portrait
    phones.
+4b. **C++20 / C++23 (owner-requested, do next as its own task/PR).** Move
+   the project off C++17: set `CMAKE_CXX_STANDARD` to 23 if every
+   toolchain we ship with accepts it — macOS Apple clang locally, CI's
+   macos-14 runner, and the Emscripten web build — otherwise 20, and say
+   which and why in the PR. Check that the Conan profile/cmake-conan
+   still resolve raylib with the new standard (raylib is C, so a
+   `compiler.cppstd` change must not trigger a rebuild failure). All three
+   builds must pass in CI. Do not rewrite existing code into new-standard
+   idioms in this PR — the standard bump alone, plus only the fixes needed
+   to compile cleanly; using new features is for later tasks. Update
+   README.md and docs/ARCHITECTURE.md (they state C++17).
 5. **itch.io package:** a CI job that uploads a zip artifact with
    `index.html` at the zip root (plus the .js/.wasm/.data files), built
    from the web target.
