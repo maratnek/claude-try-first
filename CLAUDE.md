@@ -123,6 +123,21 @@ iPhones (iPhone 11 / A13 class). Gameplay-critical rendering stays on.
   plane damaged and it keeps flying (shown on HUD and in the results).
   Reconcile with the landing rules from item 9 (the 1 m floor currently
   counts as a landing check). Breakup animation and smoke are Track B.
+  **Owner-reported issues, part of A3:** (1) a crash has no proper sound —
+  today the engine drone keeps playing after a crash, because
+  `UpdateEngineAudio` is fed `plane.speed`, which simply freezes when
+  `level.crashed` is set. On crash: the engine must cut out / wind down,
+  and a one-shot crash sound plays once (impact + crunch, procedural like
+  the engine — no audio files). Pull this piece of A5 forward. (2) After a
+  crash the game must go to a menu, not just offer restart-in-place — see
+  A3b.
+- **A3b. Minimal main menu (pulled forward from Track C).** Title screen
+  with Play and Exit (Exit hidden on Web/iOS where quitting makes no
+  sense), shown at startup and returned to from the crash screen. Works
+  with keyboard and touch. Keep it a small game-state switch (menu /
+  playing / crashed) in main.cpp-level code, no UI framework — level
+  select, upgrades, plane shop and settings screen stay in Track C, but
+  design the state switch so they can be added as more menu entries.
 - **A4. Full level 1 loop.** Start → takeoff → checkpoints → finish →
   landing → results screen (time, checkpoints hit, damaged or clean, star
   rating, best time kept in memory/local file). Make it feel like a
