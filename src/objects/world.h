@@ -27,6 +27,9 @@ void GenerateWorld(WorldState &world);
 // Draws terrain, distance-marker pillars, and obstacles.
 void DrawWorldObject(const WorldState &world, const GraphicsSettings &gfx);
 
+// Flat translucent plane-shaped shadow on the terrain below the plane; hidden above a max altitude.
+void DrawBlobShadow(const WorldState &world, Vector3 planePosition, float yawDegrees);
+
 // Ground height (meters) at the given world X/Z, bilinear-free nearest sample.
 float GetGroundHeight(const WorldState &world, float worldX, float worldZ);
 

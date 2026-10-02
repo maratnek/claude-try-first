@@ -19,6 +19,7 @@ void ApplyGraphicsPreset(GraphicsSettings &settings, GraphicsPreset preset) {
     settings.distanceMarkers = !low;
     settings.characters = !low;
     settings.propBlur = !low;
+    settings.blobShadow = true;
     settings.obstacleWires = high;
 }
 

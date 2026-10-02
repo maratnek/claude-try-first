@@ -1,5 +1,6 @@
 #include "world.h"
 #include "raymath.h"
+#include "rlgl.h"
 #include <cmath>
 
 namespace {
@@ -112,6 +113,48 @@ void DrawWorldObject(const WorldState &world, const GraphicsSettings &gfx) {
             if (gfx.obstacleWires) DrawSphereWires(o.position, o.radius, 8, 8, BLACK);
         }
     }
+}
+
+void DrawBlobShadow(const WorldState &world, Vector3 planePosition, float yawDegrees) {
+    const float kMaxAltitude = 60.0f;
+    const float kHalfAlong = 2.2f, kHalfAcross = 3.0f;
+    const float kLift = 0.15f;
+    const int kSegments = 20;
+
+    float yaw = yawDegrees * DEG2RAD;
+    Vector2 fwd = {sinf(yaw), cosf(yaw)};
+    Vector2 right = {cosf(yaw), -sinf(yaw)};
+
+    // Max over a few samples: GetGroundHeight is nearest-cell, the mesh is interpolated, so one sample can sink under it.
+    float groundY = GetGroundHeight(world, planePosition.x, planePosition.z);
+    for (int i = 0; i < 4; i++) {
+        float sx = (i & 1 ? 1.0f : -1.0f) * kHalfAcross, sz = (i & 2 ? 1.0f : -1.0f) * kHalfAcross;
+        groundY = fmaxf(groundY, GetGroundHeight(world, planePosition.x + sx, planePosition.z + sz));
+    }
+
+    float altitude = planePosition.y - groundY;
+    if (altitude >= kMaxAltitude) return;
+    float t = Clamp(altitude / kMaxAltitude, 0.0f, 1.0f);
+    float scale = 1.0f + t * 1.5f;
+    unsigned char alpha = (unsigned char)(110.0f * (1.0f - t));
+    float y = groundY + kLift;
+
+    rlDisableDepthMask();
+    rlBegin(RL_TRIANGLES);
+    rlColor4ub(0, 0, 0, alpha);
+    for (int i = 0; i < kSegments; i++) {
+        float a0 = 2.0f * PI * i / kSegments, a1 = 2.0f * PI * (i + 1) / kSegments;
+        float p0a = cosf(a0) * kHalfAlong * scale, p0b = sinf(a0) * kHalfAcross * scale;
+        float p1a = cosf(a1) * kHalfAlong * scale, p1b = sinf(a1) * kHalfAcross * scale;
+        Vector3 c = {planePosition.x, y, planePosition.z};
+        Vector3 v0 = {c.x + fwd.x * p0a + right.x * p0b, y, c.z + fwd.y * p0a + right.y * p0b};
+        Vector3 v1 = {c.x + fwd.x * p1a + right.x * p1b, y, c.z + fwd.y * p1a + right.y * p1b};
+        rlVertex3f(c.x, c.y, c.z); rlVertex3f(v0.x, v0.y, v0.z); rlVertex3f(v1.x, v1.y, v1.z);
+        rlVertex3f(c.x, c.y, c.z); rlVertex3f(v1.x, v1.y, v1.z); rlVertex3f(v0.x, v0.y, v0.z);
+    }
+    rlEnd();
+    rlDrawRenderBatchActive();
+    rlEnableDepthMask();
 }
 
 float GetGroundHeight(const WorldState &world, float worldX, float worldZ) {
