@@ -12,6 +12,13 @@ owner can skim what happened without digging through git log. Format:
 - PR: <link or branch, if one was opened>
 ```
 
+## 2026-10-02 night run (10)
+- Did: Weekend sprint item 4 (web page shell). New web/shell.html replaces raylib's minshell: touch-action none, overscroll-behavior none, no pinch zoom (viewport meta plus gesture/touchmove preventDefault), full-window canvas, fullscreen button (hidden where the API is missing, e.g. iOS Safari), a "rotate to landscape" hint on portrait phones (max-width 600px) with a Play anyway dismiss, and no CDN dependency (FileSaver.js gone). main.cpp sets FLAG_WINDOW_RESIZABLE on web only so the canvas follows the browser viewport. Added an empty data: favicon to silence the 404.
+- Why: Next unchecked item of the Web v0.1 sprint; phone players need a page that does not scroll, zoom or refresh under their thumbs.
+- Verified: game-developer built the web target with emsdk 6.0.10 and loaded it in headless Chromium. game-tester independently rebuilt and checked 1280x720, 390x844 and 844x390: canvas and buffer match the viewport exactly, hint shows only in portrait, Play works with keyboard and touch, mid-run resize re-lays out the HUD, no page errors (only a favicon 404, since fixed). Desktop code hand-built against raylib 5.5 and ran 5 s under Xvfb. code-reviewer read the diff: no blockers. CI status: see PR.
+- Open: Real phone not tested: pull-to-refresh/pinch suppression, iOS Safari, the fullscreen toggle itself, safe-area insets. In portrait the menu title is clipped at the edges, and at 844x390 HUD row 2 sits close to the fullscreen button. No loading indicator while assets download (black page). Portrait tablets get no hint. Window title in main.cpp still says Step 5. Next: sprint item 5, itch.io zip artifact in CI.
+- PR: see PR into dev from agents
+
 ## 2026-10-02 night run (9)
 - Did: Weekend sprint item 3 (A5-min sounds), all procedural. Checkpoint chime (two notes a fifth apart, once per ring), wind loop whose volume and pitch rise with airspeed (quiet on the ground, stopped on Menu/Crashed/Finished), touchdown thump on a safe landing only. resetRun now stops the one-shots and the wind. CountPassed is exposed in level.h so main.cpp can detect a ring being passed. ARCHITECTURE.md audio row updated.
 - Why: Next unchecked item of the Web v0.1 sprint.
