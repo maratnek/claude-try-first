@@ -182,6 +182,10 @@ int main() {
     const int screenWidth = 1280;
     const int screenHeight = 720;
 
+#ifdef __EMSCRIPTEN__
+    // raylib only tracks the browser window size (canvas fills the page) when resizable
+    SetConfigFlags(FLAG_WINDOW_RESIZABLE);
+#endif
     InitWindow(screenWidth, screenHeight, "Flight Game - Step 5: Engine Audio");
     rlSetClipPlanes(0.1, 20000.0);
 

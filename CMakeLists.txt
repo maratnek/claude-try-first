@@ -49,7 +49,7 @@ if(EMSCRIPTEN)
         -sSTACK_SIZE=1048576
         -sEXPORTED_RUNTIME_METHODS=HEAPF32
         --preload-file "${CMAKE_SOURCE_DIR}/assets@/assets"
-        --shell-file "${raylib_SOURCE_DIR}/src/minshell.html"
+        --shell-file "${CMAKE_SOURCE_DIR}/web/shell.html"
     )
 else()
     # Copy assets next to the built executable so it finds them via
