@@ -17,6 +17,11 @@ constexpr float kMinAltitudeAboveGround = 1.0f;
 constexpr float kWheelHeight = 0.3f;
 constexpr float kLiftoffSpeed = 18.0f;
 constexpr float kLiftoffPitch = 5.0f;
+constexpr float kLandingMaxSinkRate = 6.0f;  // m/s
+constexpr float kLandingMaxSpeed = 30.0f;    // m/s
+constexpr float kLandingMaxPitch = kLiftoffPitch;  // deg, nose up or down; must not allow liftoff pitch or a landing re-lifts immediately
+constexpr float kLandingMaxRoll = 15.0f;     // deg
+constexpr float kMinAirTimeForLanding = 1.5f;  // s, so liftoff isn't read as a touchdown
 
 float MoveToward(float current, float target, float maxDelta) {
     if (fabsf(target - current) <= maxDelta) return target;
@@ -62,13 +67,28 @@ void UpdatePlaneControls(PlaneState &plane, const FlightInput &input, float dt, 
 
         if (plane.speed >= kLiftoffSpeed && plane.pitch > kLiftoffPitch) {
             plane.airborne = true;
+            plane.airTime = 0.0f;
+            plane.landing = LandingResult::None;
         }
     } else {
         Vector3 forward = GetPlaneForward(plane);
         plane.position = Vector3Add(plane.position, Vector3Scale(forward, plane.speed * dt));
 
+        plane.airTime += dt;
+
         float minY = groundHeight + kMinAltitudeAboveGround;
-        if (plane.position.y < minY) {
+        if (plane.position.y <= minY && plane.airTime > kMinAirTimeForLanding) {
+            float sinkRate = -plane.speed * sinf(plane.pitch * DEG2RAD);
+            bool gentle = sinkRate <= kLandingMaxSinkRate && plane.speed <= kLandingMaxSpeed &&
+                          fabsf(plane.pitch) <= kLandingMaxPitch && fabsf(plane.roll) <= kLandingMaxRoll;
+            if (gentle) {
+                plane.landing = LandingResult::Safe;
+                plane.airborne = false;
+                plane.position.y = groundHeight + kWheelHeight;
+            } else {
+                plane.landing = LandingResult::Hard;
+            }
+        } else if (plane.position.y < minY) {
             plane.position.y = minY;
         }
     }
