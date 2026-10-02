@@ -6,7 +6,6 @@
 
 namespace {
 
-constexpr float kMaxSpeed = 60.0f;  // must match flight.cpp's kMaxSpeed
 constexpr float kElevatorMaxDeg = 25.0f;
 constexpr float kAileronMaxDeg = 25.0f;
 constexpr float kRudderMaxDeg = 30.0f;
@@ -186,18 +185,19 @@ void LoadPlaneModel(PlaneModel &planeModel, const char *path) {
     }
 }
 
-void UpdatePlaneAnimation(PlaneAnim &anim, const PlaneState &plane, const FlightInput &input, float dt) {
+void UpdatePlaneAnimation(PlaneAnim &anim, const PlaneState &plane, const FlightInput &input, bool crashed, float dt) {
     anim.elevator = Approach(anim.elevator, input.pitch, 12.0f, dt);
     anim.aileron = Approach(anim.aileron, input.roll, 12.0f, dt);
     anim.rudder = Approach(anim.rudder, input.yaw, 12.0f, dt);
 
     float rpmTarget = kIdleRpm + (1.0f - kIdleRpm) * (plane.speed / kMaxSpeed);
-    if (input.throttle > 0.0f) rpmTarget = fminf(1.0f, rpmTarget + 0.2f);
+    if (crashed) rpmTarget = 0.0f;
+    else if (input.throttle > 0.0f) rpmTarget = fminf(1.0f, rpmTarget + 0.2f);
     anim.rpm = Approach(anim.rpm, rpmTarget, 3.0f, dt);
     anim.propAngle = fmodf(anim.propAngle + anim.rpm * kPropMaxDegPerSec * dt, 360.0f);
 
-    float wheelTarget = plane.airborne ? 0.0f : plane.speed / kWheelRadius * RAD2DEG;
-    anim.wheelRate = Approach(anim.wheelRate, wheelTarget, plane.airborne ? 1.5f : 8.0f, dt);
+    float wheelTarget = (plane.airborne || crashed) ? 0.0f : plane.speed / kWheelRadius * RAD2DEG;
+    anim.wheelRate = Approach(anim.wheelRate, wheelTarget, (plane.airborne && !crashed) ? 1.5f : 8.0f, dt);
     anim.wheelAngle = fmodf(anim.wheelAngle + anim.wheelRate * dt, 360.0f);
 }
 

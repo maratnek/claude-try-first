@@ -2,6 +2,8 @@
 #include "raylib.h"
 #include "input.h"
 
+constexpr float kMaxSpeed = 60.0f;  // m/s
+
 struct PlaneState {
     Vector3 position = {0.0f, 0.0f, 0.0f};
     float yaw = 0.0f;    // heading, degrees; increases turning right

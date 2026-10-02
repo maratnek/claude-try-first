@@ -50,7 +50,7 @@ struct PlaneAnim {
 // is still drawn, just without moving parts.
 void LoadPlaneModel(PlaneModel &planeModel, const char *path);
 
-void UpdatePlaneAnimation(PlaneAnim &anim, const PlaneState &plane, const FlightInput &input, float dt);
+void UpdatePlaneAnimation(PlaneAnim &anim, const PlaneState &plane, const FlightInput &input, bool crashed, float dt);
 
 // Draws the plane model at the given world position and orientation in
 // degrees, matching PlaneState's convention (positive pitch climbs,

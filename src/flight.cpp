@@ -13,7 +13,6 @@ constexpr float kMaxRoll = 75.0f;
 constexpr float kLevelRate = 50.0f;    // deg/sec auto-level when no input
 constexpr float kAccel = 15.0f;        // m/s^2 while throttling
 constexpr float kMinSpeed = 0.0f;
-constexpr float kMaxSpeed = 60.0f;
 constexpr float kMinAltitudeAboveGround = 1.0f;
 constexpr float kWheelHeight = 0.3f;
 constexpr float kLiftoffSpeed = 18.0f;
