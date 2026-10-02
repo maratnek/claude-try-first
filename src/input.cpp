@@ -23,6 +23,12 @@ Rectangle RestartRect() {
     return {(GetScreenWidth() - w) * 0.5f, (GetScreenHeight() - h) * 0.5f, w, h};
 }
 
+Rectangle MenuRect() {
+    Rectangle r = RestartRect();
+    r.y += r.height + 20.0f;
+    return r;
+}
+
 float StickAxis(float delta) {
     float v = Clamp(delta / kStickRadius, -1.0f, 1.0f);
     float mag = fabsf(v);
@@ -47,23 +53,27 @@ FlightInput ReadFlightInput(InputState &state) {
     in.throttle = KeyAxis(KEY_W, KEY_S);
     in.restart = IsKeyPressed(KEY_R);
     in.exit = IsKeyPressed(KEY_Q);
+    in.menu = IsKeyPressed(KEY_M);
 
     int count = GetTouchPointCount();
     if (count > 0) state.touchUsed = true;
 
     bool stickFound = false;
     bool restartTouched = false;
+    bool menuTouched = false;
     float throttle = 0.0f;
     float halfWidth = GetScreenWidth() * 0.5f;
     Rectangle up = ThrottleUpRect();
     Rectangle down = ThrottleDownRect();
     Rectangle restartRect = RestartRect();
+    Rectangle menuRect = MenuRect();
 
     for (int i = 0; i < count; i++) {
         Vector2 p = GetTouchPosition(i);
         if (CheckCollisionPointRec(p, up)) throttle += 1.0f;
         if (CheckCollisionPointRec(p, down)) throttle -= 1.0f;
         if (CheckCollisionPointRec(p, restartRect)) restartTouched = true;
+        if (CheckCollisionPointRec(p, menuRect)) menuTouched = true;
         if (!stickFound && p.x < halfWidth) {
             stickFound = true;
             if (!state.stickActive) state.stickOrigin = p;
@@ -84,6 +94,8 @@ FlightInput ReadFlightInput(InputState &state) {
 
     if (restartTouched && !state.restartHeld) in.restart = true;
     state.restartHeld = restartTouched;
+    if (menuTouched && !state.menuHeld) in.menu = true;
+    state.menuHeld = menuTouched;
 
     return in;
 }
@@ -119,5 +131,9 @@ void DrawTouchOverlay(const InputState &state, bool crashed) {
         DrawRectangleRec(r, (Color){255, 255, 255, 140});
         DrawRectangleLinesEx(r, 2.0f, line);
         DrawText("RESTART", (int)(r.x + 50), (int)(r.y + 25), 30, BLACK);
+        Rectangle m = MenuRect();
+        DrawRectangleRec(m, (Color){255, 255, 255, 140});
+        DrawRectangleLinesEx(m, 2.0f, line);
+        DrawText("MENU", (int)(m.x + 75), (int)(m.y + 25), 30, BLACK);
     }
 }

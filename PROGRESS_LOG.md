@@ -12,6 +12,13 @@ owner can skim what happened without digging through git log. Format:
 - PR: <link or branch, if one was opened>
 ```
 
+## 2026-10-02 night run (7)
+- Did: Roadmap A3 owner issues + A3b. New src/menu.{h,cpp}: title screen (Play, plus Exit on desktop only) built from a vector of entries, so later entries are one line in InitMenu. main.cpp has a Screen {Menu, Playing, Crashed} switch; the game starts in the menu, Play resets the run, the crash screen offers M (or a touch MENU button) to return to the menu. One-shot procedural crash sound (thump, noise burst, rumble, crunch) plays once on crash. Fixed an existing bug: the engine was not really silenced on crash (UpdateEngineAudio(0) still looped at about 0.35 volume); the engine is now stopped on every non-Playing screen. Menu also accepts a mouse click (small addition beyond the brief).
+- Why: Next unfinished Track A items (owner-reported crash sound and post-crash menu).
+- Verified: game-developer hand-built raylib 5.5 + all sources, 6 s under Xvfb clean. game-tester rebuilt, injected keys under Xvfb: starts in menu, Enter plays, takeoff, two hard-landing crashes show the crash screen, R restarts, M returns to menu, Q exits, M ignored during play; -D__EMSCRIPTEN__ syntax check passes. code-reviewer found one real bug (touch MENU button overlapped menu entries and a stale held-touch flag could fire Exit/Play on the first menu frame); one fix pass added EnterMenu() which treats a press held across the switch as not yet a tap, and removed a "what" comment. The fix was rebuilt and started by the developer but the touch path was NOT exercised. Conan/CMake, Emscripten and iOS builds NOT run locally; CI status: see PR.
+- Open: Crash sound has never been heard (no audio device here); owner should check level and character. Touch/mouse menu taps and the touch MENU button are untested. Crash into a hard obstacle (vs hard landing) not exercised. After a hard landing the HUD still reads AIRBORNE / Plane: OK under the crash overlay (cosmetic). Esc quits on desktop in any state. Window title still says "Step 5: Engine Audio". Next: A4 full level loop.
+- PR: see PR into dev from agents
+
 ## 2026-10-02 night run (6)
 - Did: Roadmap A3 (v1). Soft obstacles (one bush, three treetops) via AddSoftObstacle: a hit sets plane.damaged and flight continues; hard obstacles and hard landings still crash. HUD shows "Plane: OK/DAMAGED"; R restart clears it. Crash now freezes the sim and shows a crash screen (dim overlay, "R: Restart", "Esc / Q: Exit" on desktop only). Engine sound is silenced while crashed. SETTINGS_MOBILE_OR_WEB moved to settings.h so level.cpp/main.cpp share it. Landing thresholds unchanged.
 - Why: Next unfinished Track A item after A2. Breakup animation and smoke are Track B.

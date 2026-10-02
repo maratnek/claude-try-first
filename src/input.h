@@ -11,6 +11,7 @@ struct FlightInput {
     float throttle = 0.0f;
     bool restart = false;
     bool exit = false;
+    bool menu = false;
 };
 
 struct InputState {
@@ -19,6 +20,7 @@ struct InputState {
     Vector2 stickOrigin = {0.0f, 0.0f};
     Vector2 stickPos = {0.0f, 0.0f};
     bool restartHeld = false;
+    bool menuHeld = false;
 };
 
 // Combines keyboard and touch (touch needs a touch device or the web build; desktop mouse does not register).
