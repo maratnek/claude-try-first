@@ -2,9 +2,9 @@ name: Build
 
 on:
   push:
-    branches: [main, dev, agents, start-with-raylib]
+    branches: [main, release, dev, agents, start-with-raylib]
   pull_request:
-    branches: [main, dev]
+    branches: [main, release, dev]
 
 jobs:
   build:

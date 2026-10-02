@@ -193,8 +193,8 @@ looping indefinitely.
 **Final arbiter**: the project owner outranks every agent and every team.
 Any disagreement that can't be resolved within one builder/verifier
 back-and-forth gets reported, not auto-resolved by picking a side.
-Nothing here changes the existing rule that only the owner promotes `dev`
-to `main`.
+Nothing here changes the existing rule that only the owner cuts `release`
+and promotes it to `main`.
 
 **Player feedback**: see `PLAYER_FEEDBACK.md`. It's empty until there are
 real players (nothing is shipped yet), but game-designer must check it
@@ -202,13 +202,26 @@ every run and weigh real entries over invented ideas once any exist.
 
 ## Branches
 
-- **main** — production. Only the project owner promotes `dev` into
-  `main`; this is the "I reviewed and approved this for production" gate.
-  Never push or merge into `main` from the scheduled routine.
+Flow: `agents` → `dev` → `release` → `main`.
+
+- **main** — production: exactly what has shipped. Only the project owner
+  promotes `release` into `main`, after testing the candidate, and tags
+  the version (`v0.1`, `v1.0`, ...). This is the "I reviewed and approved
+  this for production" gate.
+- **release** — the current release candidate. The project owner cuts it
+  from `dev` when a feature set is ready (per
+  `design-notes/release-plan.md`); after that it only gets stabilization
+  fixes, and test builds (itch.io, TestFlight) are made from it. Bugs found
+  while testing a candidate are fixed on `dev` first and then
+  cherry-picked into `release` by the owner (or an interactive session on
+  the owner's request).
 - **dev** — integration branch for ongoing work.
 - **agents** — the scheduled routine's own working branch. It commits and
   pushes here freely, and may merge `agents` into `dev` on its own. It
-  must never touch `main`.
+  must never push to, merge into, or open PRs against `release` or `main`.
+  If a bug looks release-relevant, fix it on `dev` as usual and call it out
+  in the run's write-up and PROGRESS_LOG.md entry so the owner can
+  cherry-pick it.
 - **start-with-raylib** — the original branch used before this structure
   existed; left as-is, not part of the new workflow.
 
@@ -218,8 +231,9 @@ The scheduled/cloud routine that drives ongoing work on this game has the
 project owner's explicit, standing permission to `git commit`, `push`, and
 merge its `agents` branch into `dev` on its own, without waiting for
 approval first — the owner reviews the result asynchronously rather than
-approving each action in advance. It must never push or merge into `main`;
-promoting `dev` to `main` is the owner's call alone. The one non-negotiable
+approving each action in advance. It must never push to or merge into
+`release` or `main`; cutting a release and promoting it to production is
+the owner's call alone. The one non-negotiable
 condition on everything it does: every run must end with a full, clear,
 specific write-up of what was done and why (in the final summary and in
 commit messages), since that explanation is what the owner's review relies
