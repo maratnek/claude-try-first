@@ -84,7 +84,7 @@ void UpdateFrame(Game &g) {
     DrawCharacterObject((Vector3){3.0f, GetGroundHeight(world, 3.0f, 3.0f), 3.0f}, -20.0f, ORANGE);
     EndMode3D();
 
-    DrawText(g.inputState.touchUsed ? "Left side stick = pitch/roll, +/- = throttle, RESTART button after a crash"
+    DrawText(g.inputState.touchUsed ? "Left stick: pitch/roll  +/-: throttle"
                                     : "Arrows = pitch/roll, A/D = rudder, W/S = throttle",
              10, 10, 20, DARKGRAY);
     DrawText(TextFormat("Speed: %.1f m/s   Altitude: %.1f m   %s",
