@@ -87,6 +87,16 @@ iPhones (iPhone 11 / A13 class). Gameplay-critical rendering stays on.
 
 ### Track A — core, required for the milestone
 
+- **A-fix (small, do first). Propeller blur disc visibility.** Owner
+  confirmed the procedural blades are visible and spin with speed, but saw
+  no blur disc at speed. Last fix: the disc is a single-sided forward-facing
+  plane and raylib ignores glTF `doubleSided`, so `plane.cpp` now disables
+  backface culling while drawing it — unverified. Verify it renders from
+  the chase camera at high RPM (e.g. a headless/Xvfb run with RPM forced
+  high via a temporary local change, screenshot, then revert). The disc
+  material alpha is only 0.22 — if it still reads too faint, raise its
+  effective alpha in code rather than editing the asset.
+
 - **A0. Release plan (think first, small, do once).** game-designer +
   product-manager write `design-notes/release-plan.md`: the minimum scope
   to ship level 1 on Web (itch.io) soon and on iOS after, what to cut or

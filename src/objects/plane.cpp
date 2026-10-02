@@ -269,8 +269,14 @@ void DrawPlaneObject(const PlaneModel &planeModel, const PlaneAnim &anim, Vector
                 Matrix transform = part >= 0 ? transforms[part] : MatrixIdentity();
                 Material &material = planeModel.model.materials[planeModel.model.meshMaterial[i]];
                 Color original = material.maps[MATERIAL_MAP_DIFFUSE].color;
-                if (blur) material.maps[MATERIAL_MAP_DIFFUSE].color.a = (unsigned char)(original.a * blurAlpha);
+                if (blur) {
+                    material.maps[MATERIAL_MAP_DIFFUSE].color.a = (unsigned char)(original.a * blurAlpha);
+                    // The disc is a single-sided plane facing forward and raylib ignores glTF doubleSided,
+                    // so it would be culled from the chase camera behind the plane.
+                    rlDisableBackfaceCulling();
+                }
                 DrawMesh(planeModel.model.meshes[i], material, transform);
+                if (blur) rlEnableBackfaceCulling();
                 material.maps[MATERIAL_MAP_DIFFUSE].color = original;
             }
         }
