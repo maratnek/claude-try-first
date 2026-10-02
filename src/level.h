@@ -29,6 +29,9 @@ void InitLevel(LevelState &level);
 // plane's position. Does nothing once crashed.
 void UpdateLevel(LevelState &level, Vector3 planePosition, float dt);
 
+// Number of checkpoint rings flown through so far.
+int CountPassed(const LevelState &level);
+
 // Stars for a finished run: 3 = clean + all checkpoints, 2 = clean or all checkpoints, 1 = finished.
 int ComputeStars(const LevelState &level, bool damaged);
 

@@ -12,6 +12,13 @@ owner can skim what happened without digging through git log. Format:
 - PR: <link or branch, if one was opened>
 ```
 
+## 2026-10-02 night run (9)
+- Did: Weekend sprint item 3 (A5-min sounds), all procedural. Checkpoint chime (two notes a fifth apart, once per ring), wind loop whose volume and pitch rise with airspeed (quiet on the ground, stopped on Menu/Crashed/Finished), touchdown thump on a safe landing only. resetRun now stops the one-shots and the wind. CountPassed is exposed in level.h so main.cpp can detect a ring being passed. ARCHITECTURE.md audio row updated.
+- Why: Next unchecked item of the Web v0.1 sprint.
+- Verified: game-developer and game-tester built with a hand-built raylib 5.5 and ran under Xvfb with injected keys: menu, takeoff, crash screen, R restart and M menu all work, no errors beyond the expected no-audio-device warnings. code-reviewer read the diff: no blockers. It found the wind loop crossfade was wrong (the tail faded toward the head instead of toward the noise that precedes it); I fixed that by generating extra noise and blending the head from it, and re-checked that audio.cpp compiles. CI status: see PR.
+- Open: No sound has been heard (no audio device here); owner should check chime, wind level and thump by ear. raylib PlaySound does not loop, so wind is re-triggered when it ends, which may leave a gap of up to one frame every 2 s; a stream would fix it if audible. Finish screen, a live checkpoint pass and a live safe touchdown were not run. Emscripten build not run locally. Wind has no hysteresis at its 0.01 volume cutoff. Next: sprint item 4, web page shell.
+- PR: see PR into dev from agents
+
 ## 2026-10-02 day run
 - Did: Weekend sprint item 2 (A4-min results screen). New Screen::Finished: reaching 1000 m freezes the run and shows time, checkpoints x/total, CLEAN/DAMAGED, 1-3 stars (3 = clean and all checkpoints, 2 = either, 1 = finished), session-only best time with NEW BEST, and R Restart / M Menu (touch buttons reuse the crash ones). Timer starts when Play is pressed, so takeoff counts. Removed the old in-HUD "LEVEL COMPLETE" text that showed through the overlay and moved the stats block up so it no longer sits under the touch Restart button. ARCHITECTURE.md updated.
 - Why: Next unchecked item of the Web v0.1 sprint; players need an end-of-level result.
