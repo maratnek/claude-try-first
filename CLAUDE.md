@@ -282,3 +282,20 @@ push further changes on top — stop, investigate and describe the problem
 in your write-up, and leave it for the project owner or the next run to
 decide how to proceed, rather than continuing to build on a known-broken
 base.
+
+## Procedural aircraft
+
+Planes come from `tools/aircraft-gen` (source of truth for the generator; `npm run view`
+opens the 3D viewer), not from asset-requests/. Contract: `docs/aircraft-generator.md`. Agent: `aircraft-generator`.
+
+- Every part physically connected; `npm run check` in tools/aircraft-gen must pass before any
+  aircraft export or merge that touches the generator.
+- Flight parameters come from the generator's geometry (sim.json), never hand-tuned.
+- Rig node names identical for every variant: propeller, rudder_pivot, elevator_pivot,
+  aileron_left_pivot, aileron_right_pivot (+ static: wheel_left, wheel_right, gear_suspension,
+  pilot_head_pivot, pilot_arm_pivot).
+- Generator changes go through `npm run check`. If goldens move, `npm run update-golden` and state
+  in the commit message which numbers moved and why.
+- Design-review findings arrive as issues/notes from the owner's design project; treat them as
+  bug reports against the generator.
+- Physics stays on the arcade model for now; sim.json is data only until the owner says otherwise.

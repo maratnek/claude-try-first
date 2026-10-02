@@ -1,0 +1,15 @@
+{
+  "name": "aircraft-gen",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "export": "node export.mjs",
+    "check": "node check.mjs",
+    "update-golden": "node check.mjs --update-golden",
+    "find": "node find.mjs",
+    "view": "node serve.mjs"
+  },
+  "dependencies": {
+    "three": "0.184.0"
+  }
+}

@@ -1,0 +1,121 @@
+{
+  "id": "warbird-38",
+  "name": "Osprey",
+  "era": "Warbird",
+  "year": 1941,
+  "seed": 38,
+  "config": "monoplane",
+  "geometry": {
+    "wingAreaM2": 18.65,
+    "spanM": 10.77,
+    "macM": 1.73,
+    "aspectRatio": 6.22,
+    "taper": 0.951,
+    "sweepDeg": 4.257,
+    "dihedralDeg": 1.773,
+    "fuseLenM": 7.442,
+    "fuseRadiusM": 0.567,
+    "wheelTrackM": 2.375,
+    "hStabAreaM2": 4.742,
+    "vStabAreaM2": 1.287,
+    "tailArmM": 5.163
+  },
+  "mass": {
+    "massKg": 3285,
+    "emptyKg": 2801,
+    "fuelKg": 388,
+    "cgZ": -0.037,
+    "cgPctMAC": 0.416,
+    "aeroCentreZ": 0.251,
+    "neutralPointZ": -0.221,
+    "staticMarginMAC": 0.106,
+    "inertiaKgM2": {
+      "ixx": 17611,
+      "iyy": 16375,
+      "izz": 31039,
+      "ixz": 704
+    }
+  },
+  "aero": {
+    "cd0": 0.0252,
+    "oswaldE": 0.8,
+    "k": 0.064,
+    "clMax": 1.41,
+    "clAlphaPerRad": 4.754,
+    "cl0": 0.1,
+    "alphaStallDeg": 16.993,
+    "cm0": -0.05,
+    "cmAlphaPerRad": -0.504,
+    "cmq": -6.08,
+    "clq": 2.432,
+    "cyBeta": -0.411,
+    "cnBeta": 0.108,
+    "clBeta": -0.088,
+    "clp": -0.495,
+    "cnr": -0.09
+  },
+  "control": {
+    "elevatorCmDelta": -1.915,
+    "elevatorMaxDeg": 25,
+    "aileronClDelta": 0.429,
+    "aileronMaxDeg": 20,
+    "rudderCnDelta": 0.106,
+    "rudderMaxDeg": 25,
+    "rollRateDegS": 89.9,
+    "trimAlphaDeg": 2.7
+  },
+  "propulsion": {
+    "type": "inline",
+    "powerKW": 808,
+    "powerHp": 1084,
+    "propBlades": 3,
+    "propDiameterM": 1.949,
+    "propEfficiency": 0.82,
+    "staticThrustN": 14754,
+    "fuelBurnKgPerH": 120.872,
+    "gyroTorqueNm": 40
+  },
+  "gear": {
+    "type": "retract",
+    "retractable": true,
+    "tailSkid": false,
+    "cdRetractGain": 0.012,
+    "groundFrictionRoll": 0.035,
+    "groundFrictionBrake": 0.38
+  },
+  "envelope": {
+    "vStallMs": 44.7,
+    "vMaxMs": 132,
+    "vNeMs": 161.04,
+    "vCruiseMs": 98.958,
+    "vBestClimbMs": 51.111,
+    "nLimit": 4.8,
+    "nLimitNeg": -2.16,
+    "ceilingM": 10110,
+    "rocMs": 15.85,
+    "rangeKm": 1145,
+    "enduranceH": 3.21,
+    "turnInstantDegS": 26.8,
+    "turnSustainedDegS": 18.8
+  },
+  "gameStats": {
+    "speed": 80,
+    "climb": 81,
+    "agility": 77,
+    "strength": 60,
+    "range": 74
+  },
+  "rig": [
+    "propeller",
+    "prop_blur_disc",
+    "wheel_left",
+    "wheel_right",
+    "gear_suspension",
+    "rudder_pivot",
+    "elevator_pivot",
+    "aileron_left_pivot",
+    "aileron_right_pivot",
+    "pilot_head_pivot",
+    "pilot_arm_pivot"
+  ]
+}

@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Aircraft Generator — viewer</title>
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.184.0/build/three.module.js",
+    "three/addons/controls/OrbitControls.js": "https://unpkg.com/three@0.184.0/examples/jsm/controls/OrbitControls.js",
+    "three/addons/exporters/OBJExporter.js": "https://unpkg.com/three@0.184.0/examples/jsm/exporters/OBJExporter.js",
+    "three/addons/exporters/GLTFExporter.js": "https://unpkg.com/three@0.184.0/examples/jsm/exporters/GLTFExporter.js"
+  },
+  "integrity": {
+    "https://unpkg.com/three@0.184.0/build/three.module.js": "sha384-8FCZ1eVO6it4+pbec2aDtnTrwjWXZLJRC+MAGCIPDgsYnUrl/E0A2YlF8ioMKI/J",
+    "https://unpkg.com/three@0.184.0/build/three.core.js": "sha384-dw2ooPewaEIrAgl6oFDBmmBWCE9oW9LxRGcfwZ0hLvEprzo202wXl7vCYHRlSnOT",
+    "https://unpkg.com/three@0.184.0/examples/jsm/controls/OrbitControls.js": "sha384-4rziNxOBZKQ69i+w+f89KJ55TCYquwchVbByQwmaOeIOXdOU2PLDn3kOfXHwIJC9",
+    "https://unpkg.com/three@0.184.0/examples/jsm/exporters/OBJExporter.js": "sha384-nbwtoZENJD3Vq+ACK0CuGQdPMuDWHkamC2KJD70EV5nfg6jQjfppKOea07YJN+N3",
+    "https://unpkg.com/three@0.184.0/examples/jsm/exporters/GLTFExporter.js": "sha384-VofkvpG6HERhFCYbsUOHeNXBCqID2nfqkQqnVzE1jc/oPcz+qJ13ADdXH08hE+cQ"
+  }
+}
+</script>
+<style>
+  html, body { margin: 0; height: 100%; background: #ece4d6; overflow: hidden;
+    font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif; color: #33302a; }
+  three-d-stage:not(:defined) { visibility: hidden; }
+  three-d-stage { position: absolute; top: 0; left: 318px;
+    width: calc(100vw - 318px); height: 100vh; }
+  #panel { position: absolute; top: 0; left: 0; bottom: 0; width: 318px; z-index: 10;
+    background: #f7f1e3; border-right: 1px solid #cdc0a6; padding: 20px 20px 24px;
+    display: flex; flex-direction: column; gap: 16px; overflow-y: auto; box-sizing: border-box; }
+  .lbl { font: 600 10px/1 ui-sans-serif, system-ui, sans-serif; letter-spacing: .14em;
+    text-transform: uppercase; color: #8c8270; }
+  .eras { display: grid; gap: 5px; }
+  .era { display: flex; justify-content: space-between; align-items: baseline; gap: 8px;
+    padding: 8px 10px; border: 1px solid #d8ccb4; border-radius: 5px; background: #fffdf7;
+    font: 14px/1.2 inherit; color: #3a352c; cursor: pointer; text-align: left; }
+  .era[aria-pressed="true"] { background: #b23a30; border-color: #963027; color: #fdf6e8; }
+  .era span { font: 500 11px/1 ui-sans-serif, system-ui, sans-serif; opacity: .65; }
+  .row { display: flex; gap: 6px; }
+  button.act { flex: 1; padding: 9px 10px; border: 1px solid #b9ae98; border-radius: 5px;
+    background: #fdfaf3; color: #3a352c; font: 500 12px/1 ui-sans-serif, system-ui, sans-serif; cursor: pointer; }
+  button.act:hover { background: #fff; border-color: #8c8270; }
+  #name { font: 600 22px/1.15 inherit; margin: 0; }
+  #sub { font: 500 11px/1.4 ui-sans-serif, system-ui, sans-serif; color: #8c8270; margin: 4px 0 0;
+    letter-spacing: .04em; }
+  .stat { display: grid; grid-template-columns: 62px 1fr 30px; align-items: center; gap: 8px;
+    font: 500 11px/1 ui-sans-serif, system-ui, sans-serif; color: #5d564a; }
+  .bar { height: 5px; background: #e0d5bd; border-radius: 3px; overflow: hidden; }
+  .bar i { display: block; height: 100%; background: #b23a30; }
+  .stat b { text-align: right; font-variant-numeric: tabular-nums; color: #33302a; font-weight: 600; }
+  .stats { display: grid; gap: 7px; }
+  .spec { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 10px;
+    font: 500 11px/1.35 ui-sans-serif, system-ui, sans-serif; color: #5d564a; }
+  .spec b { color: #33302a; font-weight: 600; }
+  #seedRow { display: flex; gap: 6px; align-items: center; }
+  #seed { flex: 1; min-width: 0; padding: 7px 8px; border: 1px solid #cdc0a6; border-radius: 5px;
+    background: #fffdf7; font: 500 12px/1 ui-monospace, monospace; color: #33302a; }
+  #nodes { font: 500 10px/1.5 ui-monospace, SFMono-Regular, monospace; color: #8c8270;
+    border-top: 1px solid #ded2ba; padding-top: 12px; }
+  #animBtn { position: absolute; top: 18px; right: 18px; z-index: 10; padding: 10px 14px;
+    border: 1px solid #b9ae98; border-radius: 6px; background: #fdfaf3; color: #3a352c;
+    font: 500 13px/1 ui-sans-serif, system-ui, sans-serif; cursor: pointer; }
+</style>
+</head>
+<body>
+<three-d-stage id="stage" name="aircraft" background="#ece4d6"></three-d-stage>
+<button id="animBtn">Animate parts</button>
+
+<div id="panel">
+  <div>
+    <h1 id="name">—</h1>
+    <p id="sub">—</p>
+  </div>
+
+  <div>
+    <div class="lbl" style="margin-bottom:7px">Era</div>
+    <div class="eras" id="eras"></div>
+  </div>
+
+  <div>
+    <div class="lbl" style="margin-bottom:7px">Seed</div>
+    <div id="seedRow">
+      <input id="seed" value="1" inputmode="numeric">
+      <button class="act" id="reroll" style="flex:0 0 auto">Roll</button>
+    </div>
+  </div>
+
+  <div>
+    <div class="lbl" style="margin-bottom:8px">Performance</div>
+    <div class="stats" id="stats"></div>
+  </div>
+
+  <div>
+    <div class="lbl" style="margin-bottom:8px">Airframe</div>
+    <div class="spec" id="spec"></div>
+  </div>
+
+  <div>
+    <div class="lbl" style="margin-bottom:8px">Flight model</div>
+    <div class="spec" id="flight"></div>
+  </div>
+
+  <div class="row">
+    <button class="act" id="copySpec">Copy spec JSON</button>
+    <button class="act" id="copySim">Copy sim config</button>
+  </div>
+
+  <div id="nodes"></div>
+</div>
+
+<script src="./three-d-stage.js"></script>
+<script type="module">
+const stageEl = document.getElementById('stage');
+const { THREE } = await stageEl.ready;
+
+import { ERAS, RIG_NODES, buildSpec, buildPlane, simConfig, auditJoints } from './aircraft-gen.mjs';
+window.simConfig = simConfig;      // dev: __sim('war', 904) dumps a full config
+window.__sim = (eraId, sd) => simConfig(buildSpec(ERAS.find(e => e.id === eraId), sd));
+window.__inspect = (eraId, sd, names) => {
+  const e = ERAS.find(x => x.id === eraId);
+  const gr = buildPlane(buildSpec(e, sd)).group;
+  gr.updateMatrixWorld(true);
+  const out = {};
+  gr.traverse(o => {
+    if (o.isMesh && names.some(n => o.name.includes(n))) {
+      const b = new THREE.Box3().setFromObject(o);
+      out[o.name] = [b.min.toArray().map(v => +v.toFixed(2)), b.max.toArray().map(v => +v.toFixed(2))];
+    }
+  });
+  return out;
+};
+window.__audit = (n = 10) => {
+  const out = {};
+  for (const e of ERAS) {
+    const bad = {};
+    for (let i = 0; i < n; i++) {
+      const sd = 1 + i * 37;
+      const sp = buildSpec(e, sd);
+      const a = auditJoints(buildPlane(sp).group);
+      if (a.orphans.length || a.sunken.length) bad[sd] = a;
+    }
+    out[e.id] = bad;
+  }
+  return out;
+};
+
+/* ================================ app ================================= */
+let era = ERAS[1], seed = 1, rig = null, playing = false, timer = null, t0 = 0;
+
+const erasEl = document.getElementById('eras');
+ERAS.forEach(e => {
+  const b = document.createElement('button');
+  b.className = 'era';
+  b.type = 'button';
+  b.innerHTML = e.name + ' <span>' + e.years + '</span>';
+  b.addEventListener('click', () => { era = e; regen(); });
+  b.dataset.id = e.id;
+  erasEl.appendChild(b);
+});
+
+const STAT_LABELS = { speed: 'Speed', climb: 'Climb', agility: 'Agility', strength: 'Strength', range: 'Range' };
+
+let spec = null;
+
+function regen() {
+  spec = buildSpec(era, seed);
+  rig = buildPlane(spec);
+  rig.group.name = spec.name.toLowerCase() + '_' + spec.year;
+  stageEl.setAttribute('name', rig.group.name);
+  stageEl.setObject(rig.group);
+  rig.propGroup.add(rig.blurDisc);
+  playing = false;
+  clearInterval(timer);
+  document.getElementById('animBtn').textContent = 'Animate parts';
+
+  document.getElementById('name').textContent = spec.name + ' ' + spec.mark;
+  document.getElementById('sub').textContent =
+    spec.year + ' · ' + spec.era + ' · ' + (spec.wings === 1 ? 'monoplane' : spec.wings === 2 ? 'biplane' : 'triplane') +
+    ' · ' + spec.tris + ' tris';
+
+  document.getElementById('stats').innerHTML = Object.keys(STAT_LABELS).map(k =>
+    '<div class="stat"><span>' + STAT_LABELS[k] + '</span><div class="bar"><i style="width:' +
+    spec.stats[k] + '%"></i></div><b>' + spec.stats[k] + '</b></div>').join('');
+
+  const rows = [
+    ['Engine', spec.engine], ['Gear', spec.gear], ['Cockpit', spec.cockpit],
+    ['Guns', spec.guns], ['Prop', spec.propBlades + '-blade'],
+    ['Span', spec.span.toFixed(1) + ' m'], ['Length', spec.fuseLen.toFixed(1) + ' m'],
+  ];
+  document.getElementById('spec').innerHTML = rows.map(r =>
+    '<div>' + r[0] + '</div><div><b>' + r[1] + '</b></div>').join('');
+
+  const F = spec.flight;
+  const sm = F.staticMargin;
+  const frows = [
+    ['Mass', F.massKg + ' kg'], ['Empty', F.massEmptyKg + ' kg'],
+    ['Fuel', F.fuelKg + ' kg'], ['Wing area', F.wingAreaM2.toFixed(1) + ' m²'],
+    ['Aspect', F.aspectRatio.toFixed(2)], ['MAC', F.macM.toFixed(2) + ' m'],
+    ['Wing load', F.wingLoading.toFixed(1) + ' kg/m²'],
+    ['Power', F.powerKW + ' kW / ' + F.powerHp + ' hp'],
+    ['Thrust', F.staticThrustN + ' N'], ['Prop η', F.propEff.toFixed(2)],
+    ['V max', F.vMaxKmh + ' km/h'], ['V cruise', F.vCruiseKmh + ' km/h'],
+    ['V stall', F.vStallKmh + ' km/h'], ['Climb', F.rocMs.toFixed(2) + ' m/s'],
+    ['Ceiling', F.ceilingM + ' m'], ['Best climb', F.vBestClimbKmh + ' km/h'],
+    ['Range', F.rangeKm + ' km'],
+    ['Endurance', F.enduranceH.toFixed(2) + ' h'], ['Cd0', F.cd0.toFixed(3)],
+    ['Oswald e', F.oswald.toFixed(2)], ['CL max', F.clMax.toFixed(2)],
+    ['Load limit', '+' + F.nLimit.toFixed(1) + ' g'],
+    ['Turn inst.', F.turnRateDeg.toFixed(0) + ' °/s @ ' + F.nInstant.toFixed(1) + ' g'],
+    ['Turn sust.', F.turnSustainedDeg.toFixed(0) + ' °/s @ ' + F.nSustained.toFixed(1) + ' g'],
+    ['Roll rate', F.rollRateDeg.toFixed(0) + ' °/s'],
+    ['CG', (F.cgPctMAC * 100).toFixed(0) + '% MAC'],
+    ['Margin', (sm * 100).toFixed(1) + '% ' + (sm > .05 ? 'stable' : sm > 0 ? 'marginal' : 'unstable')],
+    ['CLα', F.clAlphaPerRad.toFixed(2) + ' /rad'], ['k ind.', F.inducedK.toFixed(4)],
+    ['Cmα', F.cmAlphaPerRad.toFixed(2) + ' /rad'], ['V NE', F.vNeKmh + ' km/h'],
+    ['Ix / Iy / Iz', F.ixx + ' / ' + F.iyy + ' / ' + F.izz],
+  ];
+  document.getElementById('flight').innerHTML = frows.map(r =>
+    '<div>' + r[0] + '</div><div><b>' + r[1] + '</b></div>').join('');
+
+  document.getElementById('nodes').textContent = 'Rig: ' + RIG_NODES.join(' · ');
+
+  [...erasEl.children].forEach(b => b.setAttribute('aria-pressed', String(b.dataset.id === era.id)));
+  document.getElementById('seed').value = seed;
+}
+
+function neutral() {
+  rig.propGroup.rotation.z = 0;
+  rig.blurDisc.visible = false;
+  rig.propGroup.children.forEach(c => { if (c.name.startsWith('prop_blade')) c.visible = true; });
+  rig.suspension.position.y = 0;
+  rig.headPivot.rotation.y = 0;
+  rig.armPivot.rotation.z = 0;
+  rig.rudderPivot.rotation.y = 0;
+  rig.elevPivot.rotation.x = 0;
+  for (const n of ['aileron_left_pivot', 'aileron_right_pivot']) rig.group.getObjectByName(n).rotation.x = 0;
+  stageEl._renderer.render(stageEl._scene, stageEl._camera);
+}
+
+function tick() {
+  if (!playing || !rig) return;
+  const t = (performance.now() - t0) / 1000;
+  rig.propGroup.rotation.z = t * (8 + spec.power * 12);
+  rig.blurDisc.visible = true;
+  rig.propGroup.children.forEach(c => { if (c.name.startsWith('prop_blade')) c.visible = false; });
+  rig.group.getObjectByName('wheel_left').rotation.z = -t * 4;
+  rig.group.getObjectByName('wheel_right').rotation.z = -t * 4;
+  rig.rudderPivot.rotation.y = Math.sin(t * .9) * .35;
+  rig.elevPivot.rotation.x = Math.sin(t * .7) * .3;
+  const roll = Math.sin(t * 1.1) * .35;
+  rig.group.getObjectByName('aileron_left_pivot').rotation.x = roll;
+  rig.group.getObjectByName('aileron_right_pivot').rotation.x = -roll;
+  rig.suspension.position.y = (Math.sin(t * 3.1) * .5 + .5) * .06;
+  rig.headPivot.rotation.y = Math.sin(t * .5) * .5;
+  rig.armPivot.rotation.z = -roll * .8;
+  stageEl._renderer.render(stageEl._scene, stageEl._camera);
+}
+
+document.getElementById('animBtn').addEventListener('click', e => {
+  playing = !playing;
+  e.target.textContent = playing ? 'Stop animation' : 'Animate parts';
+  if (playing) { t0 = performance.now(); timer = setInterval(tick, 20); }
+  else { clearInterval(timer); timer = null; neutral(); }
+});
+
+document.getElementById('reroll').addEventListener('click', () => {
+  seed = 1 + Math.floor(Math.random() * 99999);
+  regen();
+});
+document.getElementById('seed').addEventListener('change', e => {
+  const v = parseInt(e.target.value, 10);
+  seed = Number.isFinite(v) ? v : 1;
+  regen();
+});
+document.getElementById('copySpec').addEventListener('click', e => {
+  const out = { ...spec, sim: simConfig(spec), rig: RIG_NODES };
+  navigator.clipboard?.writeText(JSON.stringify(out, null, 2));
+  e.target.textContent = 'Copied';
+  setTimeout(() => (e.target.textContent = 'Copy spec JSON'), 1200);
+});
+
+document.getElementById('copySim').addEventListener('click', e => {
+  navigator.clipboard?.writeText(JSON.stringify(simConfig(spec), null, 2));
+  e.target.textContent = 'Copied';
+  setTimeout(() => (e.target.textContent = 'Copy sim config'), 1200);
+});
+
+regen();
+</script>
+</body>
+</html>

@@ -1,0 +1,121 @@
+{
+  "id": "streamline-38",
+  "name": "Kestrel",
+  "era": "Streamline",
+  "year": 1933,
+  "seed": 38,
+  "config": "monoplane",
+  "geometry": {
+    "wingAreaM2": 17.95,
+    "spanM": 11.19,
+    "macM": 1.6,
+    "aspectRatio": 6.98,
+    "taper": 0.784,
+    "sweepDeg": 6.061,
+    "dihedralDeg": 1.977,
+    "fuseLenM": 6.816,
+    "fuseRadiusM": 0.491,
+    "wheelTrackM": 1.783,
+    "hStabAreaM2": 4.75,
+    "vStabAreaM2": 0.978,
+    "tailArmM": 4.796
+  },
+  "mass": {
+    "massKg": 1792,
+    "emptyKg": 1526,
+    "fuelKg": 171,
+    "cgZ": 0.015,
+    "cgPctMAC": 0.426,
+    "aeroCentreZ": 0.297,
+    "neutralPointZ": -0.157,
+    "staticMarginMAC": 0.107,
+    "inertiaKgM2": {
+      "ixx": 10378,
+      "iyy": 7494,
+      "izz": 16523,
+      "ixz": 415
+    }
+  },
+  "aero": {
+    "cd0": 0.0368,
+    "oswaldE": 0.8,
+    "k": 0.057,
+    "clMax": 1.41,
+    "clAlphaPerRad": 4.884,
+    "cl0": 0.1,
+    "alphaStallDeg": 16.543,
+    "cm0": -0.05,
+    "cmAlphaPerRad": -0.523,
+    "cmq": -6.32,
+    "clq": 2.528,
+    "cyBeta": -0.384,
+    "cnBeta": 0.092,
+    "clBeta": -0.091,
+    "clp": -0.504,
+    "cnr": -0.081
+  },
+  "control": {
+    "elevatorCmDelta": -1.991,
+    "elevatorMaxDeg": 25,
+    "aileronClDelta": 0.44,
+    "aileronMaxDeg": 20,
+    "rudderCnDelta": 0.096,
+    "rudderMaxDeg": 25,
+    "rollRateDegS": 63.4,
+    "trimAlphaDeg": 2.7
+  },
+  "propulsion": {
+    "type": "radial",
+    "powerKW": 458,
+    "powerHp": 615,
+    "propBlades": 3,
+    "propDiameterM": 1.765,
+    "propEfficiency": 0.8,
+    "staticThrustN": 9306,
+    "fuelBurnKgPerH": 77.027,
+    "gyroTorqueNm": 40
+  },
+  "gear": {
+    "type": "spatted",
+    "retractable": false,
+    "tailSkid": true,
+    "cdRetractGain": 0,
+    "groundFrictionRoll": 0.035,
+    "groundFrictionBrake": 0.38
+  },
+  "envelope": {
+    "vStallMs": 33.7,
+    "vMaxMs": 96.8,
+    "vNeMs": 118.096,
+    "vCruiseMs": 72.5,
+    "vBestClimbMs": 34.444,
+    "nLimit": 4.3,
+    "nLimitNeg": -1.935,
+    "ceilingM": 10350,
+    "rocMs": 17.27,
+    "rangeKm": 580,
+    "enduranceH": 2.22,
+    "turnInstantDegS": 33.7,
+    "turnSustainedDegS": 28.4
+  },
+  "gameStats": {
+    "speed": 67,
+    "climb": 86,
+    "agility": 80,
+    "strength": 50,
+    "range": 40
+  },
+  "rig": [
+    "propeller",
+    "prop_blur_disc",
+    "wheel_left",
+    "wheel_right",
+    "gear_suspension",
+    "rudder_pivot",
+    "elevator_pivot",
+    "aileron_left_pivot",
+    "aileron_right_pivot",
+    "pilot_head_pivot",
+    "pilot_arm_pivot"
+  ]
+}

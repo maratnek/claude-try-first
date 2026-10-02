@@ -1,0 +1,121 @@
+{
+  "id": "golden-38",
+  "name": "Petrel",
+  "era": "Golden Age",
+  "year": 1929,
+  "seed": 38,
+  "config": "biplane",
+  "geometry": {
+    "wingAreaM2": 25.54,
+    "spanM": 9.48,
+    "macM": 1.46,
+    "aspectRatio": 3.52,
+    "taper": 0.919,
+    "sweepDeg": 1.498,
+    "dihedralDeg": 0.67,
+    "fuseLenM": 5.943,
+    "fuseRadiusM": 0.509,
+    "wheelTrackM": 1.818,
+    "hStabAreaM2": 3.263,
+    "vStabAreaM2": 1.036,
+    "tailArmM": 3.85
+  },
+  "mass": {
+    "massKg": 1176,
+    "emptyKg": 972,
+    "fuelKg": 109,
+    "cgZ": -0.118,
+    "cgPctMAC": 0.28,
+    "aeroCentreZ": -0.073,
+    "neutralPointZ": -0.275,
+    "staticMarginMAC": 0.107,
+    "inertiaKgM2": {
+      "ixx": 4889,
+      "iyy": 3739,
+      "izz": 7955,
+      "ixz": 196
+    }
+  },
+  "aero": {
+    "cd0": 0.0572,
+    "oswaldE": 0.7,
+    "k": 0.129,
+    "clMax": 1.19,
+    "clAlphaPerRad": 3.686,
+    "cl0": 0.12,
+    "alphaStallDeg": 18.498,
+    "cm0": -0.06,
+    "cmAlphaPerRad": -0.394,
+    "cmq": -2.72,
+    "clq": 1.088,
+    "cyBeta": -0.357,
+    "cnBeta": 0.081,
+    "clBeta": -0.081,
+    "clp": -0.462,
+    "cnr": -0.075
+  },
+  "control": {
+    "elevatorCmDelta": -0.857,
+    "elevatorMaxDeg": 25,
+    "aileronClDelta": 0.397,
+    "aileronMaxDeg": 20,
+    "rudderCnDelta": 0.088,
+    "rudderMaxDeg": 25,
+    "rollRateDegS": 43.5,
+    "trimAlphaDeg": 3
+  },
+  "propulsion": {
+    "type": "inline",
+    "powerKW": 221,
+    "powerHp": 297,
+    "propBlades": 2,
+    "propDiameterM": 1.578,
+    "propEfficiency": 0.72,
+    "staticThrustN": 4956,
+    "fuelBurnKgPerH": 39.636,
+    "gyroTorqueNm": 40
+  },
+  "gear": {
+    "type": "spatted",
+    "retractable": false,
+    "tailSkid": true,
+    "cdRetractGain": 0,
+    "groundFrictionRoll": 0.035,
+    "groundFrictionBrake": 0.38
+  },
+  "envelope": {
+    "vStallMs": 24.9,
+    "vMaxMs": 56.3,
+    "vNeMs": 68.686,
+    "vCruiseMs": 42.292,
+    "vBestClimbMs": 25.278,
+    "nLimit": 4.4,
+    "nLimitNeg": -1.98,
+    "ceilingM": 7942,
+    "rocMs": 8.8,
+    "rangeKm": 417,
+    "enduranceH": 2.75,
+    "turnInstantDegS": 46.3,
+    "turnSustainedDegS": 27
+  },
+  "gameStats": {
+    "speed": 47,
+    "climb": 57,
+    "agility": 78,
+    "strength": 52,
+    "range": 29
+  },
+  "rig": [
+    "propeller",
+    "prop_blur_disc",
+    "wheel_left",
+    "wheel_right",
+    "gear_suspension",
+    "rudder_pivot",
+    "elevator_pivot",
+    "aileron_left_pivot",
+    "aileron_right_pivot",
+    "pilot_head_pivot",
+    "pilot_arm_pivot"
+  ]
+}

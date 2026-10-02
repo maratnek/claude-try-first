@@ -1,0 +1,121 @@
+{
+  "id": "streamline-1",
+  "name": "Falcon",
+  "era": "Streamline",
+  "year": 1937,
+  "seed": 1,
+  "config": "monoplane",
+  "geometry": {
+    "wingAreaM2": 16.67,
+    "spanM": 10.32,
+    "macM": 1.61,
+    "aspectRatio": 6.39,
+    "taper": 0.92,
+    "sweepDeg": 3.919,
+    "dihedralDeg": 1.836,
+    "fuseLenM": 7.251,
+    "fuseRadiusM": 0.502,
+    "wheelTrackM": 1.803,
+    "hStabAreaM2": 4.702,
+    "vStabAreaM2": 0.948,
+    "tailArmM": 5.14
+  },
+  "mass": {
+    "massKg": 1792,
+    "emptyKg": 1526,
+    "fuelKg": 171,
+    "cgZ": 0.02,
+    "cgPctMAC": 0.457,
+    "aeroCentreZ": 0.354,
+    "neutralPointZ": -0.159,
+    "staticMarginMAC": 0.111,
+    "inertiaKgM2": {
+      "ixx": 8824,
+      "iyy": 8482,
+      "izz": 15779,
+      "ixz": 353
+    }
+  },
+  "aero": {
+    "cd0": 0.033,
+    "oswaldE": 0.8,
+    "k": 0.062,
+    "clMax": 1.41,
+    "clAlphaPerRad": 4.785,
+    "cl0": 0.1,
+    "alphaStallDeg": 16.883,
+    "cm0": -0.05,
+    "cmAlphaPerRad": -0.531,
+    "cmq": -7.2,
+    "clq": 2.88,
+    "cyBeta": -0.388,
+    "cnBeta": 0.1,
+    "clBeta": -0.089,
+    "clp": -0.497,
+    "cnr": -0.085
+  },
+  "control": {
+    "elevatorCmDelta": -2.268,
+    "elevatorMaxDeg": 25,
+    "aileronClDelta": 0.418,
+    "aileronMaxDeg": 20,
+    "rudderCnDelta": 0.101,
+    "rudderMaxDeg": 25,
+    "rollRateDegS": 73.3,
+    "trimAlphaDeg": 2.7
+  },
+  "propulsion": {
+    "type": "inline",
+    "powerKW": 462,
+    "powerHp": 620,
+    "propBlades": 3,
+    "propDiameterM": 1.767,
+    "propEfficiency": 0.8,
+    "staticThrustN": 9368,
+    "fuelBurnKgPerH": 73.077,
+    "gyroTorqueNm": 40
+  },
+  "gear": {
+    "type": "spatted",
+    "retractable": false,
+    "tailSkid": true,
+    "cdRetractGain": 0,
+    "groundFrictionRoll": 0.035,
+    "groundFrictionBrake": 0.38
+  },
+  "envelope": {
+    "vStallMs": 34.9,
+    "vMaxMs": 103.1,
+    "vNeMs": 125.782,
+    "vCruiseMs": 77.292,
+    "vBestClimbMs": 36.944,
+    "nLimit": 4.5,
+    "nLimitNeg": -2.025,
+    "ceilingM": 10334,
+    "rocMs": 17.16,
+    "rangeKm": 651,
+    "enduranceH": 2.34,
+    "turnInstantDegS": 33.3,
+    "turnSustainedDegS": 26.6
+  },
+  "gameStats": {
+    "speed": 69,
+    "climb": 85,
+    "agility": 81,
+    "strength": 55,
+    "range": 45
+  },
+  "rig": [
+    "propeller",
+    "prop_blur_disc",
+    "wheel_left",
+    "wheel_right",
+    "gear_suspension",
+    "rudder_pivot",
+    "elevator_pivot",
+    "aileron_left_pivot",
+    "aileron_right_pivot",
+    "pilot_head_pivot",
+    "pilot_arm_pivot"
+  ]
+}

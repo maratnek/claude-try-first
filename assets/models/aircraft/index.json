@@ -1,0 +1,152 @@
+[
+  {
+    "id": "pioneer-1",
+    "name": "Tanager No. 4A",
+    "era": "pioneer",
+    "year": 1913,
+    "config": "monoplane",
+    "tris": 2612,
+    "stats": {
+      "speed": 33,
+      "climb": 37,
+      "agility": 95,
+      "strength": 24,
+      "range": 16
+    }
+  },
+  {
+    "id": "pioneer-38",
+    "name": "Osprey Type 9",
+    "era": "pioneer",
+    "year": 1911,
+    "config": "biplane",
+    "tris": 3100,
+    "stats": {
+      "speed": 24,
+      "climb": 10,
+      "agility": 67,
+      "strength": 32,
+      "range": 18
+    }
+  },
+  {
+    "id": "war-1",
+    "name": "Kestrel D. 8",
+    "era": "war",
+    "year": 1918,
+    "config": "biplane",
+    "tris": 3160,
+    "stats": {
+      "speed": 38,
+      "climb": 40,
+      "agility": 82,
+      "strength": 39,
+      "range": 14
+    }
+  },
+  {
+    "id": "war-38",
+    "name": "Merlin Type 1",
+    "era": "war",
+    "year": 1916,
+    "config": "biplane",
+    "tris": 2936,
+    "stats": {
+      "speed": 46,
+      "climb": 53,
+      "agility": 78,
+      "strength": 37,
+      "range": 13
+    }
+  },
+  {
+    "id": "golden-1",
+    "name": "Tercel Mk 5",
+    "era": "golden",
+    "year": 1926,
+    "config": "monoplane",
+    "tris": 2716,
+    "stats": {
+      "speed": 56,
+      "climb": 70,
+      "agility": 81,
+      "strength": 42,
+      "range": 31
+    }
+  },
+  {
+    "id": "golden-38",
+    "name": "Petrel Racer 9",
+    "era": "golden",
+    "year": 1929,
+    "config": "biplane",
+    "tris": 3076,
+    "stats": {
+      "speed": 47,
+      "climb": 57,
+      "agility": 78,
+      "strength": 52,
+      "range": 29
+    }
+  },
+  {
+    "id": "streamline-1",
+    "name": "Falcon Model 4",
+    "era": "streamline",
+    "year": 1937,
+    "config": "monoplane",
+    "tris": 2468,
+    "stats": {
+      "speed": 69,
+      "climb": 85,
+      "agility": 81,
+      "strength": 55,
+      "range": 45
+    }
+  },
+  {
+    "id": "streamline-38",
+    "name": "Kestrel Type 8",
+    "era": "streamline",
+    "year": 1933,
+    "config": "monoplane",
+    "tris": 2644,
+    "stats": {
+      "speed": 67,
+      "climb": 86,
+      "agility": 80,
+      "strength": 50,
+      "range": 40
+    }
+  },
+  {
+    "id": "warbird-1",
+    "name": "Tanager Type 4A",
+    "era": "warbird",
+    "year": 1943,
+    "config": "monoplane",
+    "tris": 2364,
+    "stats": {
+      "speed": 83,
+      "climb": 84,
+      "agility": 73,
+      "strength": 62,
+      "range": 79
+    }
+  },
+  {
+    "id": "warbird-38",
+    "name": "Osprey Mk 9",
+    "era": "warbird",
+    "year": 1941,
+    "config": "monoplane",
+    "tris": 2364,
+    "stats": {
+      "speed": 80,
+      "climb": 81,
+      "agility": 77,
+      "strength": 60,
+      "range": 74
+    }
+  }
+]

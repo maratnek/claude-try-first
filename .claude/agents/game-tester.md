@@ -14,3 +14,10 @@ How to check:
 4. Cross-check against the project's roadmap/features recorded in memory and past commits (read recent `git log` messages) — if a commit message claims a feature (e.g. "takeoff", "checkpoints", "crash on obstacle"), grep the current code to confirm that logic is still present, not silently removed by a later change.
 
 Report a clear pass/fail per thing you checked, not just "looks fine." If something is broken, name the exact file/line and what's wrong — do not attempt to fix it yourself.
+
+## Procedural aircraft changes
+
+If the diff touches tools/aircraft-gen/, assets/models/aircraft/ or src/objects/aircraft.*:
+run `cd tools/aircraft-gen && npm ci && npm run check -- --max-tris=9000`, rerun the `find`
+command quoted in the builder's report and confirm identical results, and check that no
+exported sim.json was hand-edited and every golden.json change is explained in the commit. Any failure is a blocker.

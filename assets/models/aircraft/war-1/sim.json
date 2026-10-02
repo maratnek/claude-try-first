@@ -1,0 +1,121 @@
+{
+  "id": "war-1",
+  "name": "Kestrel",
+  "era": "Great War",
+  "year": 1918,
+  "seed": 1,
+  "config": "biplane",
+  "geometry": {
+    "wingAreaM2": 24.01,
+    "spanM": 8.03,
+    "macM": 1.63,
+    "aspectRatio": 2.69,
+    "taper": 0.87,
+    "sweepDeg": 0.836,
+    "dihedralDeg": 0.037,
+    "fuseLenM": 5.09,
+    "fuseRadiusM": 0.392,
+    "wheelTrackM": 1.585,
+    "hStabAreaM2": 2.412,
+    "vStabAreaM2": 0.828,
+    "tailArmM": 3.095
+  },
+  "mass": {
+    "massKg": 671,
+    "emptyKg": 537,
+    "fuelKg": 39,
+    "cgZ": -0.24,
+    "cgPctMAC": 0.235,
+    "aeroCentreZ": -0.264,
+    "neutralPointZ": -0.413,
+    "staticMarginMAC": 0.106,
+    "inertiaKgM2": {
+      "ixx": 2000,
+      "iyy": 1565,
+      "izz": 3283,
+      "ixz": 80
+    }
+  },
+  "aero": {
+    "cd0": 0.0586,
+    "oswaldE": 0.7,
+    "k": 0.169,
+    "clMax": 1.19,
+    "clAlphaPerRad": 3.315,
+    "cl0": 0.12,
+    "alphaStallDeg": 20.566,
+    "cm0": -0.06,
+    "cmAlphaPerRad": -0.351,
+    "cmq": -1.52,
+    "clq": 0.608,
+    "cyBeta": -0.346,
+    "cnBeta": 0.076,
+    "clBeta": -0.071,
+    "clp": -0.452,
+    "cnr": -0.072
+  },
+  "control": {
+    "elevatorCmDelta": -0.479,
+    "elevatorMaxDeg": 25,
+    "aileronClDelta": 0.361,
+    "aileronMaxDeg": 20,
+    "rudderCnDelta": 0.085,
+    "rudderMaxDeg": 25,
+    "rollRateDegS": 38.5,
+    "trimAlphaDeg": 3
+  },
+  "propulsion": {
+    "type": "rotary",
+    "powerKW": 90,
+    "powerHp": 121,
+    "propBlades": 2,
+    "propDiameterM": 1.398,
+    "propEfficiency": 0.72,
+    "staticThrustN": 2510,
+    "fuelBurnKgPerH": 19.797,
+    "gyroTorqueNm": 180
+  },
+  "gear": {
+    "type": "spoked",
+    "retractable": false,
+    "tailSkid": true,
+    "cdRetractGain": 0,
+    "groundFrictionRoll": 0.035,
+    "groundFrictionBrake": 0.38
+  },
+  "envelope": {
+    "vStallMs": 19.4,
+    "vMaxMs": 42.2,
+    "vNeMs": 51.484,
+    "vCruiseMs": 31.667,
+    "vBestClimbMs": 21.389,
+    "nLimit": 3.8,
+    "nLimitNeg": -1.71,
+    "ceilingM": 5612,
+    "rocMs": 5.02,
+    "rangeKm": 225,
+    "enduranceH": 1.97,
+    "turnInstantDegS": 54.6,
+    "turnSustainedDegS": 28.3
+  },
+  "gameStats": {
+    "speed": 38,
+    "climb": 40,
+    "agility": 82,
+    "strength": 39,
+    "range": 14
+  },
+  "rig": [
+    "propeller",
+    "prop_blur_disc",
+    "wheel_left",
+    "wheel_right",
+    "gear_suspension",
+    "rudder_pivot",
+    "elevator_pivot",
+    "aileron_left_pivot",
+    "aileron_right_pivot",
+    "pilot_head_pivot",
+    "pilot_arm_pivot"
+  ]
+}

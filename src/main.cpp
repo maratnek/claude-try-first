@@ -6,6 +6,7 @@
 #include "input.h"
 #include "level.h"
 #include "settings.h"
+#include "objects/aircraft.h"
 #include "objects/plane.h"
 #include "objects/world.h"
 #include "objects/character.h"
@@ -18,7 +19,7 @@ namespace {
 struct Game {
     EngineAudio engineAudio;
     Camera3D camera = {0};
-    PlaneModel planeModel;
+    AircraftModel aircraft;
     PlaneAnim planeAnim;
     WorldState world;
     PlaneState planeStart;
@@ -28,6 +29,15 @@ struct Game {
     InputState inputState;
     GraphicsSettings gfx;
 };
+
+// Same deflection limits and signs as the biplane rig in plane.cpp.
+void PoseAircraft(AircraftModel &aircraft, const PlaneAnim &anim) {
+    SetAircraftPartAngle(aircraft, "propeller", anim.propAngle);
+    SetAircraftPartAngle(aircraft, "elevator_pivot", anim.elevator * 25.0f);
+    SetAircraftPartAngle(aircraft, "aileron_right_pivot", anim.aileron * 25.0f);
+    SetAircraftPartAngle(aircraft, "aileron_left_pivot", -anim.aileron * 25.0f);
+    SetAircraftPartAngle(aircraft, "rudder_pivot", -anim.rudder * 30.0f);
+}
 
 bool HasLandedSafely(const PlaneState &plane) {
     return plane.landing == LandingResult::Safe && !plane.airborne;
@@ -48,7 +58,6 @@ void UpdateFrame(Game &g) {
     WorldState &world = g.world;
     Camera3D &camera = g.camera;
     EngineAudio &engineAudio = g.engineAudio;
-    PlaneModel &planeModel = g.planeModel;
     const PlaneState &planeStart = g.planeStart;
 
     float dt = GetFrameTime();
@@ -80,6 +89,7 @@ void UpdateFrame(Game &g) {
     }
 
     UpdatePlaneAnimation(g.planeAnim, plane, input, level.crashed, g.planeParams.maxSpeed, dt);
+    PoseAircraft(g.aircraft, g.planeAnim);
     UpdateEngineAudio(engineAudio, plane.speed / g.planeParams.maxSpeed);
 
     float yawRad = plane.yaw * DEG2RAD;
@@ -94,7 +104,7 @@ void UpdateFrame(Game &g) {
     DrawWorldObject(world, g.gfx);
     DrawFinishGate(level);
     DrawCheckpoints(level);
-    DrawPlaneObject(planeModel, g.planeAnim, plane.position, plane.yaw, plane.pitch, plane.roll, g.gfx.propBlur);
+    DrawAircraftObject(g.aircraft, plane.position, plane.yaw, plane.pitch, plane.roll);
     if (g.gfx.characters) {
         DrawCharacterObject((Vector3){-3.0f, GetGroundHeight(world, -3.0f, 3.0f), 3.0f}, 20.0f, BLUE);
         DrawCharacterObject((Vector3){3.0f, GetGroundHeight(world, 3.0f, 3.0f), 3.0f}, -20.0f, ORANGE);
@@ -139,7 +149,7 @@ int main() {
     game.camera.fovy = 60.0f;
     game.camera.projection = CAMERA_PERSPECTIVE;
 
-    LoadPlaneModel(game.planeModel, AssetPath("models/biplane-1920.glb"));
+    LoadAircraftModel(game.aircraft, AssetPath("models/aircraft/war-1"));
 
     InitGraphicsSettings(game.gfx);
     GenerateWorld(game.world);
@@ -160,7 +170,7 @@ int main() {
 
     UnloadEngineAudio(game.engineAudio);
     CloseAudioDevice();
-    UnloadPlaneModel(game.planeModel);
+    UnloadAircraftModel(game.aircraft);
     UnloadLevel(game.level);
     UnloadWorld(game.world);
     CloseWindow();

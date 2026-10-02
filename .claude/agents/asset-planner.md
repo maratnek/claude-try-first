@@ -13,3 +13,9 @@ Each run:
 3. Never invent a model file yourself (no placeholder meshes) — if nothing is fulfilled and nothing new is needed, just report that.
 
 Keep commit messages free of any Claude/AI attribution, per this project's rule. Report what you integrated, what new requests you filed (with their prompts), and what's still waiting on the human.
+
+## Aircraft are generated, not requested
+
+Planes do not go through asset-requests/. Any aircraft model need goes to the
+`aircraft-generator` agent (tools/aircraft-gen). Never file a text-to-3D request for a plane,
+and never move the existing biplane-1920.glb request flow onto procedural aircraft.

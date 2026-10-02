@@ -1,0 +1,121 @@
+{
+  "id": "pioneer-38",
+  "name": "Osprey",
+  "era": "Pioneer",
+  "year": 1911,
+  "seed": 38,
+  "config": "biplane",
+  "geometry": {
+    "wingAreaM2": 27.94,
+    "spanM": 9.34,
+    "macM": 1.62,
+    "aspectRatio": 3.13,
+    "taper": 0.8,
+    "sweepDeg": 1.073,
+    "dihedralDeg": 3.306,
+    "fuseLenM": 5.021,
+    "fuseRadiusM": 0.516,
+    "wheelTrackM": 1.831,
+    "hStabAreaM2": 2.628,
+    "vStabAreaM2": 0.777,
+    "tailArmM": 2.869
+  },
+  "mass": {
+    "massKg": 496,
+    "emptyKg": 374,
+    "fuelKg": 27,
+    "cgZ": -0.442,
+    "cgPctMAC": 0.248,
+    "aeroCentreZ": -0.445,
+    "neutralPointZ": -0.58,
+    "staticMarginMAC": 0.085,
+    "inertiaKgM2": {
+      "ixx": 2004,
+      "iyy": 1126,
+      "izz": 2927,
+      "ixz": 80
+    }
+  },
+  "aero": {
+    "cd0": 0.0633,
+    "oswaldE": 0.7,
+    "k": 0.145,
+    "clMax": 1.19,
+    "clAlphaPerRad": 3.527,
+    "cl0": 0.12,
+    "alphaStallDeg": 19.333,
+    "cm0": -0.06,
+    "cmAlphaPerRad": -0.3,
+    "cmq": -1.36,
+    "clq": 0.544,
+    "cyBeta": -0.333,
+    "cnBeta": 0.069,
+    "clBeta": -0.122,
+    "clp": -0.458,
+    "cnr": -0.068
+  },
+  "control": {
+    "elevatorCmDelta": -0.428,
+    "elevatorMaxDeg": 25,
+    "aileronClDelta": 0.394,
+    "aileronMaxDeg": 20,
+    "rudderCnDelta": 0.079,
+    "rudderMaxDeg": 25,
+    "rollRateDegS": 20.9,
+    "trimAlphaDeg": 3
+  },
+  "propulsion": {
+    "type": "rotary",
+    "powerKW": 29,
+    "powerHp": 38,
+    "propBlades": 2,
+    "propDiameterM": 1.199,
+    "propEfficiency": 0.72,
+    "staticThrustN": 1053,
+    "fuelBurnKgPerH": 7.258,
+    "gyroTorqueNm": 180
+  },
+  "gear": {
+    "type": "skid",
+    "retractable": false,
+    "tailSkid": true,
+    "cdRetractGain": 0,
+    "groundFrictionRoll": 0.035,
+    "groundFrictionBrake": 0.38
+  },
+  "envelope": {
+    "vStallMs": 15.5,
+    "vMaxMs": 26.7,
+    "vNeMs": 32.574,
+    "vCruiseMs": 20,
+    "vBestClimbMs": 15.833,
+    "nLimit": 3.5,
+    "nLimitNeg": -1.575,
+    "ceilingM": 1052,
+    "rocMs": 0.72,
+    "rangeKm": 267,
+    "enduranceH": 3.72,
+    "turnInstantDegS": 56.4,
+    "turnSustainedDegS": 17.9
+  },
+  "gameStats": {
+    "speed": 24,
+    "climb": 10,
+    "agility": 67,
+    "strength": 32,
+    "range": 18
+  },
+  "rig": [
+    "propeller",
+    "prop_blur_disc",
+    "wheel_left",
+    "wheel_right",
+    "gear_suspension",
+    "rudder_pivot",
+    "elevator_pivot",
+    "aileron_left_pivot",
+    "aileron_right_pivot",
+    "pilot_head_pivot",
+    "pilot_arm_pivot"
+  ]
+}
