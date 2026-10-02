@@ -5,6 +5,7 @@
 #include "flight.h"
 #include "input.h"
 #include "level.h"
+#include "menu.h"
 #include "settings.h"
 #include "objects/plane.h"
 #include "objects/world.h"
@@ -15,7 +16,11 @@
 #endif
 
 namespace {
+enum class Screen { Menu, Playing, Crashed };
+
 struct Game {
+    Screen screen = Screen::Menu;
+    MenuState menu;
     EngineAudio engineAudio;
     Camera3D camera = {0};
     PlaneModel planeModel;
@@ -60,12 +65,31 @@ void UpdateFrame(Game &g) {
     }
 
     FlightInput input = ReadFlightInput(g.inputState);
+    MenuAction menuAction = MenuAction::None;
+    if (g.screen == Screen::Menu) menuAction = UpdateMenu(g.menu);
 
-    if (input.restart && (level.crashed || HasLandedSafely(plane))) {
+    auto resetRun = [&]() {
         plane = planeStart;
         g.planeAnim = PlaneAnim{};
         ResetLevelProgress(level);
-    } else if (!level.crashed) {
+        StopSound(engineAudio.crashSound);
+    };
+
+    if (g.screen == Screen::Menu) {
+        if (menuAction == MenuAction::Play) {
+            resetRun();
+            g.screen = Screen::Playing;
+        } else if (menuAction == MenuAction::Exit) {
+            g.quitRequested = true;
+        }
+    } else if (g.screen == Screen::Crashed && input.menu) {
+        resetRun();
+        EnterMenu(g.menu);
+        g.screen = Screen::Menu;
+    } else if (input.restart && (level.crashed || HasLandedSafely(plane))) {
+        resetRun();
+        g.screen = Screen::Playing;
+    } else if (g.screen == Screen::Playing) {
         float groundHeight = GetGroundHeight(world, plane.position.x, plane.position.z);
         float slopeYaw = plane.yaw * DEG2RAD;
         float sx = sinf(slopeYaw) * 2.0f, sz = cosf(slopeYaw) * 2.0f;
@@ -79,6 +103,8 @@ void UpdateFrame(Game &g) {
         if (hit == ObstacleHit::Soft) plane.damaged = true;
         if (hit == ObstacleHit::Hard || plane.landing == LandingResult::Hard) {
             level.crashed = true;
+            g.screen = Screen::Crashed;
+            PlayCrashSound(engineAudio);
         }
     }
 #ifndef SETTINGS_MOBILE_OR_WEB
@@ -86,7 +112,11 @@ void UpdateFrame(Game &g) {
 #endif
 
     UpdatePlaneAnimation(g.planeAnim, plane, input, level.crashed, g.planeParams.maxSpeed, dt);
-    UpdateEngineAudio(engineAudio, level.crashed ? 0.0f : plane.speed / g.planeParams.maxSpeed);
+    if (g.screen == Screen::Playing) {
+        UpdateEngineAudio(engineAudio, plane.speed / g.planeParams.maxSpeed);
+    } else {
+        StopEngineAudio(engineAudio);
+    }
 
     float yawRad = plane.yaw * DEG2RAD;
     Vector3 chaseOffset = {-12.0f * sinf(yawRad), 5.0f, -12.0f * cosf(yawRad)};
@@ -106,6 +136,12 @@ void UpdateFrame(Game &g) {
         DrawCharacterObject((Vector3){3.0f, GetGroundHeight(world, 3.0f, 3.0f), 3.0f}, -20.0f, ORANGE);
     }
     EndMode3D();
+
+    if (g.screen == Screen::Menu) {
+        DrawMenu(g.menu);
+        EndDrawing();
+        return;
+    }
 
     DrawText(g.inputState.touchUsed ? "Left stick: pitch/roll  +/-: throttle"
                                     : "Arrows = pitch/roll, A/D = rudder, W/S = throttle",
@@ -148,6 +184,8 @@ int main() {
 
     LoadPlaneModel(game.planeModel, AssetPath("models/biplane-1920.glb"));
 
+    InitMenu(game.menu);
+    EnterMenu(game.menu);
     InitGraphicsSettings(game.gfx);
     GenerateWorld(game.world);
 

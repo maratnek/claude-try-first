@@ -78,11 +78,11 @@ void DrawCrashScreen() {
     const char *title = "CRASHED";
     DrawText(title, (w - MeasureText(title, 60)) / 2, h / 2 - 150, 60, RED);
 #ifdef SETTINGS_MOBILE_OR_WEB
-    const char *hint = "R: Restart";
+    const char *hint = "R: Restart     M: Menu";
 #else
-    const char *hint = "R: Restart     Esc / Q: Exit";
+    const char *hint = "R: Restart     M: Menu     Esc / Q: Exit";
 #endif
-    DrawText(hint, (w - MeasureText(hint, 28)) / 2, h / 2 + 70, 28, WHITE);
+    DrawText(hint, (w - MeasureText(hint, 28)) / 2, h / 2 + 170, 28, WHITE);
 }
 
 void ResetLevelProgress(LevelState &level) {

@@ -1,0 +1,80 @@
+#include "menu.h"
+#include "raylib.h"
+#include "settings.h"
+
+namespace {
+constexpr float kEntryWidth = 320.0f;
+constexpr float kEntryHeight = 70.0f;
+constexpr float kEntrySpacing = 20.0f;
+
+Rectangle EntryRect(int index) {
+    return {(GetScreenWidth() - kEntryWidth) * 0.5f,
+            GetScreenHeight() * 0.5f + index * (kEntryHeight + kEntrySpacing), kEntryWidth, kEntryHeight};
+}
+}  // namespace
+
+void InitMenu(MenuState &menu) {
+    menu.entries.clear();
+    menu.entries.push_back({"Play", MenuAction::Play});
+#ifndef SETTINGS_MOBILE_OR_WEB
+    menu.entries.push_back({"Exit", MenuAction::Exit});
+#endif
+    menu.selected = 0;
+}
+
+void EnterMenu(MenuState &menu) {
+    menu.selected = 0;
+    menu.touchHeld = GetTouchPointCount() > 0 || IsMouseButtonDown(MOUSE_BUTTON_LEFT);
+}
+
+MenuAction UpdateMenu(MenuState &menu) {
+    int count = (int)menu.entries.size();
+    if (IsKeyPressed(KEY_DOWN)) menu.selected = (menu.selected + 1) % count;
+    if (IsKeyPressed(KEY_UP)) menu.selected = (menu.selected + count - 1) % count;
+    if (IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_SPACE)) return menu.entries[menu.selected].action;
+#ifndef SETTINGS_MOBILE_OR_WEB
+    if (IsKeyPressed(KEY_Q)) return MenuAction::Exit;
+#endif
+
+    bool pressed = false;
+    Vector2 p = {0.0f, 0.0f};
+    if (GetTouchPointCount() > 0) {
+        pressed = true;
+        p = GetTouchPosition(0);
+    } else if (IsMouseButtonDown(MOUSE_BUTTON_LEFT)) {
+        pressed = true;
+        p = GetMousePosition();
+    }
+    bool tapped = pressed && !menu.touchHeld;
+    menu.touchHeld = pressed;
+    if (tapped) {
+        for (int i = 0; i < count; i++) {
+            if (CheckCollisionPointRec(p, EntryRect(i))) {
+                menu.selected = i;
+                return menu.entries[i].action;
+            }
+        }
+    }
+    return MenuAction::None;
+}
+
+void DrawMenu(const MenuState &menu) {
+    int w = GetScreenWidth(), h = GetScreenHeight();
+    DrawRectangle(0, 0, w, h, (Color){0, 0, 0, 120});
+    const char *title = "FLIGHT GAME";
+    DrawText(title, (w - MeasureText(title, 80)) / 2, h / 2 - 200, 80, WHITE);
+    for (int i = 0; i < (int)menu.entries.size(); i++) {
+        Rectangle r = EntryRect(i);
+        bool selected = i == menu.selected;
+        DrawRectangleRec(r, selected ? (Color){255, 255, 255, 220} : (Color){255, 255, 255, 110});
+        DrawRectangleLinesEx(r, 2.0f, (Color){40, 40, 40, 200});
+        const char *label = menu.entries[i].label;
+        DrawText(label, (int)(r.x + (r.width - MeasureText(label, 36)) * 0.5f), (int)(r.y + 17), 36, BLACK);
+    }
+#ifdef SETTINGS_MOBILE_OR_WEB
+    const char *hint = "Tap Play";
+#else
+    const char *hint = "Up/Down + Enter/Space, or click     Q: Exit";
+#endif
+    DrawText(hint, (w - MeasureText(hint, 24)) / 2, h - 60, 24, WHITE);
+}
