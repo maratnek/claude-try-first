@@ -12,6 +12,13 @@ owner can skim what happened without digging through git log. Format:
 - PR: <link or branch, if one was opened>
 ```
 
+## 2026-10-02 night run (11)
+- Did: Weekend sprint item 4b (C++23). CMAKE_CXX_STANDARD 17 -> 23; README.md and docs/ARCHITECTURE.md updated. No source changes were needed. cmake/conan_provider.cmake derives compiler.cppstd from CMAKE_CXX_STANDARD, so the generated Conan profile now says gnu23 (valid for apple-clang 15); the Conan-Center raylib recipe removes compiler.cppstd in configure(), so raylib's package id should not change.
+- Why: Owner asked to leave C++17; 23 chosen because every toolchain we could test accepts it (clang 18, g++ 13, emcc 6.0.10), so there was no reason to stop at 20.
+- Verified: game-developer and game-tester compiled every src file with -std=gnu++23 on clang++ 18 and g++ 13 (no errors), built the desktop executable against hand-built raylib 5.5 and ran it 6 s under Xvfb (clean apart from no-audio-device warnings), and linked the web target with emsdk 6.0.10 (flags confirmed -std=gnu++23). code-reviewer read the diff and the Conan provider: no blockers. CI status: see PR.
+- Open: macOS Apple clang and the Conan path were NOT run here; CI's macos-14 job is the only proof for them. Web output not loaded in a browser. Next: sprint item 5, itch.io zip artifact in CI.
+- PR: see PR into dev from agents
+
 ## 2026-10-02 night run (10)
 - Did: Weekend sprint item 4 (web page shell). New web/shell.html replaces raylib's minshell: touch-action none, overscroll-behavior none, no pinch zoom (viewport meta plus gesture/touchmove preventDefault), full-window canvas, fullscreen button (hidden where the API is missing, e.g. iOS Safari), a "rotate to landscape" hint on portrait phones (max-width 600px) with a Play anyway dismiss, and no CDN dependency (FileSaver.js gone). main.cpp sets FLAG_WINDOW_RESIZABLE on web only so the canvas follows the browser viewport. Added an empty data: favicon to silence the 404.
 - Why: Next unchecked item of the Web v0.1 sprint; phone players need a page that does not scroll, zoom or refresh under their thumbs.
