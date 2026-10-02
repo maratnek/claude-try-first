@@ -10,7 +10,12 @@ constexpr float kElevatorMaxDeg = 25.0f;
 constexpr float kAileronMaxDeg = 25.0f;
 constexpr float kRudderMaxDeg = 30.0f;
 constexpr float kIdleRpm = 0.2f;
-constexpr float kBlurRpm = 0.55f;
+constexpr float kBlurStartRpm = 0.45f;
+constexpr float kBlurFullRpm = 0.75f;
+// The rigged export has only a hub and a blur disc (radius 0.87), no blades, so blades are drawn procedurally.
+constexpr Vector3 kBladeSize = {0.13f, 1.72f, 0.04f};
+constexpr Vector3 kBladeOffset = {0.0f, 0.0f, 0.02f};
+constexpr Color kBladeColor = {96, 60, 34, 255};
 constexpr float kPropMaxDegPerSec = 2400.0f;
 constexpr float kWheelRadius = 0.44f;
 constexpr float kMinHingeAngleRad = 1.0f * DEG2RAD;
@@ -157,7 +162,7 @@ float Approach(float current, float target, float rate, float dt) {
     return current + (target - current) * (1.0f - expf(-rate * dt));
 }
 
-Matrix PartTransform(const PlanePartRig &rig, float angleDeg) {
+Mat4 AnimatedWorld(const PlanePartRig &rig, float angleDeg) {
     Mat4 animatedLocal;
     float angle = angleDeg * DEG2RAD;
     if (rig.spins) {
@@ -166,9 +171,27 @@ Matrix PartTransform(const PlanePartRig &rig, float angleDeg) {
         Mat4 neutral = Translation(rig.restLocal.m[12], rig.restLocal.m[13], rig.restLocal.m[14]);
         animatedLocal = Mul(neutral, AxisRotation(rig.axis, angle));
     }
-    Mat4 animatedWorld = Mul(rig.parentWorld, animatedLocal);
+    return Mul(rig.parentWorld, animatedLocal);
+}
+
+Matrix PartTransform(const PlanePartRig &rig, float angleDeg) {
     // Vertices are already baked into rest-pose world space, so undo that pose before applying the animated one.
-    return ToRaylib(Mul(animatedWorld, rig.invRestWorld));
+    return ToRaylib(Mul(AnimatedWorld(rig, angleDeg), rig.invRestWorld));
+}
+
+float SmoothStep(float edge0, float edge1, float x) {
+    float t = Clamp((x - edge0) / (edge1 - edge0), 0.0f, 1.0f);
+    return t * t * (3.0f - 2.0f * t);
+}
+
+void DrawPropellerBlades(const PlanePartRig &rig, float angleDeg, float alpha) {
+    if (alpha <= 0.0f) return;
+    rlPushMatrix();
+    rlMultMatrixf(MatrixToFloat(ToRaylib(AnimatedWorld(rig, angleDeg))));
+    Color color = kBladeColor;
+    color.a = (unsigned char)(alpha * 255.0f);
+    DrawCubeV(kBladeOffset, kBladeSize, color);
+    rlPopMatrix();
 }
 
 }  // namespace
@@ -232,15 +255,23 @@ void DrawPlaneObject(const PlaneModel &planeModel, const PlaneAnim &anim, Vector
             transforms[k] = PartTransform(planeModel.parts[k], angles[k]);
         }
 
-        // Translucent blur disc goes last so it blends over the opaque parts behind it.
+        // Blades fade out as the blur disc fades in, so the propeller reads as spinning at speed.
+        float blurAlpha = SmoothStep(kBlurStartRpm, kBlurFullRpm, anim.rpm);
+
+        // Translucent blades and blur disc go last so they blend over the opaque parts behind them.
         for (int pass = 0; pass < 2; pass++) {
+            if (pass == 1) DrawPropellerBlades(planeModel.parts[PART_PROPELLER], anim.propAngle, 1.0f - blurAlpha);
             for (int i = 0; i < planeModel.model.meshCount; i++) {
                 bool blur = planeModel.meshIsBlur[i];
                 if (blur != (pass == 1)) continue;
-                if (blur && anim.rpm < kBlurRpm) continue;
+                if (blur && blurAlpha <= 0.0f) continue;
                 int part = planeModel.meshPart[i];
                 Matrix transform = part >= 0 ? transforms[part] : MatrixIdentity();
-                DrawMesh(planeModel.model.meshes[i], planeModel.model.materials[planeModel.model.meshMaterial[i]], transform);
+                Material &material = planeModel.model.materials[planeModel.model.meshMaterial[i]];
+                Color original = material.maps[MATERIAL_MAP_DIFFUSE].color;
+                if (blur) material.maps[MATERIAL_MAP_DIFFUSE].color.a = (unsigned char)(original.a * blurAlpha);
+                DrawMesh(planeModel.model.meshes[i], material, transform);
+                material.maps[MATERIAL_MAP_DIFFUSE].color = original;
             }
         }
     }

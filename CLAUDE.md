@@ -63,46 +63,86 @@ so the game runs regardless of the launcher's working directory.
    plane mesh, using the same rotation convention so physics is unaffected.
 7. Web (Emscripten) build target + CI job, and touch controls (virtual
    stick, throttle buttons, on-screen restart) via `src/input.cpp`.
-8. The biplane model was replaced with a rigged version (74 meshes): same
-   path, but its glTF node hierarchy now has named pivot nodes for moving
-   parts. It is currently drawn as one static model via `LoadModel()`.
+8. Rigged biplane model (74 meshes, named pivot nodes) with code-driven
+   animation via `src/objects/glb_nodes.cpp` + `plane.cpp`: propeller,
+   elevator, ailerons, rudder, wheels. The model has no propeller blades
+   (only hub + blur disc), so blades are drawn procedurally and cross-fade
+   into the blur disc with RPM; an asset request for a bladed model is in
+   `asset-requests/pending/`.
+9. Landing: safe touchdown returns to ground roll, hard landing crashes.
 
-## Roadmap / known follow-up work
+## Roadmap
 
-- **Animate the biplane's moving parts (next up — owner-requested).** The
-  model at `assets/models/biplane-1920.glb` has named pivot nodes, each
-  with a node matrix whose translation is the hinge point:
-  `propeller` (children `prop_hub`, `prop_blur_disc`), `rudder_pivot`,
-  `elevator_pivot`, `aileron_right_pivot`, `aileron_left_pivot`,
-  `wheel_right`, `wheel_left`, `gear_suspension`, `pilot_head_pivot`,
-  `pilot_arm_pivot`. There are no animation clips in the file — motion is
-  meant to be driven from code. Target behavior: propeller spins with
-  throttle/speed (show `prop_blur_disc` only at high RPM, so blades read
-  as spinning); elevator follows pitch input; ailerons follow roll input
-  (opposite directions); rudder follows yaw input; wheels spin with ground
-  speed while grounded; pilot head turns slightly into turns.
-  Known obstacles to solve, not assume away:
-  - raylib's `LoadModel()` flattens the glTF hierarchy (bakes node
-    transforms into vertices, drops node names), so per-part animation
-    needs its own node-aware loading — e.g. via cgltf (on ConanCenter;
-    raylib 5.5 bundles cgltf 1.14 internally). raylib's static lib already
-    compiles cgltf's implementation, so defining `CGLTF_IMPLEMENTATION`
-    again may cause duplicate symbols — verify, don't guess. The Web build
-    gets raylib via FetchContent instead of Conan; the solution must work
-    in both.
-  - The exported pivot matrices are a posed snapshot (propeller rotated,
-    control surfaces already deflected by a few degrees to ~20°), not a
-    neutral rest pose. Work out each hinge's axis and neutral angle rather
-    than treating the exported rotation as zero deflection.
-  - Keep the existing rotation convention in `src/objects/plane.cpp` so
-    flight physics is unaffected.
-- Landing (takeoff exists; there is no touchdown/landing mechanic yet).
-- Customizable/swappable plane parts (tail, etc.) instead of one fixed
-  model.
-- Deeper flight model beyond the current arcade approximation.
-- Mobile port: touch controls, a Web (Emscripten) build, and an iOS build
-  — this is the actual priority driving the schedule below, not just
-  desktop polish.
+**Current milestone: level 1 fully playable start-to-finish, polished
+enough to interest a modern player, then shipped (Web first, iOS next) on
+a short timeline.** Work Track A strictly in order; Track B only when
+Track A items are done or blocked; Track C is later. Split large items
+into iterations rather than doing them in one run.
+
+**Performance rule (project owner's standing requirement):** every
+non-gameplay-critical visual (weather, particles, clouds, decorative
+terrain detail, debris, smoke, ...) must be individually switchable and
+covered by quality presets, so the game runs on weak PCs and ~5-year-old
+iPhones (iPhone 11 / A13 class). Gameplay-critical rendering stays on.
+
+### Track A — core, required for the milestone
+
+- **A0. Release plan (think first, small, do once).** game-designer +
+  product-manager write `design-notes/release-plan.md`: the minimum scope
+  to ship level 1 on Web (itch.io) soon and on iOS after, what to cut or
+  defer, risks (iOS toolchain/signing, App Store review time, touch feel on
+  real devices), and a rough day-by-day order of the A-items. Update it
+  when reality changes. Use it to pick each run's task.
+- **A1. Graphics settings framework.** A small settings struct with
+  Low/Medium/High presets plus per-feature toggles; Low is the default on
+  Web/mobile. Every later visual feature checks it. Persist to a local
+  file on desktop when trivial; otherwise in-memory for now.
+- **A2. Ground handling + basic aerodynamics.** Control authority scales
+  with airspeed (~v²) — at standstill, pitch/roll/yaw input must not
+  rotate the plane (surfaces may still deflect visually). On the ground:
+  no roll from input, body attitude follows the terrain slope under the
+  wheels, rudder steers at taxi speed. Air drag so speed decays without
+  throttle; stall (nose drops, loss of control) below a minimum airspeed.
+  Put all flight constants in a per-plane parameter struct (mass, max
+  speed, drag, control authority, stall speed, ...) — future faster
+  planes will need different physics, so avoid hardcoding biplane values
+  in the flight code. Keep existing sign conventions.
+- **A3. Crash + damage, v1.** High-speed or steep ground impact and hard
+  obstacles destroy the plane: game pauses, crash screen with Restart and
+  Exit. Add soft obstacles (bushes, treetops, birds): hitting one marks the
+  plane damaged and it keeps flying (shown on HUD and in the results).
+  Reconcile with the landing rules from item 9 (the 1 m floor currently
+  counts as a landing check). Breakup animation and smoke are Track B.
+- **A4. Full level 1 loop.** Start → takeoff → checkpoints → finish →
+  landing → results screen (time, checkpoints hit, damaged or clean, star
+  rating, best time kept in memory/local file). Make it feel like a
+  complete short level a modern player would replay for a better score.
+- **A5. Minimal sound set.** Procedural like the engine, no audio files:
+  wind rising with speed, checkpoint chime, crash impact, touchdown thump,
+  UI click, damage hit. One master volume setting.
+
+### Track B — visual polish, when resources allow (all switchable per A1)
+
+- **B1. Readable terrain.** Vertex color by height/slope (grass, dirt,
+  rock), baked directional shading, blob shadow under the plane (helps
+  read altitude), scattered trees/rocks beyond the corridor with a
+  density setting.
+- **B2. Breakup on crash** — detach the rigged parts and throw them.
+- **B3. Simple weather** — low-poly clouds, rain/snow zones as camera-local
+  particles, speed streaks. Visual only; weather affecting flight is later.
+- **B4. Damage smoke** trailing from a damaged plane.
+- **B5. Pilot head turns into turns** (pilot_head_pivot node).
+
+### Track C — later
+
+- Main menu: level select, plane upgrades, buying/unlocking other planes,
+  settings screen; save/load progress. Design the A-items so these slot
+  in later (e.g. plane parameters per plane type from A2, results from
+  A4 feed progression).
+- More levels; faster plane types with their own physics parameters.
+- The owner will provide a 3D plane generator later — plan plane assets
+  around swapping models per plane type.
+- iOS build + App Store submission (see A0 for timing).
 - Niche/positioning reference: chill/arcade low-poly flight exploration,
   comps like *A Short Hike* / *Sky Rogue*.
 
