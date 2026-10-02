@@ -128,7 +128,7 @@ void UpdateFrame(Game &g) {
             level.crashed = true;
             g.screen = Screen::Crashed;
             PlayCrashSound(engineAudio);
-        } else if (level.completed) {
+        } else if (IsRunFinished(level, plane.airborne, plane.speed)) {
             RecordFinish(level);
             g.screen = Screen::Finished;
         }
@@ -191,7 +191,7 @@ void UpdateFrame(Game &g) {
     }
     DrawFPS(10, 60);
     DrawText(TextFormat("Graphics: %s (F1)", GraphicsPresetName(g.gfx)), 110, 60, 20, DARKGRAY);
-    if (level.crashed) DrawCrashScreen();
+    if (level.crashed) DrawCrashScreen(level);
     if (g.screen == Screen::Finished) DrawResultsScreen(level, plane.damaged);
     DrawTouchOverlay(g.inputState, level.crashed || g.screen == Screen::Finished);
     EndDrawing();
