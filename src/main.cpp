@@ -14,8 +14,6 @@
 #endif
 
 namespace {
-const float kMaxPlaneSpeedForAudio = 60.0f;  // must match flight.cpp's kMaxSpeed
-
 struct Game {
     EngineAudio engineAudio;
     Camera3D camera = {0};
@@ -53,6 +51,7 @@ void UpdateFrame(Game &g) {
     if (level.crashed) {
         if (input.restart) {
             plane = planeStart;
+            g.planeAnim = PlaneAnim{};
             ResetLevelProgress(level);
         }
     } else {
@@ -65,8 +64,8 @@ void UpdateFrame(Game &g) {
         }
     }
 
-    UpdatePlaneAnimation(g.planeAnim, plane, input, dt);
-    UpdateEngineAudio(engineAudio, plane.speed / kMaxPlaneSpeedForAudio);
+    UpdatePlaneAnimation(g.planeAnim, plane, input, level.crashed, dt);
+    UpdateEngineAudio(engineAudio, plane.speed / kMaxSpeed);
 
     float yawRad = plane.yaw * DEG2RAD;
     Vector3 chaseOffset = {-12.0f * sinf(yawRad), 5.0f, -12.0f * cosf(yawRad)};
@@ -85,7 +84,9 @@ void UpdateFrame(Game &g) {
     DrawCharacterObject((Vector3){3.0f, GetGroundHeight(world, 3.0f, 3.0f), 3.0f}, -20.0f, ORANGE);
     EndMode3D();
 
-    DrawText("Arrows = pitch/roll, A/D = rudder, W/S = throttle", 10, 10, 20, DARKGRAY);
+    DrawText(g.inputState.touchUsed ? "Left side stick = pitch/roll, +/- = throttle, RESTART button after a crash"
+                                    : "Arrows = pitch/roll, A/D = rudder, W/S = throttle",
+             10, 10, 20, DARKGRAY);
     DrawText(TextFormat("Speed: %.1f m/s   Altitude: %.1f m   %s",
                          plane.speed, plane.position.y, plane.airborne ? "AIRBORNE" : "ON GROUND - throttle up, pull up to take off"),
              10, 35, 20, DARKGRAY);
