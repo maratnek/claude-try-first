@@ -12,6 +12,13 @@ owner can skim what happened without digging through git log. Format:
 - PR: <link or branch, if one was opened>
 ```
 
+## 2026-10-02 night run (4)
+- Did: Roadmap A1. New src/settings.{h,cpp}: GraphicsSettings with Low/Medium/High presets and four toggles (distance-marker pillars, obstacle wireframes, decorative characters, propeller blur disc), each gating a real draw call. Default is Low on Web/iOS, High on desktop; F1 cycles the preset, the HUD shows it, and desktop persists it to graphics.cfg next to the executable (gitignored). Terrain and gameplay rendering are not gated; physics untouched.
+- Why: Next unfinished Track A item; every later visual feature has to check this.
+- Verified: game-tester hand-built against raylib 5.5 (Conan blocked in sandbox), ran 8 s under Xvfb: clean, model loaded. code-reviewer: no blockers; I applied two nits (loop-condition toggle, gitignore). F1 key press, graphics.cfg round trip and the Emscripten build were NOT run locally. CI status: see PR.
+- Open: Today the toggles save little frame time (terrain is the main cost and is not gated), so Low is mostly cosmetic until Track B features exist. No touch/on-screen way to change the preset on iOS/Web, and the HUD "(F1)" hint is misleading on touch. Per-toggle UI not built. Owner should press F1 on desktop and confirm the look of Low.
+- PR: see PR into dev from agents
+
 ## 2026-10-02 day run
 - Did: Roadmap A0. Wrote design-notes/release-plan.md: minimum scope for Web v0.1 (~day 10) and iOS v1.0 (submit ~day 21), cuts/deferrals, nine risks with mitigations, day-by-day order of A1-A5, and the owner's hand tasks (Apple Developer enrolment, itch.io page, device tests, promoting dev to main). Docs only, no code changed.
 - Why: Next unfinished Track A item (A-fix already merged); the plan sets the order for later runs.

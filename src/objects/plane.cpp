@@ -226,7 +226,7 @@ void UpdatePlaneAnimation(PlaneAnim &anim, const PlaneState &plane, const Flight
     anim.wheelAngle = fmodf(anim.wheelAngle + anim.wheelRate * dt, 360.0f);
 }
 
-void DrawPlaneObject(const PlaneModel &planeModel, const PlaneAnim &anim, Vector3 position, float yawDegrees, float pitchDegrees, float rollDegrees) {
+void DrawPlaneObject(const PlaneModel &planeModel, const PlaneAnim &anim, Vector3 position, float yawDegrees, float pitchDegrees, float rollDegrees, bool propBlur) {
     if (!planeModel.loaded) return;
 
     rlPushMatrix();
@@ -258,7 +258,7 @@ void DrawPlaneObject(const PlaneModel &planeModel, const PlaneAnim &anim, Vector
         }
 
         // Blades fade out as the blur disc fades in, so the propeller reads as spinning at speed.
-        float blurAlpha = SmoothStep(kBlurStartRpm, kBlurFullRpm, anim.rpm);
+        float blurAlpha = propBlur ? SmoothStep(kBlurStartRpm, kBlurFullRpm, anim.rpm) : 0.0f;
 
         // Translucent blades and blur disc go last so they blend over the opaque parts behind them.
         for (int pass = 0; pass < 2; pass++) {

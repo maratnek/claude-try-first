@@ -55,6 +55,6 @@ void UpdatePlaneAnimation(PlaneAnim &anim, const PlaneState &plane, const Flight
 // Draws the plane model at the given world position and orientation in
 // degrees, matching PlaneState's convention (positive pitch climbs,
 // positive roll banks right).
-void DrawPlaneObject(const PlaneModel &planeModel, const PlaneAnim &anim, Vector3 position, float yawDegrees, float pitchDegrees, float rollDegrees);
+void DrawPlaneObject(const PlaneModel &planeModel, const PlaneAnim &anim, Vector3 position, float yawDegrees, float pitchDegrees, float rollDegrees, bool propBlur);
 
 void UnloadPlaneModel(PlaneModel &planeModel);
