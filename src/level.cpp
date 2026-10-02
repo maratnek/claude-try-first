@@ -4,6 +4,11 @@
 #include <cmath>
 
 namespace {
+constexpr bool kRequireLandingAfterGate = true;
+constexpr float kRolloutSpeed = 8.0f;
+constexpr float kLandingZoneLength = 300.0f;
+constexpr float kLandingZoneWidth = 40.0f;
+
 constexpr int kStarsFinished = 1;
 constexpr int kStarsCleanOrAllCheckpoints = 2;
 constexpr int kStarsPerfect = 3;
@@ -45,13 +50,13 @@ void InitLevel(LevelState &level) {
 void UpdateLevel(LevelState &level, Vector3 planePosition, float dt) {
     if (level.crashed) return;
 
-    if (!level.completed) level.elapsed += dt;
+    if (!level.gateCrossed) level.elapsed += dt;
 
     float dx = planePosition.x - level.startPosition.x;
     float dz = planePosition.z - level.startPosition.z;
     level.distanceFlown = sqrtf(dx * dx + dz * dz);
     if (level.distanceFlown >= level.targetDistance) {
-        level.completed = true;
+        level.gateCrossed = true;
     }
 
     for (Checkpoint &cp : level.checkpoints) {
@@ -59,6 +64,12 @@ void UpdateLevel(LevelState &level, Vector3 planePosition, float dt) {
             cp.passed = true;
         }
     }
+}
+
+bool IsRunFinished(const LevelState &level, bool airborne, float speed) {
+    if (!level.gateCrossed) return false;
+    if (!kRequireLandingAfterGate) return true;
+    return !airborne && speed <= kRolloutSpeed;
 }
 
 int ComputeStars(const LevelState &level, bool damaged) {
@@ -83,6 +94,11 @@ void DrawFinishGate(const LevelState &level) {
     DrawCylinder((Vector3){gatePos.x - 4.0f, 0.0f, gatePos.z}, 0.3f, 0.3f, 8.0f, 10, GOLD);
     DrawCylinder((Vector3){gatePos.x + 4.0f, 0.0f, gatePos.z}, 0.3f, 0.3f, 8.0f, 10, GOLD);
     DrawCube((Vector3){gatePos.x, 8.0f, gatePos.z}, 8.6f, 0.4f, 0.4f, GOLD);
+
+    if (kRequireLandingAfterGate) {
+        DrawCube((Vector3){gatePos.x, 0.05f, gatePos.z + kLandingZoneLength / 2.0f},
+                 kLandingZoneWidth, 0.1f, kLandingZoneLength, (Color){80, 200, 100, 255});
+    }
 }
 
 void DrawCheckpoints(const LevelState &level) {
@@ -106,13 +122,22 @@ void DrawLevelHUD(const LevelState &level, bool damaged) {
              10, 85, 20, DARKGRAY);
 
     DrawText(damaged ? "Plane: DAMAGED" : "Plane: OK", 10, 180, 20, damaged ? MAROON : DARKGREEN);
+
+    if (level.gateCrossed && kRequireLandingAfterGate) {
+        const char *banner = "GATE! Land to finish";
+        DrawText(banner, (GetScreenWidth() - MeasureText(banner, 40)) / 2, 110, 40, GOLD);
+    }
 }
 
-void DrawCrashScreen() {
+void DrawCrashScreen(const LevelState &level) {
     int w = GetScreenWidth(), h = GetScreenHeight();
     DrawRectangle(0, 0, w, h, (Color){0, 0, 0, 150});
     const char *title = "CRASHED";
     DrawText(title, (w - MeasureText(title, 60)) / 2, h / 2 - 150, 60, RED);
+    if (level.gateCrossed) {
+        const char *gateLine = TextFormat("Gate reached in %.2f s", level.elapsed);
+        DrawText(gateLine, (w - MeasureText(gateLine, 28)) / 2, h / 2 - 70, 28, WHITE);
+    }
 #ifdef SETTINGS_MOBILE_OR_WEB
     const char *hint = "R: Restart     M: Menu";
 #else
@@ -150,7 +175,7 @@ void DrawResultsScreen(const LevelState &level, bool damaged) {
 
 void ResetLevelProgress(LevelState &level) {
     level.distanceFlown = 0.0f;
-    level.completed = false;
+    level.gateCrossed = false;
     level.crashed = false;
     level.elapsed = 0.0f;
     level.newBest = false;

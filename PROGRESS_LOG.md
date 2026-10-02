@@ -12,6 +12,13 @@ owner can skim what happened without digging through git log. Format:
 - PR: <link or branch, if one was opened>
 ```
 
+## 2026-10-02 night run (16)
+- Did: A4 full, checklist item 1. Crossing the 1000 m gate now only stops the clock (`completed` became `gateCrossed`); the plane stays controllable, a "GATE! Land to finish" banner and a 40 x 300 m landing-zone slab appear, and the run ends when the plane is grounded with speed <= 8 m/s (`IsRunFinished`). A hard landing or obstacle after the gate goes to the Crashed screen, which now shows "Gate reached in X.XX s". `kRequireLandingAfterGate` in level.cpp (default true) restores the old immediate finish when false. ARCHITECTURE.md updated.
+- Why: Sprint is done and A4 full is next in Track order; I took the design note's recommended defaults (landing on, rollout required, switch kept) since the owner has not answered its open questions.
+- Verified: game-tester installed the X11 headers, built raylib 5.5 and all sources with -std=gnu++23, and ran about 4 min under Xvfb with real keys: banner and zone shown, no results at the gate, results only after braking to 7.8 m/s with the gate time (19.74 s), R/M work, crash before the gate has no gate line, crash after the gate shows it. code-reviewer read the diff: no blockers. CI status: see PR.
+- Open: Owner decisions in design-notes/a4-full-level-loop.md still stand (rollout rule, landing limits, medal times). The landing zone is cosmetic (landing anywhere finishes). The plane has no ground friction, so braking to 8 m/s takes several seconds of S. The false switch, rings above 0 and touch were not exercised. The gate banner shows dimly under the crash overlay. Next: checklist item 2 (medals, star checklist, delta vs best).
+- PR: see PR into dev from agents
+
 ## 2026-10-02 night run (15)
 - Did: Design pass only, no code. New design-notes/a4-full-level-loop.md for A4 full: gate stops the clock, run ends on a landing and rollout (`gateCrossed && !plane.airborne && plane.speed <= 8`), post-gate hard landing goes to the Crashed screen, Gold/Silver/Bronze medals at 24/30/40 s (par about 19 s, derived from code constants, not flown), star checklist, best-time delta, and a 4-item implementation checklist. Also found an existing bug: touch Restart/Menu rects are hit-tested while invisible.
 - Why: Sprint is done; A4 full is next in Track order and it changes the rules of the level, so it needs an owner-visible design before code.
