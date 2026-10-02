@@ -47,6 +47,7 @@ if(EMSCRIPTEN)
         -sALLOW_MEMORY_GROWTH=1
         -sINITIAL_MEMORY=134217728
         -sSTACK_SIZE=1048576
+        -sEXPORTED_RUNTIME_METHODS=HEAPF32
         --preload-file "${CMAKE_SOURCE_DIR}/assets@/assets"
         --shell-file "${raylib_SOURCE_DIR}/src/minshell.html"
     )

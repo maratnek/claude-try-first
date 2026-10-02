@@ -12,6 +12,13 @@ owner can skim what happened without digging through git log. Format:
 - PR: <link or branch, if one was opened>
 ```
 
+## 2026-10-02 night run (8)
+- Did: Weekend sprint item 1 (Web build runs in a browser). Built the web target with a fresh emsdk (emcc 6.0.10), served it and loaded it in headless Chromium. It loads: menu, biplane model, terrain, HUD and gameplay all render (about 31-38 FPS under software GL). Found one real bug: miniaudio threw `Cannot read properties of undefined (reading 'buffer')` on every audio callback because newer emsdk no longer exports Module.HEAPF32, so the web build would have had no sound. Fix: one link flag, `-sEXPORTED_RUNTIME_METHODS=HEAPF32`, in the Emscripten branch of CMakeLists.txt.
+- Why: First unchecked item of the weekend Web v0.1 sprint; the web build had only ever been compiled by CI. CI's setup-emsdk is unpinned (latest), so it would hit the same thing.
+- Verified: game-developer found and fixed it; game-tester independently built with and without the flag and ran both in headless Chromium: 240 page errors without, 0 with. code-reviewer read the diff: no blockers (flag is inside the EMSCRIPTEN branch only, no conflicts with other link flags). The desktop build was compiled against hand-built raylib 5.5 and ran 5 s under Xvfb (Conan is blocked in the sandbox). CI status: see PR.
+- Open: Sound was never heard (headless, only confirmed the callback no longer throws). No real GPU, touch or phone test. Only about 10 s of play exercised; checkpoints, crash, restart and finish not run in the browser. Safari/iOS Safari untested. Menu uses IsMouseButtonDown polling, so a sub-frame tap can be missed at low FPS (worth checking on a phone). minshell.html pulls FileSaver.js from a CDN (item 4, custom shell, removes it). Next: sprint item 2, A4-min results screen.
+- PR: see PR into dev from agents
+
 ## 2026-10-02 night run (7)
 - Did: Roadmap A3 owner issues + A3b. New src/menu.{h,cpp}: title screen (Play, plus Exit on desktop only) built from a vector of entries, so later entries are one line in InitMenu. main.cpp has a Screen {Menu, Playing, Crashed} switch; the game starts in the menu, Play resets the run, the crash screen offers M (or a touch MENU button) to return to the menu. One-shot procedural crash sound (thump, noise burst, rumble, crunch) plays once on crash. Fixed an existing bug: the engine was not really silenced on crash (UpdateEngineAudio(0) still looped at about 0.35 volume); the engine is now stopped on every non-Playing screen. Menu also accepts a mouse click (small addition beyond the brief).
 - Why: Next unfinished Track A items (owner-reported crash sound and post-crash menu).
