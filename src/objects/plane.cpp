@@ -210,12 +210,12 @@ void LoadPlaneModel(PlaneModel &planeModel, const char *path) {
     }
 }
 
-void UpdatePlaneAnimation(PlaneAnim &anim, const PlaneState &plane, const FlightInput &input, bool crashed, float dt) {
+void UpdatePlaneAnimation(PlaneAnim &anim, const PlaneState &plane, const FlightInput &input, bool crashed, float maxSpeed, float dt) {
     anim.elevator = Approach(anim.elevator, input.pitch, 12.0f, dt);
     anim.aileron = Approach(anim.aileron, input.roll, 12.0f, dt);
     anim.rudder = Approach(anim.rudder, input.yaw, 12.0f, dt);
 
-    float rpmTarget = kIdleRpm + (1.0f - kIdleRpm) * (plane.speed / kMaxSpeed);
+    float rpmTarget = kIdleRpm + (1.0f - kIdleRpm) * (plane.speed / maxSpeed);
     if (crashed) rpmTarget = 0.0f;
     else if (input.throttle > 0.0f) rpmTarget = fminf(1.0f, rpmTarget + 0.2f);
     anim.rpm = Approach(anim.rpm, rpmTarget, 3.0f, dt);

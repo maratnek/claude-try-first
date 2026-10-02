@@ -12,6 +12,13 @@ owner can skim what happened without digging through git log. Format:
 - PR: <link or branch, if one was opened>
 ```
 
+## 2026-10-02 night run (5)
+- Did: Roadmap A2. New PlaneParams struct + BiplaneParams() in flight.h holds all flight constants (rates, accel, drag, stall speed, liftoff, landing limits, wheel height); kMaxSpeed removed (main.cpp/plane.cpp use params.maxSpeed). Pitch/roll/yaw authority scales with airspeed squared (full at 25 m/s), so a standing plane does not rotate from input. Ground: roll input ignored, rudder steers at taxi speed, pitch settles to the terrain slope (clamped to half the liftoff pitch so slope alone never lifts off). Drag decays speed without throttle (about 2 m/s per second at 40 m/s), climbing costs and diving gains speed. Stall below 14 m/s drops the nose (floored at -20 deg) with reduced authority; landing window widened to 25 deg nose-down so a gentle stalled touchdown is Safe.
+- Why: Next unfinished Track A item; later planes need different physics from per-plane params.
+- Verified: game-tester hand-built raylib 5.5 + all sources, ran 8 s under Xvfb (no non-audio errors), and ran flight.cpp in a headless sim: standstill no rotation, takeoff at ~1.3 s, slope alone no liftoff, decay, stall recovery, soft stalled touchdown Safe, hard dive Hard. code-reviewer found spec gaps and a stalled-landing regression on the first pass; one fix pass resolved all; re-review found no blockers. Conan/CMake and Emscripten builds NOT run locally; CI status: see PR.
+- Open: Flight FEEL is not play-tested (cannot send keyboard input here) - owner should play: takeoff, cruise without holding W (speed now bleeds slowly), stall, landing. Throttle is still a rate input (W/S), so cruise needs occasional W. No ground friction, so an unthrottled plane rolls a long way. Slope sampling in main.cpp uses hard-coded 2 m offsets; kMinAirTimeForLanding still file-local.
+- PR: see PR into dev from agents
+
 ## 2026-10-02 night run (4)
 - Did: Roadmap A1. New src/settings.{h,cpp}: GraphicsSettings with Low/Medium/High presets and four toggles (distance-marker pillars, obstacle wireframes, decorative characters, propeller blur disc), each gating a real draw call. Default is Low on Web/iOS, High on desktop; F1 cycles the preset, the HUD shows it, and desktop persists it to graphics.cfg next to the executable (gitignored). Terrain and gameplay rendering are not gated; physics untouched.
 - Why: Next unfinished Track A item; every later visual feature has to check this.
