@@ -5,6 +5,7 @@
 #include "flight.h"
 #include "input.h"
 #include "level.h"
+#include "settings.h"
 #include "objects/plane.h"
 #include "objects/world.h"
 #include "objects/character.h"
@@ -24,6 +25,7 @@ struct Game {
     PlaneState plane;
     LevelState level;
     InputState inputState;
+    GraphicsSettings gfx;
 };
 
 bool HasLandedSafely(const PlaneState &plane) {
@@ -49,6 +51,11 @@ void UpdateFrame(Game &g) {
     const PlaneState &planeStart = g.planeStart;
 
     float dt = GetFrameTime();
+
+    if (IsKeyPressed(KEY_F1)) {
+        CycleGraphicsPreset(g.gfx);
+        SaveGraphicsSettings(g.gfx);
+    }
 
     FlightInput input = ReadFlightInput(g.inputState);
 
@@ -78,12 +85,14 @@ void UpdateFrame(Game &g) {
     ClearBackground(SKYBLUE);
 
     BeginMode3D(camera);
-    DrawWorldObject(world);
+    DrawWorldObject(world, g.gfx);
     DrawFinishGate(level);
     DrawCheckpoints(level);
-    DrawPlaneObject(planeModel, g.planeAnim, plane.position, plane.yaw, plane.pitch, plane.roll);
-    DrawCharacterObject((Vector3){-3.0f, GetGroundHeight(world, -3.0f, 3.0f), 3.0f}, 20.0f, BLUE);
-    DrawCharacterObject((Vector3){3.0f, GetGroundHeight(world, 3.0f, 3.0f), 3.0f}, -20.0f, ORANGE);
+    DrawPlaneObject(planeModel, g.planeAnim, plane.position, plane.yaw, plane.pitch, plane.roll, g.gfx.propBlur);
+    if (g.gfx.characters) {
+        DrawCharacterObject((Vector3){-3.0f, GetGroundHeight(world, -3.0f, 3.0f), 3.0f}, 20.0f, BLUE);
+        DrawCharacterObject((Vector3){3.0f, GetGroundHeight(world, 3.0f, 3.0f), 3.0f}, -20.0f, ORANGE);
+    }
     EndMode3D();
 
     DrawText(g.inputState.touchUsed ? "Left stick: pitch/roll  +/-: throttle"
@@ -99,6 +108,7 @@ void UpdateFrame(Game &g) {
         DrawText("Landed safely - take off again", 10, 150, 30, DARKGREEN);
     }
     DrawFPS(10, 60);
+    DrawText(TextFormat("Graphics: %s (F1)", GraphicsPresetName(g.gfx)), 110, 60, 20, DARKGRAY);
     DrawTouchOverlay(g.inputState, level.crashed);
     EndDrawing();
 }
@@ -125,6 +135,7 @@ int main() {
 
     LoadPlaneModel(game.planeModel, AssetPath("models/biplane-1920.glb"));
 
+    InitGraphicsSettings(game.gfx);
     GenerateWorld(game.world);
 
     game.planeStart.position = (Vector3){0.0f, GetGroundHeight(game.world, 0.0f, 0.0f) + 0.3f, 0.0f};

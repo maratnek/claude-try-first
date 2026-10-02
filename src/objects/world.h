@@ -1,5 +1,6 @@
 #pragma once
 #include "raylib.h"
+#include "settings.h"
 #include <vector>
 
 struct Obstacle {
@@ -21,7 +22,7 @@ struct WorldState {
 void GenerateWorld(WorldState &world);
 
 // Draws terrain, distance-marker pillars, and obstacles.
-void DrawWorldObject(const WorldState &world);
+void DrawWorldObject(const WorldState &world, const GraphicsSettings &gfx);
 
 // Ground height (meters) at the given world X/Z, bilinear-free nearest sample.
 float GetGroundHeight(const WorldState &world, float worldX, float worldZ);

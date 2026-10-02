@@ -67,7 +67,7 @@ void GenerateWorld(WorldState &world) {
     }
 }
 
-void DrawWorldObject(const WorldState &world) {
+void DrawWorldObject(const WorldState &world, const GraphicsSettings &gfx) {
     // Huge flat backdrop so the ground reaches the horizon in every
     // direction, even past the edge of the detailed heightmap below.
     DrawPlane((Vector3){0.0f, -0.05f, 0.0f}, (Vector2){50000.0f, 50000.0f}, (Color){80, 150, 90, 255});
@@ -75,15 +75,17 @@ void DrawWorldObject(const WorldState &world) {
     float halfSize = world.worldSize * 0.5f;
     DrawModel(world.terrainModel, (Vector3){-halfSize, 0.0f, -halfSize}, 1.0f, WHITE);
 
-    for (int i = 1; i <= 5; i++) {
-        float z = i * 200.0f;
-        DrawCylinder((Vector3){-15.0f, GetGroundHeight(world, -15.0f, z), z}, 0.3f, 0.3f, 4.0f, 8, DARKGRAY);
-        DrawCylinder((Vector3){15.0f, GetGroundHeight(world, 15.0f, z), z}, 0.3f, 0.3f, 4.0f, 8, DARKGRAY);
+    if (gfx.distanceMarkers) {
+        for (int i = 1; i <= 5; i++) {
+            float z = i * 200.0f;
+            DrawCylinder((Vector3){-15.0f, GetGroundHeight(world, -15.0f, z), z}, 0.3f, 0.3f, 4.0f, 8, DARKGRAY);
+            DrawCylinder((Vector3){15.0f, GetGroundHeight(world, 15.0f, z), z}, 0.3f, 0.3f, 4.0f, 8, DARKGRAY);
+        }
     }
 
     for (const Obstacle &o : world.obstacles) {
         DrawSphere(o.position, o.radius, (Color){180, 30, 30, 255});
-        DrawSphereWires(o.position, o.radius, 8, 8, BLACK);
+        if (gfx.obstacleWires) DrawSphereWires(o.position, o.radius, 8, 8, BLACK);
     }
 }
 
