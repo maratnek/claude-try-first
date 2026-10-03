@@ -12,6 +12,13 @@ owner can skim what happened without digging through git log. Format:
 - PR: <link or branch, if one was opened>
 ```
 
+## 2026-10-03 night run (22)
+- Did: B2, breakup on crash. New src/objects/debris.{h,cpp}: on the crash transition, up to 7 rigged parts (propeller, both wheels, rudder, elevator, both ailerons) detach and are thrown with the plane's velocity plus a random kick and spin, under gravity, bouncing on the terrain. The body is drawn without the detached parts (`DrawPlaneObject` takes a `detachedParts` mask; new `DrawPlanePart`; `PlanePartRig` gets a `pivot`). New `GraphicsSettings::debrisPieces` (Low 0, Medium 3, High 7). Cleared in `resetRun`. Physics untouched. ARCHITECTURE.md updated.
+- Why: Next unfinished Track B item (B1 and B4 done); makes a crash read as a crash, off on Low per the performance rule.
+- Verified: code-reviewer read the diff: no blockers; I removed its flagged what-comments afterwards and re-ran a syntax check. game-tester hand-built raylib 5.5 and all sources (-std=gnu++23, plain and ASan/UBSan) and ran under Xvfb with injected keys: menu, takeoff, crash, R, M, replay, F1 cycling all clean; screenshots show 0 pieces on Low, 3 on Medium, 7 on High, no stale debris after restart/menu, no state leakage into the HUD. CI status: see PR.
+- Open: Pieces inherit the full plane speed and were still sliding about 4 s after the crash (up to 77-100 m downrange), so they may look tiny and far from the chase camera; ground friction applies only on contact frames. Final settling not observed. Only the hard-landing crash path was forced; the hard-obstacle path shares the branch but was not run. F1 up from Low after a crash does not respawn pieces. No wing-panel piece (no pivot node in the model). Conan/CMake, Web and macOS builds proven only by CI. Owner should judge the look in motion.
+- PR: see PR into dev from agents
+
 ## 2026-10-03 night run (21)
 - Did: B4, damage smoke. New src/objects/smoke.{h,cpp}: fixed ring of 64 puffs, spawned 2.5 m behind the plane while `plane.damaged` and the screen is Playing; puffs rise, grow and fade over 1.5 s; drawn as camera-facing quads in one rlgl batch with depth write and culling off, flushed before state is restored. New `GraphicsSettings::smokePuffs` (Low 0, Medium 24, High 64). Cleared in `resetRun` (play, restart, menu). ARCHITECTURE.md updated.
 - Why: Next unfinished Track B item after B1; makes damage visible in flight, off on Low per the performance rule.

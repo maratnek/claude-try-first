@@ -32,6 +32,9 @@ flowchart TD
     main --> settings
     main --> character
     plane --> glb
+    debris["objects/debris.cpp<br/>обломки при краше"]
+    main --> debris
+    debris --> plane
     world --> settings
     world --> scatter
 ```
@@ -46,10 +49,11 @@ flowchart TD
 | `src/objects/scatter.cpp` | Декоративные низкополигональные деревья и камни на холмах вне лётного коридора: детерминированная расстановка (фиксированный seed) по высоте земли, не ближе `flatHalfWidth + 20` м к оси и не ближе 12 м к препятствиям; без коллизий. Список хранится в случайном порядке, плотность выбирает его префикс; рисуется одним потоком треугольников rlgl с отсечением по дальности 450 м | `ScatterState`, `GenerateScatter`, `DrawScatter` |
 | `src/objects/plane.cpp` | Загрузка биплана, анимация пропеллера, рулей, элеронов, колёс | `PlaneModel`, `PlaneAnim`, `UpdatePlaneAnimation`, `DrawPlaneObject` |
 | `src/objects/smoke.cpp` | Дым от повреждённого самолёта: кольцевой буфер до 64 клякс (без аллокаций), клякса сзади самолёта поднимается, растёт и тает за 1,5 с; рисуется билбордами одним потоком треугольников rlgl без записи глубины. Число клякс — `smokePuffs` (0 на Low, 24 на Medium, 64 на High); сбрасывается при рестарте/выходе в меню | `SmokeState`, `UpdateSmoke`, `DrawSmoke`, `ClearSmoke` |
+| `src/objects/debris.cpp` | Обломки при краше: в момент `level.crashed` от модели отрываются подвижные части (пропеллер, колёса, руль направления, руль высоты, элероны; фиксированный массив до 7 штук, порядок приоритета в `kSpawnOrder`) и летят баллистически: скорость самолёта плюс случайный толчок, гравитация, отскок и трение о рельеф, вращение, остановка при малой скорости. Оторванные части не рисуются на корпусе (маска в `DrawPlaneObject`), сами рисуются через `DrawPlanePart`. Число частей — `debrisPieces` (0 на Low, 3 на Medium, 7 на High); сбрасывается при рестарте/выходе в меню. На физику и геймплей не влияет | `DebrisState`, `SpawnDebris`, `UpdateDebris`, `DrawDebris`, `ClearDebris` |
 | `src/objects/glb_nodes.cpp` | Чтение дерева узлов GLB (raylib его теряет) | `GlbNode`, `Mat4`, `LoadGlbNodes` |
 | `src/audio.cpp` | Синтез звука в коде: гул двигателя, удар при краше, звон чекпоинта, ветер (зависит от скорости), глухой удар при мягкой посадке, щелчок кнопки UI (не обрывается сбросом `StopOneShotSounds`), глухой стук при мягком ударе о препятствие, общая громкость (`-`/`=`, шаг 0.1) | `EngineAudio`, `UpdateEngineAudio`, `UpdateWindAudio`, `PlayCrashSound`, `PlayChimeSound`, `PlayTouchdownSound`, `PlayClickSound`, `PlayDamageSound`, `SetMasterVolumeClamped` |
 | `src/menu.cpp` | Главное меню из списка пунктов; клавиатура, мышь, тач | `MenuState`, `UpdateMenu`, `DrawMenu` |
-| `src/settings.cpp` | Пресеты Low/Medium/High и переключатели необязательных эффектов (в т.ч. `terrainColors`: вкл. на Medium/High, на Low рельеф плоско-зелёный; `scatterDensity`: 0 на Low, 0.35 на Medium, 1 на High; `smokePuffs`: 0 / 24 / 64) | `GraphicsSettings`, `InitGraphicsSettings` |
+| `src/settings.cpp` | Пресеты Low/Medium/High и переключатели необязательных эффектов (в т.ч. `terrainColors`: вкл. на Medium/High, на Low рельеф плоско-зелёный; `scatterDensity`: 0 на Low, 0.35 на Medium, 1 на High; `smokePuffs`: 0 / 24 / 64; `debrisPieces`: 0 / 3 / 7) | `GraphicsSettings`, `InitGraphicsSettings` |
 
 ## Экраны игры
 
@@ -130,7 +134,7 @@ CI (`.github/workflows/build.yml`) собирает обе цели на каж�
 ## Производительность
 
 Всё, что не влияет на игровой процесс (столбики-маркеры, каркасы
-препятствий, фигурки, деревья и камни (`scatterDensity`, 0 на Low), диск пропеллера, дым повреждённого самолёта (`smokePuffs`, 0 на Low), а в будущем погода, частицы), отключается через `GraphicsSettings`. Исключение — `blobShadow`
+препятствий, фигурки, деревья и камни (`scatterDensity`, 0 на Low), диск пропеллера, дым повреждённого самолёта (`smokePuffs`, 0 на Low), обломки при краше (`debrisPieces`, 0 на Low), а в будущем погода, частицы), отключается через `GraphicsSettings`. Исключение — `blobShadow`
 (полупрозрачная тень самолёта на земле, `DrawBlobShadow` в `world.cpp`,
 рисуется после мира и до самолёта без записи в глубину): она почти бесплатна
 и помогает оценить высоту, поэтому включена во всех пресетах, включая Low. На Web и мобильных по

@@ -132,7 +132,9 @@ bool BuildRig(PlaneModel &planeModel, const std::vector<GlbNode> &nodes) {
         rig.spins = spec.spins;
         rig.restLocal = nodes[idx].local;
         rig.parentWorld = ParentWorld(nodes, idx);
-        rig.invRestWorld = FromRaylib(MatrixInvert(ToRaylib(WorldMatrix(nodes, idx))));
+        Mat4 restWorld = WorldMatrix(nodes, idx);
+        rig.invRestWorld = FromRaylib(MatrixInvert(ToRaylib(restWorld)));
+        rig.pivot = {restWorld.m[12], restWorld.m[13], restWorld.m[14]};
         if (!spec.spins) {
             float angle;
             if (!ExtractHingeAxis(nodes[idx].local, rig.axis, angle)) return false;
@@ -226,7 +228,7 @@ void UpdatePlaneAnimation(PlaneAnim &anim, const PlaneState &plane, const Flight
     anim.wheelAngle = fmodf(anim.wheelAngle + anim.wheelRate * dt, 360.0f);
 }
 
-void DrawPlaneObject(const PlaneModel &planeModel, const PlaneAnim &anim, Vector3 position, float yawDegrees, float pitchDegrees, float rollDegrees, bool propBlur) {
+void DrawPlaneObject(const PlaneModel &planeModel, const PlaneAnim &anim, Vector3 position, float yawDegrees, float pitchDegrees, float rollDegrees, bool propBlur, unsigned detachedParts) {
     if (!planeModel.loaded) return;
 
     rlPushMatrix();
@@ -261,13 +263,15 @@ void DrawPlaneObject(const PlaneModel &planeModel, const PlaneAnim &anim, Vector
         float blurAlpha = propBlur ? SmoothStep(kBlurStartRpm, kBlurFullRpm, anim.rpm) : 0.0f;
 
         // Translucent blades and blur disc go last so they blend over the opaque parts behind them.
+        bool propDetached = detachedParts & (1u << PART_PROPELLER);
         for (int pass = 0; pass < 2; pass++) {
-            if (pass == 1) DrawPropellerBlades(planeModel.parts[PART_PROPELLER], anim.propAngle, 1.0f - blurAlpha);
+            if (pass == 1 && !propDetached) DrawPropellerBlades(planeModel.parts[PART_PROPELLER], anim.propAngle, 1.0f - blurAlpha);
             for (int i = 0; i < planeModel.model.meshCount; i++) {
                 bool blur = planeModel.meshIsBlur[i];
                 if (blur != (pass == 1)) continue;
                 if (blur && blurAlpha <= 0.0f) continue;
                 int part = planeModel.meshPart[i];
+                if (part >= 0 && (detachedParts & (1u << part))) continue;
                 Matrix transform = part >= 0 ? transforms[part] : MatrixIdentity();
                 Material &material = planeModel.model.materials[planeModel.model.meshMaterial[i]];
                 Color original = material.maps[MATERIAL_MAP_DIFFUSE].color;
@@ -285,6 +289,14 @@ void DrawPlaneObject(const PlaneModel &planeModel, const PlaneAnim &anim, Vector
     }
 
     rlPopMatrix();
+}
+
+void DrawPlanePart(const PlaneModel &planeModel, PlanePart part) {
+    for (int i = 0; i < planeModel.model.meshCount; i++) {
+        if (planeModel.meshPart[i] != part || planeModel.meshIsBlur[i]) continue;
+        DrawMesh(planeModel.model.meshes[i], planeModel.model.materials[planeModel.model.meshMaterial[i]], MatrixIdentity());
+    }
+    if (part == PART_PROPELLER) DrawPropellerBlades(planeModel.parts[part], 0.0f, 1.0f);
 }
 
 void UnloadPlaneModel(PlaneModel &planeModel) {

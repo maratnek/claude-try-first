@@ -19,6 +19,7 @@ struct GraphicsSettings {
     bool terrainColors = true;
     float scatterDensity = 1.0f;
     int smokePuffs = 64;
+    int debrisPieces = 7;
 };
 
 void ApplyGraphicsPreset(GraphicsSettings &settings, GraphicsPreset preset);

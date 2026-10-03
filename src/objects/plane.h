@@ -22,6 +22,7 @@ struct PlanePartRig {
     Mat4 restLocal;
     Mat4 parentWorld;
     Mat4 invRestWorld;
+    Vector3 pivot = {0.0f, 0.0f, 0.0f};
 };
 
 struct PlaneModel {
@@ -55,6 +56,8 @@ void UpdatePlaneAnimation(PlaneAnim &anim, const PlaneState &plane, const Flight
 // Draws the plane model at the given world position and orientation in
 // degrees, matching PlaneState's convention (positive pitch climbs,
 // positive roll banks right).
-void DrawPlaneObject(const PlaneModel &planeModel, const PlaneAnim &anim, Vector3 position, float yawDegrees, float pitchDegrees, float rollDegrees, bool propBlur);
+void DrawPlaneObject(const PlaneModel &planeModel, const PlaneAnim &anim, Vector3 position, float yawDegrees, float pitchDegrees, float rollDegrees, bool propBlur, unsigned detachedParts = 0);
+
+void DrawPlanePart(const PlaneModel &planeModel, PlanePart part);
 
 void UnloadPlaneModel(PlaneModel &planeModel);
