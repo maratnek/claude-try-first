@@ -63,6 +63,7 @@ void UpdateFrame(Game &g) {
 
     if (IsKeyPressed(KEY_F1)) {
         CycleGraphicsPreset(g.gfx);
+        ApplyTerrainColors(world, g.gfx);
         SaveGraphicsSettings(g.gfx);
     }
 
@@ -229,7 +230,7 @@ int main() {
     InitMenu(game.menu);
     EnterMenu(game.menu);
     InitGraphicsSettings(game.gfx);
-    GenerateWorld(game.world);
+    GenerateWorld(game.world, game.gfx);
 
     game.planeStart.position = (Vector3){0.0f, GetGroundHeight(game.world, 0.0f, 0.0f) + 0.3f, 0.0f};
     game.plane = game.planeStart;
