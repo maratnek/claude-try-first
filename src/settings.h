@@ -23,6 +23,7 @@ struct GraphicsSettings {
     int smokePuffs = 64;
     int debrisPieces = 7;
     int speedStreaks = 40;
+    int rainDrops = 200;
 };
 
 void ApplyGraphicsPreset(GraphicsSettings &settings, GraphicsPreset preset);

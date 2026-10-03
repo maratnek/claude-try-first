@@ -12,6 +12,13 @@ owner can skim what happened without digging through git log. Format:
 - PR: <link or branch, if one was opened>
 ```
 
+## 2026-10-03 night run (26)
+- Did: B3 part 3, rain. New src/objects/rain.{h,cpp}: a fixed pool of 200 drops in a 90x60x90 m box around the camera, falling at 28 m/s with a slight x wind and wrapping at the box edges, drawn as faded short lines in one rlgl line batch with depth write off. New `GraphicsSettings::rainDrops` (Low 0, Medium 80, High 200). Always on when the count is above 0 (no weather system or toggle), also behind the menu. Cleared in `resetRun`. Physics untouched. Snow was not done. ARCHITECTURE.md updated.
+- Why: Last open piece of B3; cheap, visual only, switchable per the performance rule. Track A is done apart from the owner-owed timed runs.
+- Verified: code-reviewer read the diff: no blockers; I applied its `<cmath>` nit. game-tester hand-built raylib 5.5 and all sources (-std=gnu++23, plain and ASan/UBSan) and ran under Xvfb with scripted keys: menu, takeoff, F1 cycling, crash, R, M, replay all clean, no sanitizer reports; screenshots show rain on High and Medium, none on Low, and clouds/streaks/trees/HUD unchanged. Conan was blocked in the sandbox, so CMake/Web/macOS builds are proven only by CI. CI status: see PR.
+- Open: Owner should judge the look in flight: drops are 1 px lines, so they may be very thin on hi-DPI and Web screens, and 200 drops may be sparse or dense. Drops fall straight and do not streak along the flight path. Leak check not done (no clean exit under ASan). Web and phone cost unmeasured. Snow not done.
+- PR: see PR into dev from agents
+
 ## 2026-10-03 night run (25)
 - Did: B3 part 2, speed streaks. New src/objects/streaks.{h,cpp}: a pool of 40 thin world-fixed lines around the camera, stretched along the flight direction, fading from tail to head, shown while airborne and above 60% of max speed (intensity ramps to 1 at max speed). One rlgl line batch, depth write off. New `GraphicsSettings::speedStreaks` (Low 0, Medium 16, High 40). Cleared in `resetRun`. Physics untouched. ARCHITECTURE.md updated. Rain/snow (rest of B3) is not done.
 - Why: Next unfinished Track B item; cheap, visual only, and gives a sense of speed. Switchable per the performance rule.

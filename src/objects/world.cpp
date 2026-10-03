@@ -177,6 +177,8 @@ void DrawWorldObject(const WorldState &world, const GraphicsSettings &gfx, Vecto
             if (gfx.obstacleWires) DrawSphereWires(o.position, o.radius, 8, 8, BLACK);
         }
     }
+
+    DrawRain(world.rain, gfx.rainDrops);
 }
 
 void DrawBlobShadow(const WorldState &world, Vector3 planePosition, float yawDegrees) {

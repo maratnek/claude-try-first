@@ -94,6 +94,7 @@ void UpdateFrame(Game &g) {
         plane = planeStart;
         ClearSmoke(g.smoke);
         ClearStreaks(g.streaks);
+        ClearRain(world.rain);
         ClearDebris(g.debris);
         g.planeAnim = PlaneAnim{};
         ResetLevelProgress(level);
@@ -166,6 +167,8 @@ void UpdateFrame(Game &g) {
 
     UpdateStreaks(g.streaks, camera.position, GetPlaneForward(plane), plane.speed / g.planeParams.maxSpeed,
                   g.screen == Screen::Playing && plane.airborne, g.gfx.speedStreaks);
+
+    UpdateRain(world.rain, camera.position, g.gfx.rainDrops, dt);
 
     BeginDrawing();
     ClearBackground(SKYBLUE);
