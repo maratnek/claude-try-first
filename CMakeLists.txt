@@ -36,6 +36,7 @@ add_executable(FlightGame
     src/objects/plane.cpp
     src/objects/world.cpp
     src/objects/scatter.cpp
+    src/objects/smoke.cpp
     src/objects/character.cpp
 )
 target_include_directories(FlightGame PRIVATE src)
