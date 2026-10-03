@@ -22,6 +22,7 @@ struct GraphicsSettings {
     int cloudCount = 30;
     int smokePuffs = 64;
     int debrisPieces = 7;
+    int speedStreaks = 40;
 };
 
 void ApplyGraphicsPreset(GraphicsSettings &settings, GraphicsPreset preset);
