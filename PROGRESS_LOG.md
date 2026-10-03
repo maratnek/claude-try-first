@@ -12,6 +12,13 @@ owner can skim what happened without digging through git log. Format:
 - PR: <link or branch, if one was opened>
 ```
 
+## 2026-10-03 day run (23)
+- Did: B5, pilot head turns into turns. New rigged part `PART_PILOT_HEAD` (node `pilot_head_pivot`, children helmet/goggles/head move with it); `PlaneAnim::headYaw` follows the smoothed aileron+rudder, max 35 deg, smoothed at 6/s, 0 on crash. New `GraphicsSettings::pilotHead` (Low off, Medium/High on). `kMaxDebrisPieces` now stops before the head, so it is never thrown as debris. Physics untouched. ARCHITECTURE.md updated.
+- Why: Next unfinished Track B item (B1, B2, B4 done; B3 weather is bigger); small, visual only, switchable per the performance rule.
+- Verified: code-reviewer read the diff and parsed the GLB: no blockers (signature/callers, PART_COUNT-sized arrays, bitmask width, debris spawn order, hinge axis +Y from the 27 deg exported pose, sign convention against roll/yaw). Nobody could compile or run it locally: raylib and Conan are unreachable in this sandbox, so game-tester was not used. CI status: see PR.
+- Open: Not run anywhere but CI. Owner should check in motion that the head turns the right way, that the log shows the "pilot_head_pivot hinge axis" line, and that Low shows no head motion. The head now looks straight ahead at rest instead of the exported 27 deg right turn. Reviewer nit: a static_assert tying `kMaxDebrisPieces` to the size of `kSpawnOrder` would guard against enum reordering.
+- PR: see PR into dev from agents
+
 ## 2026-10-03 night run (22)
 - Did: B2, breakup on crash. New src/objects/debris.{h,cpp}: on the crash transition, up to 7 rigged parts (propeller, both wheels, rudder, elevator, both ailerons) detach and are thrown with the plane's velocity plus a random kick and spin, under gravity, bouncing on the terrain. The body is drawn without the detached parts (`DrawPlaneObject` takes a `detachedParts` mask; new `DrawPlanePart`; `PlanePartRig` gets a `pivot`). New `GraphicsSettings::debrisPieces` (Low 0, Medium 3, High 7). Cleared in `resetRun`. Physics untouched. ARCHITECTURE.md updated.
 - Why: Next unfinished Track B item (B1 and B4 done); makes a crash read as a crash, off on Low per the performance rule.
