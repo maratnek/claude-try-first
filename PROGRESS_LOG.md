@@ -12,6 +12,13 @@ owner can skim what happened without digging through git log. Format:
 - PR: <link or branch, if one was opened>
 ```
 
+## 2026-10-03 night run (20)
+- Did: B1 part 2, scattered trees and rocks. New src/objects/scatter.{h,cpp}: about 1800 deterministic (fixed seed) props, 70% two-tier cone trees and 30% rocks, placed on the side hills at |x| >= 60 m and at least 12 m plus radius from every obstacle, with baked per-face shading. New `GraphicsSettings::scatterDensity` (Low 0, Medium 0.35, High 1.0); density picks a prefix of the randomly ordered prop list, so F1 needs no regeneration. Drawn as one rlgl triangle stream, culled beyond 450 m of the plane. No collision. ARCHITECTURE.md updated.
+- Why: Last open piece of B1 after terrain colours; adds a sense of speed and altitude over the hills, off on Low per the performance rule.
+- Verified: game-tester built raylib 5.5 and all sources (-std=gnu++23, release and ASan/UBSan), ran under Xvfb with injected keys: menu, takeoff, F1 cycling all presets mid-flight, crash, R, M, replay; 58-60 FPS on software GL, no errors in the log, no ASan/UBSan reports, screenshots show the corridor, rings, obstacles and markers clear of props. code-reviewer read the diff: no blockers. I removed two what-comments from scatter.h after its review. CI status: see PR.
+- Open: Flight feel and visuals judged from screenshots only. Per-frame cost on web/phone is unmeasured: faces are re-shaded every frame and there is no camera-direction cull (at High about 600 props, 30k vertices); bake colours at generation time if High is slow on device. Hard-coded 450 m draw distance has no fog, so pop-in is possible. Trees up to about 14 m tall have no collision. Conan/CMake, Web and macOS builds proven only by CI. The scratch ASan run ended on SIGTERM, so normal shutdown was not checked.
+- PR: see PR into dev from agents
+
 ## 2026-10-03 night run (19)
 - Did: Track A is finished apart from A4 item 4 (the five timed runs, owner-owed), so I started Track B with B1 part 1, readable terrain. Terrain vertices now get grass/dirt/rock colours by height and slope with a baked directional shade (`TerrainVertexColor` in world.cpp). Flat low ground comes out exactly the backdrop grass colour, so the horizon blend has no seam. New `GraphicsSettings::terrainColors` flag: off on Low (flat green as before), on for Medium/High. `ApplyTerrainColors` swaps the colour buffer with `UpdateMeshBuffer` after an F1 preset change, with no per-frame cost. `GenerateWorld` now takes the graphics settings. docs/ARCHITECTURE.md updated.
 - Why: Next item by roadmap order once Track A is done; it helps players read slope and altitude, and it respects the performance rule through the Low switch. Tree/rock scatter from B1 is not done.

@@ -22,6 +22,7 @@ void ApplyGraphicsPreset(GraphicsSettings &settings, GraphicsPreset preset) {
     settings.blobShadow = true;
     settings.terrainColors = !low;
     settings.obstacleWires = high;
+    settings.scatterDensity = low ? 0.0f : (high ? 1.0f : 0.35f);
 }
 
 void CycleGraphicsPreset(GraphicsSettings &settings) {

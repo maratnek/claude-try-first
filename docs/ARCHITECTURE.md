@@ -20,6 +20,7 @@ flowchart TD
     menu["menu.cpp<br/>главное меню"]
     settings["settings.cpp<br/>пресеты графики"]
     character["objects/character.cpp<br/>декоративные фигурки"]
+    scatter["objects/scatter.cpp<br/>деревья и камни"]
 
     main --> input
     main --> flight
@@ -32,6 +33,7 @@ flowchart TD
     main --> character
     plane --> glb
     world --> settings
+    world --> scatter
 ```
 
 | Модуль | Отвечает за | Ключевые типы и функции |
@@ -41,11 +43,12 @@ flowchart TD
 | `src/flight.cpp` | Физика: управляемость зависит от скорости, сопротивление, сваливание, разбег, взлёт, посадка | `PlaneParams`, `BiplaneParams`, `PlaneState`, `UpdatePlaneControls` |
 | `src/level.cpp` | Цель уровня (1 км), чекпоинты-кольца, финишные ворота, HUD, экраны краха и результатов | `LevelState`, `UpdateLevel`, `DrawLevelHUD`, `DrawCrashScreen`, `DrawResultsScreen` |
 | `src/objects/world.cpp` | Heightmap-рельеф с ровным коридором, цвета вершин рельефа (трава/земля/камень по высоте и уклону плюс запечённая тень от фиксированного света; плоская трава совпадает с фоном), жёсткие и мягкие препятствия, высота земли | `WorldState`, `GetGroundHeight`, `ApplyTerrainColors`, `CheckObstacleHit` |
+| `src/objects/scatter.cpp` | Декоративные низкополигональные деревья и камни на холмах вне лётного коридора: детерминированная расстановка (фиксированный seed) по высоте земли, не ближе `flatHalfWidth + 20` м к оси и не ближе 12 м к препятствиям; без коллизий. Список хранится в случайном порядке, плотность выбирает его префикс; рисуется одним потоком треугольников rlgl с отсечением по дальности 450 м | `ScatterState`, `GenerateScatter`, `DrawScatter` |
 | `src/objects/plane.cpp` | Загрузка биплана, анимация пропеллера, рулей, элеронов, колёс | `PlaneModel`, `PlaneAnim`, `UpdatePlaneAnimation`, `DrawPlaneObject` |
 | `src/objects/glb_nodes.cpp` | Чтение дерева узлов GLB (raylib его теряет) | `GlbNode`, `Mat4`, `LoadGlbNodes` |
 | `src/audio.cpp` | Синтез звука в коде: гул двигателя, удар при краше, звон чекпоинта, ветер (зависит от скорости), глухой удар при мягкой посадке, щелчок кнопки UI (не обрывается сбросом `StopOneShotSounds`), глухой стук при мягком ударе о препятствие, общая громкость (`-`/`=`, шаг 0.1) | `EngineAudio`, `UpdateEngineAudio`, `UpdateWindAudio`, `PlayCrashSound`, `PlayChimeSound`, `PlayTouchdownSound`, `PlayClickSound`, `PlayDamageSound`, `SetMasterVolumeClamped` |
 | `src/menu.cpp` | Главное меню из списка пунктов; клавиатура, мышь, тач | `MenuState`, `UpdateMenu`, `DrawMenu` |
-| `src/settings.cpp` | Пресеты Low/Medium/High и переключатели необязательных эффектов (в т.ч. `terrainColors`: вкл. на Medium/High, на Low рельеф плоско-зелёный) | `GraphicsSettings`, `InitGraphicsSettings` |
+| `src/settings.cpp` | Пресеты Low/Medium/High и переключатели необязательных эффектов (в т.ч. `terrainColors`: вкл. на Medium/High, на Low рельеф плоско-зелёный; `scatterDensity`: 0 на Low, 0.35 на Medium, 1 на High) | `GraphicsSettings`, `InitGraphicsSettings` |
 
 ## Экраны игры
 
@@ -126,8 +129,7 @@ CI (`.github/workflows/build.yml`) собирает обе цели на каж�
 ## Производительность
 
 Всё, что не влияет на игровой процесс (столбики-маркеры, каркасы
-препятствий, фигурки, диск пропеллера, а в будущем погода, частицы,
-декор), отключается через `GraphicsSettings`. Исключение — `blobShadow`
+препятствий, фигурки, деревья и камни (`scatterDensity`, 0 на Low), диск пропеллера, а в будущем погода, частицы), отключается через `GraphicsSettings`. Исключение — `blobShadow`
 (полупрозрачная тень самолёта на земле, `DrawBlobShadow` в `world.cpp`,
 рисуется после мира и до самолёта без записи в глубину): она почти бесплатна
 и помогает оценить высоту, поэтому включена во всех пресетах, включая Low. На Web и мобильных по
