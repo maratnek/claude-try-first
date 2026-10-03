@@ -28,9 +28,41 @@ float ComputeRawHeight(float x, float z, float maxHeight, float flatHalfWidth, f
     return h;
 }
 
+Color LerpColor(Color a, Color b, float t) {
+    return (Color){(unsigned char)(a.r + (b.r - a.r) * t), (unsigned char)(a.g + (b.g - a.g) * t),
+                   (unsigned char)(a.b + (b.b - a.b) * t), 255};
+}
+
+const Color kGrass = {80, 150, 90, 255};
+
+// Flat normal shades to exactly 1 so flat low ground matches the backdrop plane colour.
+Color TerrainVertexColor(float heightNorm, Vector3 normal) {
+    const Color dirt = {146, 120, 82, 255};
+    const Color rock = {128, 126, 132, 255};
+    const Vector3 light = Vector3Normalize((Vector3){0.5f, 0.8f, 0.3f});
+
+    float slope = 1.0f - Clamp(normal.y, 0.0f, 1.0f);
+    float dirtW = fmaxf(0.85f * SmoothStep01((heightNorm - 0.55f) / 0.4f), SmoothStep01((slope - 0.025f) / 0.06f));
+    float rockW = fmaxf(SmoothStep01((heightNorm - 0.88f) / 0.12f), SmoothStep01((slope - 0.09f) / 0.08f));
+
+    Color c = LerpColor(LerpColor(kGrass, dirt, dirtW), rock, rockW);
+    float shade = Clamp(0.7f + 0.3f * Vector3DotProduct(normal, light) / light.y, 0.6f, 1.1f);
+    c.r = (unsigned char)fminf(c.r * shade, 255.0f);
+    c.g = (unsigned char)fminf(c.g * shade, 255.0f);
+    c.b = (unsigned char)fminf(c.b * shade, 255.0f);
+    return c;
+}
+
 }  // namespace
 
-void GenerateWorld(WorldState &world) {
+void ApplyTerrainColors(WorldState &world, const GraphicsSettings &gfx) {
+    if (world.terrainColored == gfx.terrainColors) return;
+    const std::vector<unsigned char> &src = gfx.terrainColors ? world.terrainShadedColors : world.terrainFlatColors;
+    UpdateMeshBuffer(world.terrainModel.meshes[0], 3, src.data(), (int)src.size(), 0);
+    world.terrainColored = gfx.terrainColors;
+}
+
+void GenerateWorld(WorldState &world, const GraphicsSettings &gfx) {
     world.heights.assign(world.gridSize * world.gridSize, 0.0f);
 
     Image heightImage = GenImageColor(world.gridSize, world.gridSize, BLACK);
@@ -54,8 +86,34 @@ void GenerateWorld(WorldState &world) {
     Mesh terrainMesh = GenMeshHeightmap(heightImage, (Vector3){world.worldSize, world.maxHeight, world.worldSize});
     UnloadImage(heightImage);
 
+    // GenMeshHeightmap already uploaded the mesh without a colour attribute; re-upload with one.
+    rlUnloadVertexArray(terrainMesh.vaoId);
+    for (int b = 0; b < 7; b++) rlUnloadVertexBuffer(terrainMesh.vboId[b]);
+    terrainMesh.vaoId = 0;
+    RL_FREE(terrainMesh.vboId);
+    terrainMesh.vboId = nullptr;
+
+    int colorBytes = terrainMesh.vertexCount * 4;
+    world.terrainShadedColors.assign(colorBytes, 255);
+    world.terrainFlatColors.assign(colorBytes, 255);
+    for (int v = 0; v < terrainMesh.vertexCount; v++) {
+        Vector3 n = {terrainMesh.normals[v * 3], terrainMesh.normals[v * 3 + 1], terrainMesh.normals[v * 3 + 2]};
+        Color c = TerrainVertexColor(terrainMesh.vertices[v * 3 + 1] / world.maxHeight, n);
+        world.terrainShadedColors[v * 4] = c.r;
+        world.terrainShadedColors[v * 4 + 1] = c.g;
+        world.terrainShadedColors[v * 4 + 2] = c.b;
+        world.terrainFlatColors[v * 4] = kGrass.r;
+        world.terrainFlatColors[v * 4 + 1] = kGrass.g;
+        world.terrainFlatColors[v * 4 + 2] = kGrass.b;
+    }
+    const std::vector<unsigned char> &initial = gfx.terrainColors ? world.terrainShadedColors : world.terrainFlatColors;
+    world.terrainColored = gfx.terrainColors;
+    terrainMesh.colors = (unsigned char *)MemAlloc(colorBytes);
+    for (int i = 0; i < colorBytes; i++) terrainMesh.colors[i] = initial[i];
+    UploadMesh(&terrainMesh, false);
+
     world.terrainModel = LoadModelFromMesh(terrainMesh);
-    world.terrainModel.materials[0].maps[MATERIAL_MAP_DIFFUSE].color = (Color){80, 150, 90, 255};
+    world.terrainModel.materials[0].maps[MATERIAL_MAP_DIFFUSE].color = WHITE;
 
     world.obstacles.clear();
     float obstacleZs[] = {300.0f, 500.0f, 700.0f, 850.0f};
@@ -86,7 +144,7 @@ void AddSoftObstacle(WorldState &world, float x, float z, float height, float ra
 void DrawWorldObject(const WorldState &world, const GraphicsSettings &gfx) {
     // Huge flat backdrop so the ground reaches the horizon in every
     // direction, even past the edge of the detailed heightmap below.
-    DrawPlane((Vector3){0.0f, -0.05f, 0.0f}, (Vector2){50000.0f, 50000.0f}, (Color){80, 150, 90, 255});
+    DrawPlane((Vector3){0.0f, -0.05f, 0.0f}, (Vector2){50000.0f, 50000.0f}, kGrass);
 
     float halfSize = world.worldSize * 0.5f;
     DrawModel(world.terrainModel, (Vector3){-halfSize, 0.0f, -halfSize}, 1.0f, WHITE);

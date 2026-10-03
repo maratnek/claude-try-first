@@ -18,11 +18,17 @@ struct WorldState {
     float flatHalfWidth = 40.0f;  // flight corridor kept flat around x=0
     std::vector<float> heights;   // gridSize * gridSize, row-major
     Model terrainModel{};
+    std::vector<unsigned char> terrainShadedColors;  // RGBA per vertex
+    std::vector<unsigned char> terrainFlatColors;
+    bool terrainColored = false;
     std::vector<Obstacle> obstacles;
 };
 
 // Builds the terrain heightmap and obstacle layout. Call once at startup.
-void GenerateWorld(WorldState &world);
+void GenerateWorld(WorldState &world, const GraphicsSettings &gfx);
+
+// Swaps the terrain vertex colours to match gfx.terrainColors; no-op when already current.
+void ApplyTerrainColors(WorldState &world, const GraphicsSettings &gfx);
 
 // Draws terrain, distance-marker pillars, and obstacles.
 void DrawWorldObject(const WorldState &world, const GraphicsSettings &gfx);

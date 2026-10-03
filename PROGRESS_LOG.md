@@ -12,6 +12,13 @@ owner can skim what happened without digging through git log. Format:
 - PR: <link or branch, if one was opened>
 ```
 
+## 2026-10-03 night run (19)
+- Did: Track A is finished apart from A4 item 4 (the five timed runs, owner-owed), so I started Track B with B1 part 1, readable terrain. Terrain vertices now get grass/dirt/rock colours by height and slope with a baked directional shade (`TerrainVertexColor` in world.cpp). Flat low ground comes out exactly the backdrop grass colour, so the horizon blend has no seam. New `GraphicsSettings::terrainColors` flag: off on Low (flat green as before), on for Medium/High. `ApplyTerrainColors` swaps the colour buffer with `UpdateMeshBuffer` after an F1 preset change, with no per-frame cost. `GenerateWorld` now takes the graphics settings. docs/ARCHITECTURE.md updated.
+- Why: Next item by roadmap order once Track A is done; it helps players read slope and altitude, and it respects the performance rule through the Low switch. Tree/rock scatter from B1 is not done.
+- Verified: game-tester built raylib 5.5 and all sources, ran under Xvfb with injected keys: menu, takeoff, crash, R and M work. F1 cycling Low/Medium/High was exercised in flight with screenshots (Low flat green, Medium/High coloured), no GL errors, and an ASAN/UBSAN run showed no memory errors on shutdown. code-reviewer read the diff against the raylib 5.5 source: no blockers. I applied two nits (renamed Lerp to LerpColor, freed the orphaned vboId array) and rebuilt and ran the game clean afterwards. CI status: see PR.
+- Open: Conan/CMake and the Web (GLES) build were not run locally, only CI. Low-preset look and the colours from the air were seen only in screenshots, so the owner should judge them. Rock rarely appears because the hills are shallow, so thresholds may need tuning. Remaining B1 work is trees/rocks scatter with a density setting.
+- PR: see PR into dev from agents
+
 ## 2026-10-03 night run (18)
 - Did: A4 full, checklist item 3 (touch polish). `ReadFlightInput` hit-tests the Restart/Menu touch buttons only when the crash or results screen is up, so a centre tap during play or after landing no longer restarts the run. The two buttons (220x60) now sit side by side along the bottom edge, clear of the results text. The keyboard hint ("R: Restart  M: Menu", and the crash screen's hint) is hidden once touch has been used. After the gate, touch players see "Hold the - button to brake after landing". `DrawTouchOverlay`'s `crashed` parameter became `endButtonsShown`.
 - Why: Next item in the A4 checklist; it fixes the silent-restart bug and the button/text overlap the last run's reviewer flagged.
