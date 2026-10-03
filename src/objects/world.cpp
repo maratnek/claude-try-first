@@ -124,6 +124,8 @@ void GenerateWorld(WorldState &world, const GraphicsSettings &gfx) {
     AddSoftObstacle(world, -4.0f, 220.0f, 9.0f, 2.5f);
     AddSoftObstacle(world, 6.0f, 420.0f, 14.0f, 2.5f);
     AddSoftObstacle(world, -5.0f, 620.0f, 10.0f, 2.5f);
+
+    GenerateScatter(world.scatter, world);
 }
 
 void AddHardObstacle(WorldState &world, float x, float z, float height, float radius) {
@@ -141,13 +143,15 @@ void AddSoftObstacle(WorldState &world, float x, float z, float height, float ra
     world.obstacles.push_back(o);
 }
 
-void DrawWorldObject(const WorldState &world, const GraphicsSettings &gfx) {
+void DrawWorldObject(const WorldState &world, const GraphicsSettings &gfx, Vector3 viewPosition) {
     // Huge flat backdrop so the ground reaches the horizon in every
     // direction, even past the edge of the detailed heightmap below.
     DrawPlane((Vector3){0.0f, -0.05f, 0.0f}, (Vector2){50000.0f, 50000.0f}, kGrass);
 
     float halfSize = world.worldSize * 0.5f;
     DrawModel(world.terrainModel, (Vector3){-halfSize, 0.0f, -halfSize}, 1.0f, WHITE);
+
+    DrawScatter(world.scatter, gfx.scatterDensity, viewPosition, 450.0f);
 
     if (gfx.distanceMarkers) {
         for (int i = 1; i <= 5; i++) {

@@ -17,6 +17,7 @@ struct GraphicsSettings {
     bool propBlur = true;
     bool blobShadow = true;
     bool terrainColors = true;
+    float scatterDensity = 1.0f;
 };
 
 void ApplyGraphicsPreset(GraphicsSettings &settings, GraphicsPreset preset);

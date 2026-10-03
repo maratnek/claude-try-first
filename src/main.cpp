@@ -156,7 +156,7 @@ void UpdateFrame(Game &g) {
     ClearBackground(SKYBLUE);
 
     BeginMode3D(camera);
-    DrawWorldObject(world, g.gfx);
+    DrawWorldObject(world, g.gfx, plane.position);
     DrawFinishGate(level);
     DrawCheckpoints(level);
     if (g.gfx.blobShadow) DrawBlobShadow(world, plane.position, plane.yaw);
