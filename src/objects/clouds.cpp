@@ -61,7 +61,6 @@ void GenerateClouds(CloudsState &clouds) {
     uint32_t rng = 7741903u;
     for (int i = 0; i < kMaxClouds; i++) {
         Cloud c;
-        // Spread along the 1 km level (z) with some run-in/out, well above the flight corridor.
         c.position = (Vector3){RandomRange(rng, -260.0f, 260.0f), RandomRange(rng, 55.0f, 120.0f),
                                RandomRange(rng, -150.0f, 1150.0f)};
         float size = RandomRange(rng, 9.0f, 18.0f);
