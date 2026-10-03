@@ -14,7 +14,7 @@ struct DebrisPiece {
     bool settled;
 };
 
-constexpr int kMaxDebrisPieces = PART_COUNT;
+constexpr int kMaxDebrisPieces = PART_PILOT_HEAD;
 
 struct DebrisState {
     DebrisPiece pieces[kMaxDebrisPieces];

@@ -147,7 +147,7 @@ void UpdateFrame(Game &g) {
 
     UpdateSmoke(g.smoke, plane.position, GetPlaneForward(plane), plane.damaged && g.screen == Screen::Playing, g.gfx.smokePuffs, dt);
     UpdateDebris(g.debris, world, g.gfx.debrisPieces, dt);
-    UpdatePlaneAnimation(g.planeAnim, plane, input, level.crashed, g.planeParams.maxSpeed, dt);
+    UpdatePlaneAnimation(g.planeAnim, plane, input, level.crashed, g.gfx.pilotHead, g.planeParams.maxSpeed, dt);
     if (g.screen == Screen::Playing) {
         UpdateEngineAudio(engineAudio, plane.speed / g.planeParams.maxSpeed);
         UpdateWindAudio(engineAudio, plane.speed / g.planeParams.maxSpeed, plane.airborne);

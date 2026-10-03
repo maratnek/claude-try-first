@@ -15,6 +15,7 @@ struct GraphicsSettings {
     bool obstacleWires = true;
     bool characters = true;
     bool propBlur = true;
+    bool pilotHead = true;
     bool blobShadow = true;
     bool terrainColors = true;
     float scatterDensity = 1.0f;
