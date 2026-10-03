@@ -19,13 +19,13 @@ Rectangle ThrottleDownRect() {
 }
 
 Rectangle RestartRect() {
-    const float w = 260.0f, h = 80.0f;
-    return {(GetScreenWidth() - w) * 0.5f, (GetScreenHeight() - h) * 0.5f, w, h};
+    const float w = 220.0f, h = 60.0f, gap = 20.0f;
+    return {GetScreenWidth() * 0.5f - gap * 0.5f - w, GetScreenHeight() - h - 20.0f, w, h};
 }
 
 Rectangle MenuRect() {
     Rectangle r = RestartRect();
-    r.y += r.height + 20.0f;
+    r.x += r.width + 20.0f;
     return r;
 }
 
@@ -45,7 +45,7 @@ float KeyAxis(int positive, int negative) {
 
 }  // namespace
 
-FlightInput ReadFlightInput(InputState &state) {
+FlightInput ReadFlightInput(InputState &state, bool endButtonsActive) {
     FlightInput in;
     in.pitch = KeyAxis(KEY_DOWN, KEY_UP);
     in.roll = KeyAxis(KEY_LEFT, KEY_RIGHT);
@@ -72,8 +72,8 @@ FlightInput ReadFlightInput(InputState &state) {
         Vector2 p = GetTouchPosition(i);
         if (CheckCollisionPointRec(p, up)) throttle += 1.0f;
         if (CheckCollisionPointRec(p, down)) throttle -= 1.0f;
-        if (CheckCollisionPointRec(p, restartRect)) restartTouched = true;
-        if (CheckCollisionPointRec(p, menuRect)) menuTouched = true;
+        if (endButtonsActive && CheckCollisionPointRec(p, restartRect)) restartTouched = true;
+        if (endButtonsActive && CheckCollisionPointRec(p, menuRect)) menuTouched = true;
         if (!stickFound && p.x < halfWidth) {
             stickFound = true;
             if (!state.stickActive) state.stickOrigin = p;
@@ -100,7 +100,7 @@ FlightInput ReadFlightInput(InputState &state) {
     return in;
 }
 
-void DrawTouchOverlay(const InputState &state, bool crashed) {
+void DrawTouchOverlay(const InputState &state, bool endButtonsShown) {
     if (!state.touchUsed) return;
 
     Color fill = {255, 255, 255, 60};
@@ -126,14 +126,14 @@ void DrawTouchOverlay(const InputState &state, bool crashed) {
     DrawRectangleLinesEx(down, 2.0f, line);
     DrawText("-", (int)(down.x + down.width * 0.5f - 8), (int)(down.y + down.height * 0.5f - 20), 40, line);
 
-    if (crashed) {
+    if (endButtonsShown) {
         Rectangle r = RestartRect();
         DrawRectangleRec(r, (Color){255, 255, 255, 140});
         DrawRectangleLinesEx(r, 2.0f, line);
-        DrawText("RESTART", (int)(r.x + 50), (int)(r.y + 25), 30, BLACK);
+        DrawText("RESTART", (int)(r.x + (r.width - MeasureText("RESTART", 30)) * 0.5f), (int)(r.y + 15), 30, BLACK);
         Rectangle m = MenuRect();
         DrawRectangleRec(m, (Color){255, 255, 255, 140});
         DrawRectangleLinesEx(m, 2.0f, line);
-        DrawText("MENU", (int)(m.x + 75), (int)(m.y + 25), 30, BLACK);
+        DrawText("MENU", (int)(m.x + (m.width - MeasureText("MENU", 30)) * 0.5f), (int)(m.y + 15), 30, BLACK);
     }
 }

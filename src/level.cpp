@@ -171,7 +171,7 @@ void DrawLevelHUD(const LevelState &level, bool damaged) {
     }
 }
 
-void DrawCrashScreen(const LevelState &level) {
+void DrawCrashScreen(const LevelState &level, bool touchUsed) {
     int w = GetScreenWidth(), h = GetScreenHeight();
     DrawRectangle(0, 0, w, h, (Color){0, 0, 0, 150});
     const char *title = "CRASHED";
@@ -185,10 +185,10 @@ void DrawCrashScreen(const LevelState &level) {
 #else
     const char *hint = "R: Restart     M: Menu     Esc / Q: Exit";
 #endif
-    DrawText(hint, (w - MeasureText(hint, 28)) / 2, h / 2 + 170, 28, WHITE);
+    if (!touchUsed) DrawText(hint, (w - MeasureText(hint, 28)) / 2, h / 2 + 170, 28, WHITE);
 }
 
-void DrawResultsScreen(const LevelState &level, bool damaged) {
+void DrawResultsScreen(const LevelState &level, bool damaged, bool touchUsed) {
     int w = GetScreenWidth(), h = GetScreenHeight();
     DrawRectangle(0, 0, w, h, (Color){0, 0, 0, 150});
 
@@ -237,7 +237,7 @@ void DrawResultsScreen(const LevelState &level, bool damaged) {
 
     DrawCentered(NextTargetLine(medal, stars), cx, y(365), sz(26), MedalColor(medal));
 
-    DrawCentered("R: Restart     M: Menu", cx, y(450), sz(28), WHITE);
+    if (!touchUsed) DrawCentered("R: Restart     M: Menu", cx, y(450), sz(28), WHITE);
 }
 
 void ResetLevelProgress(LevelState &level) {

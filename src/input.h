@@ -24,7 +24,8 @@ struct InputState {
 };
 
 // Combines keyboard and touch (touch needs a touch device or the web build; desktop mouse does not register).
-FlightInput ReadFlightInput(InputState &state);
+// Restart/Menu touch buttons only register when endButtonsActive (crashed or finished).
+FlightInput ReadFlightInput(InputState &state, bool endButtonsActive);
 
 // Draws the stick and buttons; does nothing until touch has been used.
-void DrawTouchOverlay(const InputState &state, bool crashed);
+void DrawTouchOverlay(const InputState &state, bool endButtonsShown);

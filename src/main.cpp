@@ -72,7 +72,7 @@ void UpdateFrame(Game &g) {
     }
     g.volumeShownSeconds = fmaxf(g.volumeShownSeconds - dt, 0.0f);
 
-    FlightInput input = ReadFlightInput(g.inputState);
+    FlightInput input = ReadFlightInput(g.inputState, level.crashed || g.screen == Screen::Finished);
     MenuAction menuAction = MenuAction::None;
     if (g.screen == Screen::Menu) menuAction = UpdateMenu(g.menu);
 
@@ -189,10 +189,13 @@ void UpdateFrame(Game &g) {
     } else if (HasLandedSafely(plane)) {
         DrawText("Landed safely - take off again", 10, 150, 30, DARKGREEN);
     }
+    if (g.screen == Screen::Playing && level.gateCrossed && g.inputState.touchUsed) {
+        DrawText("Hold the - button to brake after landing", 10, 215, 24, DARKGRAY);
+    }
     DrawFPS(10, 60);
     DrawText(TextFormat("Graphics: %s (F1)", GraphicsPresetName(g.gfx)), 110, 60, 20, DARKGRAY);
-    if (level.crashed) DrawCrashScreen(level);
-    if (g.screen == Screen::Finished) DrawResultsScreen(level, plane.damaged);
+    if (level.crashed) DrawCrashScreen(level, g.inputState.touchUsed);
+    if (g.screen == Screen::Finished) DrawResultsScreen(level, plane.damaged, g.inputState.touchUsed);
     DrawTouchOverlay(g.inputState, level.crashed || g.screen == Screen::Finished);
     EndDrawing();
 }
