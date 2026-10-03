@@ -16,7 +16,9 @@ float RandomRange(float lo, float hi) {
 }
 
 Vector3 SpawnStreak(Vector3 cameraPosition, Vector3 direction, float ahead) {
-    Vector3 right = Vector3Normalize(Vector3CrossProduct(direction, {0.0f, 1.0f, 0.0f}));
+    Vector3 right = Vector3CrossProduct(direction, {0.0f, 1.0f, 0.0f});
+    if (Vector3LengthSqr(right) < 1e-4f) right = {1.0f, 0.0f, 0.0f};
+    right = Vector3Normalize(right);
     Vector3 up = Vector3CrossProduct(right, direction);
     float angle = RandomRange(0.0f, 2.0f * PI);
     float radius = RandomRange(kRadiusMin, kRadiusMax);

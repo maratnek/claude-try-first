@@ -4,7 +4,7 @@
 constexpr int kMaxSpeedStreaks = 40;
 
 struct StreakState {
-    Vector3 positions[kMaxSpeedStreaks];
+    Vector3 positions[kMaxSpeedStreaks] = {};
     bool alive[kMaxSpeedStreaks] = {};
     Vector3 direction = {0.0f, 0.0f, 1.0f};
     float intensity = 0.0f;
