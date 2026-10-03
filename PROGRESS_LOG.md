@@ -12,6 +12,13 @@ owner can skim what happened without digging through git log. Format:
 - PR: <link or branch, if one was opened>
 ```
 
+## 2026-10-03 night run (21)
+- Did: B4, damage smoke. New src/objects/smoke.{h,cpp}: fixed ring of 64 puffs, spawned 2.5 m behind the plane while `plane.damaged` and the screen is Playing; puffs rise, grow and fade over 1.5 s; drawn as camera-facing quads in one rlgl batch with depth write and culling off, flushed before state is restored. New `GraphicsSettings::smokePuffs` (Low 0, Medium 24, High 64). Cleared in `resetRun` (play, restart, menu). ARCHITECTURE.md updated.
+- Why: Next unfinished Track B item after B1; makes damage visible in flight, off on Low per the performance rule.
+- Verified: code-reviewer read the diff and found one blocker (no `rlDrawRenderBatchActive()` before depth/culling were restored, so the quads would flush with the wrong state); game-developer fixed it in one pass, plus a batch-limit check and a what-comment removal. game-tester then hand-built raylib 5.5.1 and all sources (-std=gnu++23, plain and ASan/UBSan) and ran under Xvfb: menu, play, F1 cycling, crash, R, M, replay all clean. With `damaged` forced in a scratch copy, screenshots showed a dense trail on High, a sparse one on Medium, none on Low, none on the crash screen, no stale puffs after restart, and no blend/depth leakage into the HUD. CI status: see PR.
+- Open: Conan/CMake, Web and macOS builds proven only by CI (Conan was blocked in the sandbox). Smoke was never seen via the real soft-obstacle path. Puffs are hard-edged grey squares, so they look blocky close up; a round texture or near-camera fade would help. They stay fixed in world space, and puffs in the air freeze when the screen changes. Performance on phones unmeasured (at most 64 quads, one draw call). Owner should judge the look in flight.
+- PR: see PR into dev from agents
+
 ## 2026-10-03 night run (20)
 - Did: B1 part 2, scattered trees and rocks. New src/objects/scatter.{h,cpp}: about 1800 deterministic (fixed seed) props, 70% two-tier cone trees and 30% rocks, placed on the side hills at |x| >= 60 m and at least 12 m plus radius from every obstacle, with baked per-face shading. New `GraphicsSettings::scatterDensity` (Low 0, Medium 0.35, High 1.0); density picks a prefix of the randomly ordered prop list, so F1 needs no regeneration. Drawn as one rlgl triangle stream, culled beyond 450 m of the plane. No collision. ARCHITECTURE.md updated.
 - Why: Last open piece of B1 after terrain colours; adds a sense of speed and altitude over the hills, off on Low per the performance rule.

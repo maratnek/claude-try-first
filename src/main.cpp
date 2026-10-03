@@ -9,6 +9,7 @@
 #include "settings.h"
 #include "objects/plane.h"
 #include "objects/world.h"
+#include "objects/smoke.h"
 #include "objects/character.h"
 
 #ifdef __EMSCRIPTEN__
@@ -26,6 +27,7 @@ struct Game {
     PlaneModel planeModel;
     PlaneAnim planeAnim;
     WorldState world;
+    SmokeState smoke;
     PlaneState planeStart;
     PlaneState plane;
     PlaneParams planeParams = BiplaneParams();
@@ -86,6 +88,7 @@ void UpdateFrame(Game &g) {
 
     auto resetRun = [&]() {
         plane = planeStart;
+        ClearSmoke(g.smoke);
         g.planeAnim = PlaneAnim{};
         ResetLevelProgress(level);
         StopOneShotSounds(engineAudio);
@@ -138,6 +141,7 @@ void UpdateFrame(Game &g) {
     if (level.crashed && input.exit) g.quitRequested = true;
 #endif
 
+    UpdateSmoke(g.smoke, plane.position, GetPlaneForward(plane), plane.damaged && g.screen == Screen::Playing, g.gfx.smokePuffs, dt);
     UpdatePlaneAnimation(g.planeAnim, plane, input, level.crashed, g.planeParams.maxSpeed, dt);
     if (g.screen == Screen::Playing) {
         UpdateEngineAudio(engineAudio, plane.speed / g.planeParams.maxSpeed);
@@ -161,6 +165,7 @@ void UpdateFrame(Game &g) {
     DrawCheckpoints(level);
     if (g.gfx.blobShadow) DrawBlobShadow(world, plane.position, plane.yaw);
     DrawPlaneObject(planeModel, g.planeAnim, plane.position, plane.yaw, plane.pitch, plane.roll, g.gfx.propBlur);
+    if (g.gfx.smokePuffs > 0) DrawSmoke(g.smoke, camera);
     if (g.gfx.characters) {
         DrawCharacterObject((Vector3){-3.0f, GetGroundHeight(world, -3.0f, 3.0f), 3.0f}, 20.0f, BLUE);
         DrawCharacterObject((Vector3){3.0f, GetGroundHeight(world, 3.0f, 3.0f), 3.0f}, -20.0f, ORANGE);
