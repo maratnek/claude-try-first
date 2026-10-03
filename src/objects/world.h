@@ -3,6 +3,7 @@
 #include "settings.h"
 #include "scatter.h"
 #include "clouds.h"
+#include "rain.h"
 #include <vector>
 
 struct Obstacle {
@@ -26,6 +27,7 @@ struct WorldState {
     std::vector<Obstacle> obstacles;
     ScatterState scatter;
     CloudsState clouds;
+    RainState rain;
 };
 
 // Builds the terrain heightmap and obstacle layout. Call once at startup.
@@ -34,7 +36,7 @@ void GenerateWorld(WorldState &world, const GraphicsSettings &gfx);
 // Swaps the terrain vertex colours to match gfx.terrainColors; no-op when already current.
 void ApplyTerrainColors(WorldState &world, const GraphicsSettings &gfx);
 
-// Draws terrain, distance-marker pillars, obstacles, and decorative trees/rocks and clouds near viewPosition (density from gfx.scatterDensity).
+// Draws terrain, distance-marker pillars, obstacles, decorative trees/rocks and clouds near viewPosition (density from gfx.scatterDensity), and rain (gfx.rainDrops).
 void DrawWorldObject(const WorldState &world, const GraphicsSettings &gfx, Vector3 viewPosition);
 
 // Flat translucent plane-shaped shadow on the terrain below the plane; hidden above a max altitude.
