@@ -126,6 +126,7 @@ void GenerateWorld(WorldState &world, const GraphicsSettings &gfx) {
     AddSoftObstacle(world, -5.0f, 620.0f, 10.0f, 2.5f);
 
     GenerateScatter(world.scatter, world);
+    GenerateClouds(world.clouds);
 }
 
 void AddHardObstacle(WorldState &world, float x, float z, float height, float radius) {
@@ -152,6 +153,7 @@ void DrawWorldObject(const WorldState &world, const GraphicsSettings &gfx, Vecto
     DrawModel(world.terrainModel, (Vector3){-halfSize, 0.0f, -halfSize}, 1.0f, WHITE);
 
     DrawScatter(world.scatter, gfx.scatterDensity, viewPosition, 450.0f);
+    DrawClouds(world.clouds, gfx.cloudCount, viewPosition, 600.0f);
 
     if (gfx.distanceMarkers) {
         for (int i = 1; i <= 5; i++) {

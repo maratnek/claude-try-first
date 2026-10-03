@@ -12,6 +12,13 @@ owner can skim what happened without digging through git log. Format:
 - PR: <link or branch, if one was opened>
 ```
 
+## 2026-10-03 day run (24)
+- Did: B3 part 1, low-poly clouds. New src/objects/clouds.{h,cpp}: 30 deterministic (fixed seed) clouds of 3-5 flattened low-poly ellipsoids each, at 55-120 m over the 1 km level, flat-shaded, drawn in rlgl batches and skipped beyond 600 m of the plane. New `GraphicsSettings::cloudCount` (Low 0, Medium 12, High 30), a prefix of the list so F1 needs no regeneration. No collision, physics untouched. Wired through `DrawWorldObject`. ARCHITECTURE.md updated. Rain/snow and speed streaks (rest of B3) are not done.
+- Why: Only unfinished Track B item left (B1, B2, B4, B5 done); visual only and switchable per the performance rule. Track A is done apart from the owner-owed timed runs.
+- Verified: code-reviewer read the diff: no blockers (batch limits, state restore, bounds, preset wiring, no physics link); I removed its flagged what-comment afterwards. game-tester hand-built raylib 5.5 and all sources (-std=gnu++23, plain and ASan/UBSan) and ran under Xvfb: menu, takeoff, F1 cycling in flight, crash, R, M, replay all clean, screenshots show many clouds on High, fewer on Medium, none on Low, no regressions. Conan was blocked in the sandbox, so CMake/Web/macOS builds are proven only by CI. CI status: see PR.
+- Open: Owner should judge the look in flight (brightness, size, the 55-120 m band: the plane can fly through clouds, with no fade) and FPS on phone/web (about 19k vertices at High, no frustum cull). Draw distance is measured from the plane, not the camera. Smoke/debris were not re-seen in this run's screenshots (code untouched).
+- PR: see PR into dev from agents
+
 ## 2026-10-03 day run (23)
 - Did: B5, pilot head turns into turns. New rigged part `PART_PILOT_HEAD` (node `pilot_head_pivot`, children helmet/goggles/head move with it); `PlaneAnim::headYaw` follows the smoothed aileron+rudder, max 35 deg, smoothed at 6/s, 0 on crash. New `GraphicsSettings::pilotHead` (Low off, Medium/High on). `kMaxDebrisPieces` now stops before the head, so it is never thrown as debris. Physics untouched. ARCHITECTURE.md updated.
 - Why: Next unfinished Track B item (B1, B2, B4 done; B3 weather is bigger); small, visual only, switchable per the performance rule.

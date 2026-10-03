@@ -21,6 +21,7 @@ flowchart TD
     settings["settings.cpp<br/>пресеты графики"]
     character["objects/character.cpp<br/>декоративные фигурки"]
     scatter["objects/scatter.cpp<br/>деревья и камни"]
+    clouds["objects/clouds.cpp<br/>облака"]
 
     main --> input
     main --> flight
@@ -37,6 +38,7 @@ flowchart TD
     debris --> plane
     world --> settings
     world --> scatter
+    world --> clouds
 ```
 
 | Модуль | Отвечает за | Ключевые типы и функции |
@@ -48,12 +50,13 @@ flowchart TD
 | `src/objects/world.cpp` | Heightmap-рельеф с ровным коридором, цвета вершин рельефа (трава/земля/камень по высоте и уклону плюс запечённая тень от фиксированного света; плоская трава совпадает с фоном), жёсткие и мягкие препятствия, высота земли | `WorldState`, `GetGroundHeight`, `ApplyTerrainColors`, `CheckObstacleHit` |
 | `src/objects/scatter.cpp` | Декоративные низкополигональные деревья и камни на холмах вне лётного коридора: детерминированная расстановка (фиксированный seed) по высоте земли, не ближе `flatHalfWidth + 20` м к оси и не ближе 12 м к препятствиям; без коллизий. Список хранится в случайном порядке, плотность выбирает его префикс; рисуется одним потоком треугольников rlgl с отсечением по дальности 450 м | `ScatterState`, `GenerateScatter`, `DrawScatter` |
 | `src/objects/plane.cpp` | Загрузка биплана, анимация пропеллера, рулей, элеронов, колёс и поворота головы пилота в вираж (узел `pilot_head_pivot`, до 35°, сглаживание; `pilotHead`: выкл. на Low; в обломки не попадает) | `PlaneModel`, `PlaneAnim`, `UpdatePlaneAnimation`, `DrawPlaneObject` |
+| `src/objects/clouds.cpp` | Низкополигональные облака над лётным коридором: 30 облаков, детерминированная расстановка (фиксированный seed) вдоль 1 км уровня на высоте 55–120 м, каждое из 3–5 приплюснутых эллипсоидов с плоским затенением; без коллизий и влияния на физику. Список в случайном порядке, `cloudCount` выбирает префикс (F1 не требует регенерации); рисуется потоком треугольников rlgl, облака дальше 600 м отсекаются | `CloudsState`, `GenerateClouds`, `DrawClouds` |
 | `src/objects/smoke.cpp` | Дым от повреждённого самолёта: кольцевой буфер до 64 клякс (без аллокаций), клякса сзади самолёта поднимается, растёт и тает за 1,5 с; рисуется билбордами одним потоком треугольников rlgl без записи глубины. Число клякс — `smokePuffs` (0 на Low, 24 на Medium, 64 на High); сбрасывается при рестарте/выходе в меню | `SmokeState`, `UpdateSmoke`, `DrawSmoke`, `ClearSmoke` |
 | `src/objects/debris.cpp` | Обломки при краше: в момент `level.crashed` от модели отрываются подвижные части (пропеллер, колёса, руль направления, руль высоты, элероны; фиксированный массив до 7 штук, порядок приоритета в `kSpawnOrder`) и летят баллистически: скорость самолёта плюс случайный толчок, гравитация, отскок и трение о рельеф, вращение, остановка при малой скорости. Оторванные части не рисуются на корпусе (маска в `DrawPlaneObject`), сами рисуются через `DrawPlanePart`. Число частей — `debrisPieces` (0 на Low, 3 на Medium, 7 на High); сбрасывается при рестарте/выходе в меню. На физику и геймплей не влияет | `DebrisState`, `SpawnDebris`, `UpdateDebris`, `DrawDebris`, `ClearDebris` |
 | `src/objects/glb_nodes.cpp` | Чтение дерева узлов GLB (raylib его теряет) | `GlbNode`, `Mat4`, `LoadGlbNodes` |
 | `src/audio.cpp` | Синтез звука в коде: гул двигателя, удар при краше, звон чекпоинта, ветер (зависит от скорости), глухой удар при мягкой посадке, щелчок кнопки UI (не обрывается сбросом `StopOneShotSounds`), глухой стук при мягком ударе о препятствие, общая громкость (`-`/`=`, шаг 0.1) | `EngineAudio`, `UpdateEngineAudio`, `UpdateWindAudio`, `PlayCrashSound`, `PlayChimeSound`, `PlayTouchdownSound`, `PlayClickSound`, `PlayDamageSound`, `SetMasterVolumeClamped` |
 | `src/menu.cpp` | Главное меню из списка пунктов; клавиатура, мышь, тач | `MenuState`, `UpdateMenu`, `DrawMenu` |
-| `src/settings.cpp` | Пресеты Low/Medium/High и переключатели необязательных эффектов (в т.ч. `terrainColors`: вкл. на Medium/High, на Low рельеф плоско-зелёный; `scatterDensity`: 0 на Low, 0.35 на Medium, 1 на High; `smokePuffs`: 0 / 24 / 64; `debrisPieces`: 0 / 3 / 7) | `GraphicsSettings`, `InitGraphicsSettings` |
+| `src/settings.cpp` | Пресеты Low/Medium/High и переключатели необязательных эффектов (в т.ч. `terrainColors`: вкл. на Medium/High, на Low рельеф плоско-зелёный; `scatterDensity`: 0 на Low, 0.35 на Medium, 1 на High; `cloudCount`: 0 / 12 / 30; `smokePuffs`: 0 / 24 / 64; `debrisPieces`: 0 / 3 / 7) | `GraphicsSettings`, `InitGraphicsSettings` |
 
 ## Экраны игры
 
@@ -134,7 +137,7 @@ CI (`.github/workflows/build.yml`) собирает обе цели на каж�
 ## Производительность
 
 Всё, что не влияет на игровой процесс (столбики-маркеры, каркасы
-препятствий, фигурки, деревья и камни (`scatterDensity`, 0 на Low), диск пропеллера, поворот головы пилота (`pilotHead`, выкл. на Low), дым повреждённого самолёта (`smokePuffs`, 0 на Low), обломки при краше (`debrisPieces`, 0 на Low), а в будущем погода, частицы), отключается через `GraphicsSettings`. Исключение — `blobShadow`
+препятствий, фигурки, деревья и камни (`scatterDensity`, 0 на Low), облака (`cloudCount`, 0 на Low), диск пропеллера, поворот головы пилота (`pilotHead`, выкл. на Low), дым повреждённого самолёта (`smokePuffs`, 0 на Low), обломки при краше (`debrisPieces`, 0 на Low), а в будущем погода, частицы), отключается через `GraphicsSettings`. Исключение — `blobShadow`
 (полупрозрачная тень самолёта на земле, `DrawBlobShadow` в `world.cpp`,
 рисуется после мира и до самолёта без записи в глубину): она почти бесплатна
 и помогает оценить высоту, поэтому включена во всех пресетах, включая Low. На Web и мобильных по
