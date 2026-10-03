@@ -12,6 +12,13 @@ owner can skim what happened without digging through git log. Format:
 - PR: <link or branch, if one was opened>
 ```
 
+## 2026-10-03 night run (17)
+- Did: A4 full, checklist item 2. The results screen now shows the medal beside the stars (Gold/Silver/Bronze at 24/30/40 s, `kMedal*` constexprs and `ComputeMedal` in level.cpp), the star checklist (Finished / All rings n/4 / Clean, unmet lines dimmed orange), "NEW BEST" or "+X.XX s vs best Y.YY s", and a one-line next target. Layout now scales from window height, so it fits 844x390 as well as 1280x720. ARCHITECTURE.md updated.
+- Why: Next item in the A4 checklist; gives players a reason to replay.
+- Verified: game-developer hand-built raylib 5.5, compiled with -std=gnu++23 -Wall (no warnings in changed files) and rendered the real DrawResultsScreen with fake data at both sizes. game-tester rebuilt, ran menu/play/crash/R/M under Xvfb with injected keys (no errors beyond no-audio warnings) and screenshotted the Finished screen forced in a scratch copy (Gold/Silver/no medal, delta and NEW BEST, both sizes: fits, no clipping). code-reviewer read the diff: no blockers; delta/NEW BEST ordering against RecordFinish checked. CI status: see PR.
+- Open: Medal times are estimates; the 5 timed runs by the owner (item 4) are still owed. No real flight to Finished was run. Touch Restart/Menu buttons are centred and overlap the new text (reviewer nit; item 3 must move them or the layout). Scaling uses height only, so a narrow portrait window may clip the title and medal label. Next: item 3 (touch polish).
+- PR: see PR into dev from agents
+
 ## 2026-10-02 night run (16)
 - Did: A4 full, checklist item 1. Crossing the 1000 m gate now only stops the clock (`completed` became `gateCrossed`); the plane stays controllable, a "GATE! Land to finish" banner and a 40 x 300 m landing-zone slab appear, and the run ends when the plane is grounded with speed <= 8 m/s (`IsRunFinished`). A hard landing or obstacle after the gate goes to the Crashed screen, which now shows "Gate reached in X.XX s". `kRequireLandingAfterGate` in level.cpp (default true) restores the old immediate finish when false. ARCHITECTURE.md updated.
 - Why: Sprint is done and A4 full is next in Track order; I took the design note's recommended defaults (landing on, rollout required, switch kept) since the owner has not answered its open questions.

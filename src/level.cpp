@@ -4,6 +4,10 @@
 #include <cmath>
 
 namespace {
+constexpr float kMedalGold = 24.0f;
+constexpr float kMedalSilver = 30.0f;
+constexpr float kMedalBronze = 40.0f;
+
 constexpr bool kRequireLandingAfterGate = true;
 constexpr float kRolloutSpeed = 8.0f;
 constexpr float kLandingZoneLength = 300.0f;
@@ -22,6 +26,37 @@ void DrawStar(Vector2 c, float r, Color color) {
     }
     for (int i = 0; i < 10; i++) {
         DrawTriangle(c, pts[(i + 1) % 10], pts[i], color);
+    }
+}
+
+void DrawCentered(const char *text, int cx, int y, int size, Color color) {
+    DrawText(text, cx - MeasureText(text, size) / 2, y, size, color);
+}
+
+const char *MedalName(Medal medal) {
+    switch (medal) {
+        case Medal::Gold: return "Gold";
+        case Medal::Silver: return "Silver";
+        case Medal::Bronze: return "Bronze";
+        default: return "No medal";
+    }
+}
+
+Color MedalColor(Medal medal) {
+    switch (medal) {
+        case Medal::Gold: return GOLD;
+        case Medal::Silver: return (Color){200, 205, 215, 255};
+        case Medal::Bronze: return (Color){205, 127, 50, 255};
+        default: return (Color){120, 120, 120, 255};
+    }
+}
+
+const char *NextTargetLine(Medal medal, int stars) {
+    switch (medal) {
+        case Medal::Gold: return stars == 3 ? "Gold - perfect run!" : "Gold - perfect run needs 3 stars";
+        case Medal::Silver: return TextFormat("Silver! Gold at %.1f s", kMedalGold);
+        case Medal::Bronze: return TextFormat("Bronze! Silver at %.1f s", kMedalSilver);
+        default: return TextFormat("Bronze at %.1f s", kMedalBronze);
     }
 }
 }  // namespace
@@ -77,6 +112,13 @@ int ComputeStars(const LevelState &level, bool damaged) {
     if (!damaged && allCheckpoints) return kStarsPerfect;
     if (!damaged || allCheckpoints) return kStarsCleanOrAllCheckpoints;
     return kStarsFinished;
+}
+
+Medal ComputeMedal(float elapsed) {
+    if (elapsed <= kMedalGold) return Medal::Gold;
+    if (elapsed <= kMedalSilver) return Medal::Silver;
+    if (elapsed <= kMedalBronze) return Medal::Bronze;
+    return Medal::None;
 }
 
 void RecordFinish(LevelState &level) {
@@ -149,28 +191,53 @@ void DrawCrashScreen(const LevelState &level) {
 void DrawResultsScreen(const LevelState &level, bool damaged) {
     int w = GetScreenWidth(), h = GetScreenHeight();
     DrawRectangle(0, 0, w, h, (Color){0, 0, 0, 150});
-    const char *title = "LEVEL COMPLETE";
-    DrawText(title, (w - MeasureText(title, 50)) / 2, h / 2 - 255, 50, GOLD);
+
+    constexpr float kLayoutHeight = 500.0f;
+    float s = fminf(h / 600.0f, 1.0f);
+    float top = (h - kLayoutHeight * s) / 2.0f;
+    auto sz = [&](int base) { return (int)fmaxf(base * s, 10.0f); };
+    auto y = [&](float base) { return (int)(top + base * s); };
+    int cx = w / 2;
+
+    DrawCentered("LEVEL COMPLETE", cx, y(0), sz(50), GOLD);
 
     int stars = ComputeStars(level, damaged);
     for (int i = 0; i < 3; i++) {
-        DrawStar({w / 2.0f + (i - 1) * 60.0f, h / 2.0f - 185.0f}, 26.0f,
+        DrawStar({cx + (i - 1) * 60.0f * s, (float)y(95)}, 26.0f * s,
                  i < stars ? GOLD : (Color){120, 120, 120, 255});
     }
 
-    const char *lines[3] = {
-        TextFormat("Time: %.2f s", level.elapsed),
-        TextFormat("Checkpoints: %d/%d", CountPassed(level), (int)level.checkpoints.size()),
-        damaged ? "Plane: DAMAGED" : "Plane: CLEAN",
-    };
-    for (int i = 0; i < 3; i++) {
-        DrawText(lines[i], (w - MeasureText(lines[i], 24)) / 2, h / 2 - 150 + i * 28, 24, WHITE);
-    }
-    const char *best = TextFormat(level.newBest ? "Best: %.2f s  NEW BEST!" : "Best: %.2f s", level.bestTime);
-    DrawText(best, (w - MeasureText(best, 24)) / 2, h / 2 - 150 + 3 * 28, 24, level.newBest ? GOLD : WHITE);
+    Medal medal = ComputeMedal(level.elapsed);
+    float medalX = cx + 170.0f * s;
+    DrawCircle((int)medalX, y(95), 22.0f * s, MedalColor(medal));
+    DrawCentered(MedalName(medal), (int)medalX, y(125), sz(20), MedalColor(medal));
 
-    const char *hint = "R: Restart     M: Menu";
-    DrawText(hint, (w - MeasureText(hint, 28)) / 2, h / 2 + 170, 28, WHITE);
+    DrawCentered(TextFormat("Time: %.2f s", level.elapsed), cx, y(150), sz(30), WHITE);
+    if (level.newBest) {
+        DrawCentered("NEW BEST", cx, y(188), sz(24), GOLD);
+    } else {
+        DrawCentered(TextFormat("+%.2f s vs best %.2f s", level.elapsed - level.bestTime, level.bestTime),
+                     cx, y(188), sz(24), WHITE);
+    }
+
+    bool allRings = CountPassed(level) == (int)level.checkpoints.size();
+    struct Goal {
+        const char *text;
+        bool met;
+    } goals[3] = {
+        {"Finished", true},
+        {TextFormat("All rings (%d/%d)", CountPassed(level), (int)level.checkpoints.size()), allRings},
+        {"Clean", !damaged},
+    };
+    Color unmet = (Color){255, 165, 0, 130};
+    for (int i = 0; i < 3; i++) {
+        const char *line = TextFormat("%s %s", goals[i].met ? "[x]" : "[ ]", goals[i].text);
+        DrawCentered(line, cx, y(245 + i * 32), sz(26), goals[i].met ? WHITE : unmet);
+    }
+
+    DrawCentered(NextTargetLine(medal, stars), cx, y(365), sz(26), MedalColor(medal));
+
+    DrawCentered("R: Restart     M: Menu", cx, y(450), sz(28), WHITE);
 }
 
 void ResetLevelProgress(LevelState &level) {

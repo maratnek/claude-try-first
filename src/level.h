@@ -38,6 +38,11 @@ bool IsRunFinished(const LevelState &level, bool airborne, float speed);
 // Stars for a finished run: 3 = clean + all checkpoints, 2 = clean or all checkpoints, 1 = finished.
 int ComputeStars(const LevelState &level, bool damaged);
 
+enum class Medal { None, Bronze, Silver, Gold };
+
+// Time medal for a finished run from the gate time: gold <= 24 s, silver <= 30 s, bronze <= 40 s.
+Medal ComputeMedal(float elapsed);
+
 // Stores the elapsed time as the session best when it beats the previous one (not persisted).
 void RecordFinish(LevelState &level);
 
@@ -48,7 +53,7 @@ void DrawLevelHUD(const LevelState &level, bool damaged);
 // Dimmed overlay with the Restart/Exit prompts and the gate time when the gate was crossed; Exit is omitted on Web/iOS. The touch Restart button is drawn by DrawTouchOverlay.
 void DrawCrashScreen(const LevelState &level);
 
-// Dimmed overlay with time, checkpoints, damage, stars and best time. The touch Restart/Menu buttons are drawn by DrawTouchOverlay.
+// Dimmed overlay with stars, medal, time, delta vs best, a Finished/All rings/Clean checklist and the next medal target; layout scales with screen height. The touch Restart/Menu buttons are drawn by DrawTouchOverlay.
 void DrawResultsScreen(const LevelState &level, bool damaged);
 
 // Clears progress (distance, gateCrossed, crashed, elapsed, passed checkpoints) so the
