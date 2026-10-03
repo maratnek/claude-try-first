@@ -27,6 +27,7 @@ void ApplyGraphicsPreset(GraphicsSettings &settings, GraphicsPreset preset) {
     settings.cloudCount = low ? 0 : (high ? 30 : 12);
     settings.smokePuffs = low ? 0 : (high ? 64 : 24);
     settings.debrisPieces = low ? 0 : (high ? 7 : 3);
+    settings.speedStreaks = low ? 0 : (high ? 40 : 16);
 }
 
 void CycleGraphicsPreset(GraphicsSettings &settings) {

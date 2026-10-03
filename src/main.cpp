@@ -10,6 +10,7 @@
 #include "objects/plane.h"
 #include "objects/world.h"
 #include "objects/smoke.h"
+#include "objects/streaks.h"
 #include "objects/debris.h"
 #include "objects/character.h"
 
@@ -29,6 +30,7 @@ struct Game {
     PlaneAnim planeAnim;
     WorldState world;
     SmokeState smoke;
+    StreakState streaks;
     DebrisState debris;
     PlaneState planeStart;
     PlaneState plane;
@@ -91,6 +93,7 @@ void UpdateFrame(Game &g) {
     auto resetRun = [&]() {
         plane = planeStart;
         ClearSmoke(g.smoke);
+        ClearStreaks(g.streaks);
         ClearDebris(g.debris);
         g.planeAnim = PlaneAnim{};
         ResetLevelProgress(level);
@@ -161,6 +164,9 @@ void UpdateFrame(Game &g) {
     camera.position = Vector3Add(plane.position, chaseOffset);
     camera.target = Vector3Add(plane.position, GetPlaneForward(plane));
 
+    UpdateStreaks(g.streaks, camera.position, GetPlaneForward(plane), plane.speed / g.planeParams.maxSpeed,
+                  g.screen == Screen::Playing && plane.airborne, g.gfx.speedStreaks);
+
     BeginDrawing();
     ClearBackground(SKYBLUE);
 
@@ -172,6 +178,7 @@ void UpdateFrame(Game &g) {
     DrawPlaneObject(planeModel, g.planeAnim, plane.position, plane.yaw, plane.pitch, plane.roll, g.gfx.propBlur, DebrisDetachedMask(g.debris));
     DrawDebris(g.debris, planeModel);
     if (g.gfx.smokePuffs > 0) DrawSmoke(g.smoke, camera);
+    if (g.gfx.speedStreaks > 0) DrawStreaks(g.streaks);
     if (g.gfx.characters) {
         DrawCharacterObject((Vector3){-3.0f, GetGroundHeight(world, -3.0f, 3.0f), 3.0f}, 20.0f, BLUE);
         DrawCharacterObject((Vector3){3.0f, GetGroundHeight(world, 3.0f, 3.0f), 3.0f}, -20.0f, ORANGE);

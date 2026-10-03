@@ -12,6 +12,13 @@ owner can skim what happened without digging through git log. Format:
 - PR: <link or branch, if one was opened>
 ```
 
+## 2026-10-03 night run (25)
+- Did: B3 part 2, speed streaks. New src/objects/streaks.{h,cpp}: a pool of 40 thin world-fixed lines around the camera, stretched along the flight direction, fading from tail to head, shown while airborne and above 60% of max speed (intensity ramps to 1 at max speed). One rlgl line batch, depth write off. New `GraphicsSettings::speedStreaks` (Low 0, Medium 16, High 40). Cleared in `resetRun`. Physics untouched. ARCHITECTURE.md updated. Rain/snow (rest of B3) is not done.
+- Why: Next unfinished Track B item; cheap, visual only, and gives a sense of speed. Switchable per the performance rule.
+- Verified: code-reviewer read the diff: no blockers. After its nits I zero-initialised the position array and added a fallback axis for exactly vertical flight, then re-ran a syntax check. game-tester cloned raylib 5.5, hand-built all sources (-std=gnu++23, plain and ASan/UBSan) and ran under Xvfb: menu, takeoff, F1 cycling in flight, crash, R, M, replay and exit all clean, no sanitizer reports. Streak counts checked with gdb (Low 0, Medium 16, High 40) and screenshots show thin fading lines on Medium/High, none on Low. Conan/CMake, Web and macOS builds are proven only by CI. CI status: see PR.
+- Open: Owner should judge the look in flight: lines are 1 px, so they may be very thin on hi-DPI and Web screens; new streaks appear at full alpha (some pop-in). Thin GL_LINES can look different across GPUs. Real-GPU, audio and phone performance not checked. Rain/snow still to do.
+- PR: see PR into dev from agents
+
 ## 2026-10-03 day run (24)
 - Did: B3 part 1, low-poly clouds. New src/objects/clouds.{h,cpp}: 30 deterministic (fixed seed) clouds of 3-5 flattened low-poly ellipsoids each, at 55-120 m over the 1 km level, flat-shaded, drawn in rlgl batches and skipped beyond 600 m of the plane. New `GraphicsSettings::cloudCount` (Low 0, Medium 12, High 30), a prefix of the list so F1 needs no regeneration. No collision, physics untouched. Wired through `DrawWorldObject`. ARCHITECTURE.md updated. Rain/snow and speed streaks (rest of B3) are not done.
 - Why: Only unfinished Track B item left (B1, B2, B4, B5 done); visual only and switchable per the performance rule. Track A is done apart from the owner-owed timed runs.
