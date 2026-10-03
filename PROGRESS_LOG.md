@@ -12,6 +12,13 @@ owner can skim what happened without digging through git log. Format:
 - PR: <link or branch, if one was opened>
 ```
 
+## 2026-10-03 night run (18)
+- Did: A4 full, checklist item 3 (touch polish). `ReadFlightInput` hit-tests the Restart/Menu touch buttons only when the crash or results screen is up, so a centre tap during play or after landing no longer restarts the run. The two buttons (220x60) now sit side by side along the bottom edge, clear of the results text. The keyboard hint ("R: Restart  M: Menu", and the crash screen's hint) is hidden once touch has been used. After the gate, touch players see "Hold the - button to brake after landing". `DrawTouchOverlay`'s `crashed` parameter became `endButtonsShown`.
+- Why: Next item in the A4 checklist; it fixes the silent-restart bug and the button/text overlap the last run's reviewer flagged.
+- Verified: code-reviewer read the diff and found one blocker (brake hint overprinted the "Plane:" line); game-developer moved it to y=215 and recompiled in one fix pass. game-tester hand-compiled all sources with -std=gnu++23 -Wall, ran menu/play/crash/R/M on keyboard under Xvfb (all fine), and with a temporary local hack forcing touch on checked the crash and results screens at 844x390 and 1280x720: buttons do not overlap end-screen text, and R/M still work. CI: see PR checks.
+- Open: Real touch taps and the post-fix brake hint position were not tested on screen (needs a touch device or a real flight past the gate). Cosmetic, left as is: at 844x390 the idle touch-stick circle clips the Restart button's left edge, and the CRASHED/results blocks overlap the top-left HUD text. A finger already resting on a button area when the screen appears can trigger it at once (optional release-first guard). Menu Exit button overlaps its hint text at 844x390 (menu.cpp, not touched here). Item 4, the five timed runs, is still owed by the owner.
+- PR: see PR into dev from agents
+
 ## 2026-10-03 night run (17)
 - Did: A4 full, checklist item 2. The results screen now shows the medal beside the stars (Gold/Silver/Bronze at 24/30/40 s, `kMedal*` constexprs and `ComputeMedal` in level.cpp), the star checklist (Finished / All rings n/4 / Clean, unmet lines dimmed orange), "NEW BEST" or "+X.XX s vs best Y.YY s", and a one-line next target. Layout now scales from window height, so it fits 844x390 as well as 1280x720. ARCHITECTURE.md updated.
 - Why: Next item in the A4 checklist; gives players a reason to replay.
