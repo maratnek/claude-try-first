@@ -12,6 +12,7 @@ enum PlanePart {
     PART_AILERON_LEFT,
     PART_WHEEL_RIGHT,
     PART_WHEEL_LEFT,
+    PART_PILOT_HEAD,  // stays attached in a crash; debris only uses the parts before it
     PART_COUNT
 };
 
@@ -43,6 +44,7 @@ struct PlaneAnim {
     float propAngle = 0.0f;
     float wheelRate = 0.0f;  // deg/s
     float wheelAngle = 0.0f;
+    float headYaw = 0.0f;  // degrees, positive looks toward the right wing
 };
 
 // Loads the biplane 3D asset from disk. Call once at startup, after
@@ -51,7 +53,7 @@ struct PlaneAnim {
 // is still drawn, just without moving parts.
 void LoadPlaneModel(PlaneModel &planeModel, const char *path);
 
-void UpdatePlaneAnimation(PlaneAnim &anim, const PlaneState &plane, const FlightInput &input, bool crashed, float maxSpeed, float dt);
+void UpdatePlaneAnimation(PlaneAnim &anim, const PlaneState &plane, const FlightInput &input, bool crashed, bool pilotHead, float maxSpeed, float dt);
 
 // Draws the plane model at the given world position and orientation in
 // degrees, matching PlaneState's convention (positive pitch climbs,

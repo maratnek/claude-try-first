@@ -19,6 +19,7 @@ void ApplyGraphicsPreset(GraphicsSettings &settings, GraphicsPreset preset) {
     settings.distanceMarkers = !low;
     settings.characters = !low;
     settings.propBlur = !low;
+    settings.pilotHead = !low;
     settings.blobShadow = true;
     settings.terrainColors = !low;
     settings.obstacleWires = high;

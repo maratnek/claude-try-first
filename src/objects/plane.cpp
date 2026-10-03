@@ -19,6 +19,8 @@ constexpr Vector3 kBladeSize = {0.13f, 1.72f, 0.04f};
 constexpr Vector3 kBladeOffset = {0.0f, 0.0f, 0.02f};
 constexpr Color kBladeColor = {96, 60, 34, 255};
 constexpr float kPropMaxDegPerSec = 2400.0f;
+constexpr float kHeadMaxDeg = 35.0f;
+constexpr float kHeadFollowRate = 6.0f;
 constexpr float kWheelRadius = 0.44f;
 constexpr float kMinHingeAngleRad = 1.0f * DEG2RAD;
 
@@ -36,6 +38,7 @@ const PartSpec kPartSpecs[] = {
     {PART_AILERON_LEFT, "aileron_left_pivot", false},
     {PART_WHEEL_RIGHT, "wheel_right", true},
     {PART_WHEEL_LEFT, "wheel_left", true},
+    {PART_PILOT_HEAD, "pilot_head_pivot", false},
 };
 
 Mat4 Mul(const Mat4 &a, const Mat4 &b) {
@@ -212,10 +215,13 @@ void LoadPlaneModel(PlaneModel &planeModel, const char *path) {
     }
 }
 
-void UpdatePlaneAnimation(PlaneAnim &anim, const PlaneState &plane, const FlightInput &input, bool crashed, float maxSpeed, float dt) {
+void UpdatePlaneAnimation(PlaneAnim &anim, const PlaneState &plane, const FlightInput &input, bool crashed, bool pilotHead, float maxSpeed, float dt) {
     anim.elevator = Approach(anim.elevator, input.pitch, 12.0f, dt);
     anim.aileron = Approach(anim.aileron, input.roll, 12.0f, dt);
     anim.rudder = Approach(anim.rudder, input.yaw, 12.0f, dt);
+
+    float headTarget = (pilotHead && !crashed) ? Clamp(anim.aileron * 0.6f + anim.rudder * 0.6f, -1.0f, 1.0f) * kHeadMaxDeg : 0.0f;
+    anim.headYaw = Approach(anim.headYaw, headTarget, kHeadFollowRate, dt);
 
     float rpmTarget = kIdleRpm + (1.0f - kIdleRpm) * (plane.speed / maxSpeed);
     if (crashed) rpmTarget = 0.0f;
@@ -253,6 +259,7 @@ void DrawPlaneObject(const PlaneModel &planeModel, const PlaneAnim &anim, Vector
         angles[PART_AILERON_LEFT] = -anim.aileron * kAileronMaxDeg;
         angles[PART_WHEEL_RIGHT] = anim.wheelAngle;
         angles[PART_WHEEL_LEFT] = anim.wheelAngle;
+        angles[PART_PILOT_HEAD] = anim.headYaw;
 
         Matrix transforms[PART_COUNT];
         for (int k = 0; k < PART_COUNT; k++) {
