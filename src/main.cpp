@@ -10,6 +10,7 @@
 #include "objects/plane.h"
 #include "objects/world.h"
 #include "objects/smoke.h"
+#include "objects/debris.h"
 #include "objects/character.h"
 
 #ifdef __EMSCRIPTEN__
@@ -28,6 +29,7 @@ struct Game {
     PlaneAnim planeAnim;
     WorldState world;
     SmokeState smoke;
+    DebrisState debris;
     PlaneState planeStart;
     PlaneState plane;
     PlaneParams planeParams = BiplaneParams();
@@ -89,6 +91,7 @@ void UpdateFrame(Game &g) {
     auto resetRun = [&]() {
         plane = planeStart;
         ClearSmoke(g.smoke);
+        ClearDebris(g.debris);
         g.planeAnim = PlaneAnim{};
         ResetLevelProgress(level);
         StopOneShotSounds(engineAudio);
@@ -132,6 +135,7 @@ void UpdateFrame(Game &g) {
             level.crashed = true;
             g.screen = Screen::Crashed;
             PlayCrashSound(engineAudio);
+            SpawnDebris(g.debris, planeModel, plane, Vector3Scale(GetPlaneForward(plane), plane.speed), g.gfx.debrisPieces);
         } else if (IsRunFinished(level, plane.airborne, plane.speed)) {
             RecordFinish(level);
             g.screen = Screen::Finished;
@@ -142,6 +146,7 @@ void UpdateFrame(Game &g) {
 #endif
 
     UpdateSmoke(g.smoke, plane.position, GetPlaneForward(plane), plane.damaged && g.screen == Screen::Playing, g.gfx.smokePuffs, dt);
+    UpdateDebris(g.debris, world, g.gfx.debrisPieces, dt);
     UpdatePlaneAnimation(g.planeAnim, plane, input, level.crashed, g.planeParams.maxSpeed, dt);
     if (g.screen == Screen::Playing) {
         UpdateEngineAudio(engineAudio, plane.speed / g.planeParams.maxSpeed);
@@ -164,7 +169,8 @@ void UpdateFrame(Game &g) {
     DrawFinishGate(level);
     DrawCheckpoints(level);
     if (g.gfx.blobShadow) DrawBlobShadow(world, plane.position, plane.yaw);
-    DrawPlaneObject(planeModel, g.planeAnim, plane.position, plane.yaw, plane.pitch, plane.roll, g.gfx.propBlur);
+    DrawPlaneObject(planeModel, g.planeAnim, plane.position, plane.yaw, plane.pitch, plane.roll, g.gfx.propBlur, DebrisDetachedMask(g.debris));
+    DrawDebris(g.debris, planeModel);
     if (g.gfx.smokePuffs > 0) DrawSmoke(g.smoke, camera);
     if (g.gfx.characters) {
         DrawCharacterObject((Vector3){-3.0f, GetGroundHeight(world, -3.0f, 3.0f), 3.0f}, 20.0f, BLUE);
