@@ -132,9 +132,9 @@ stateDiagram-v2
 | --- | --- | --- |
 | macOS desktop | `cmake -S . -B build -DCMAKE_BUILD_TYPE=Release && cmake --build build` | raylib из Conan через cmake-conan provider (ставится автоматически) |
 | Web | `emcmake cmake -S . -B build-web -DCMAKE_BUILD_TYPE=Release && cmake --build build-web` | raylib 5.5 через CMake FetchContent; Conan при Emscripten отключён |
-| iOS | ещё нет | — |
+| iOS Simulator (спайк) | CI-job `ios-sim`: `cmake -G Xcode -DCMAKE_SYSTEM_NAME=iOS -DCMAKE_OSX_SYSROOT=iphonesimulator`, без подписи; ветка `iOS` в `CMakeLists.txt` | raylib 5.5 (бэкенд SDL, OpenGL ES 2.0) и SDL2 через FetchContent; Conan отключён |
 
-CI (`.github/workflows/build.yml`) собирает обе цели на каждый push и PR. Web-job дополнительно выкладывает артефакт `FlightGame-web` (`index.html`, `index.js`, `index.wasm`, `index.data` в корне архива) — его можно сразу загружать на itch.io.
+CI (`.github/workflows/build.yml`) собирает desktop и Web (job `ios-sim` — `continue-on-error`, пока это спайк: падение не краснит `dev`; точка входа SDL на iOS и тач-цикл ещё не сделаны) на каждый push и PR. Web-job дополнительно выкладывает артефакт `FlightGame-web` (`index.html`, `index.js`, `index.wasm`, `index.data` в корне архива) — его можно сразу загружать на itch.io.
 
 ## Производительность
 

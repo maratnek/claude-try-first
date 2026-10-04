@@ -12,6 +12,13 @@ owner can skim what happened without digging through git log. Format:
 - PR: <link or branch, if one was opened>
 ```
 
+## 2026-10-04 evening run (27)
+- Did: iOS Simulator build spike (release-plan risk 1). New CI job `ios-sim` on macos-14 (Xcode generator, CMAKE_SYSTEM_NAME=iOS, iphonesimulator sysroot, arm64, signing off), `continue-on-error: true` so it can never turn dev red. CMakeLists.txt gets an iOS-only branch: skips Conan, builds SDL2 2.30.9 (static) and raylib 5.5 from source with FetchContent (PLATFORM=SDL, OpenGL ES 2.0, since raylib 5.5 has no iOS platform), sets bundle id and Apple frameworks. Assets are copied into the .app by the existing POST_BUILD step. Desktop and Web branches unchanged; no src/ changes. ARCHITECTURE.md updated.
+- Why: Release plan names the iOS toolchain as the largest unknown; Tracks A and B are otherwise done (snow and the owner-owed timed runs remain), so de-risking iOS is the most useful next step.
+- Verified: code-reviewer read the diff and the SDL/raylib CMake sources: desktop/Emscripten paths unchanged, YAML valid. It found one real defect (a duplicate `SDL2::SDL2` alias, which SDL already defines, would fail configure); I removed it. Nothing was built or run: no Xcode here. The iOS job is unproven until CI runs it. CI status: see PR.
+- Open: The ios-sim job may well fail on first run (SDL/raylib wiring, link frameworks, C++23 on the runner's Xcode); read its log and iterate. Even if it builds, the app will not run properly: no SDL_main entry point, touch/main-loop for iOS not done. Owner still needs Apple Developer enrolment and signing. CLAUDE.md line about iOS not being set up is slightly stale.
+- PR: see PR into dev from agents
+
 ## 2026-10-03 night run (26)
 - Did: B3 part 3, rain. New src/objects/rain.{h,cpp}: a fixed pool of 200 drops in a 90x60x90 m box around the camera, falling at 28 m/s with a slight x wind and wrapping at the box edges, drawn as faded short lines in one rlgl line batch with depth write off. New `GraphicsSettings::rainDrops` (Low 0, Medium 80, High 200). Always on when the count is above 0 (no weather system or toggle), also behind the menu. Cleared in `resetRun`. Physics untouched. Snow was not done. ARCHITECTURE.md updated.
 - Why: Last open piece of B3; cheap, visual only, switchable per the performance rule. Track A is done apart from the owner-owed timed runs.

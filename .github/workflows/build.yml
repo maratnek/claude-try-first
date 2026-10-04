@@ -47,3 +47,27 @@ jobs:
           name: FlightGame-web
           path: web-dist/**
           if-no-files-found: error
+
+  ios-sim:
+    # Spike: must never turn dev red while the iOS toolchain is still being worked out.
+    continue-on-error: true
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure
+        run: >
+          cmake -S . -B build-ios -G Xcode
+          -DCMAKE_SYSTEM_NAME=iOS
+          -DCMAKE_OSX_SYSROOT=iphonesimulator
+          -DCMAKE_OSX_ARCHITECTURES=arm64
+          -DCMAKE_OSX_DEPLOYMENT_TARGET=15.0
+          -DCMAKE_XCODE_ATTRIBUTE_CODE_SIGNING_ALLOWED=NO
+          -DCMAKE_XCODE_ATTRIBUTE_CODE_SIGNING_REQUIRED=NO
+          -DCMAKE_XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY=
+
+      - name: Build
+        run: cmake --build build-ios --config Release
+
+      - name: Check bundled assets
+        run: test -f build-ios/Release-iphonesimulator/FlightGame.app/assets/models/biplane-1920.glb
