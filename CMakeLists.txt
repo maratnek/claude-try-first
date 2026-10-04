@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.24)
 
 # EMSCRIPTEN is only defined once the toolchain file is processed inside project(), too late for this check.
-if(NOT CMAKE_TOOLCHAIN_FILE MATCHES "Emscripten")
+if(NOT CMAKE_TOOLCHAIN_FILE MATCHES "Emscripten" AND NOT CMAKE_SYSTEM_NAME STREQUAL "iOS")
     set(CMAKE_PROJECT_TOP_LEVEL_INCLUDES "${CMAKE_CURRENT_SOURCE_DIR}/cmake/conan_provider.cmake")
 endif()
 
@@ -14,6 +14,28 @@ if(EMSCRIPTEN)
     include(FetchContent)
     set(PLATFORM Web CACHE STRING "" FORCE)
     set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+    FetchContent_Declare(raylib
+        GIT_REPOSITORY https://github.com/raysan5/raylib.git
+        GIT_TAG 5.5
+        GIT_SHALLOW TRUE
+    )
+    FetchContent_MakeAvailable(raylib)
+elseif(CMAKE_SYSTEM_NAME STREQUAL "iOS")
+    include(FetchContent)
+    # raylib 5.5 has no native iOS backend; its SDL2 backend is the closest path.
+    set(PLATFORM SDL CACHE STRING "" FORCE)
+    set(OPENGL_VERSION "ES 2.0" CACHE STRING "" FORCE)
+    set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+    set(SDL_STATIC ON CACHE BOOL "" FORCE)
+    set(SDL_SHARED OFF CACHE BOOL "" FORCE)
+    set(SDL_TEST OFF CACHE BOOL "" FORCE)
+    FetchContent_Declare(SDL2
+        GIT_REPOSITORY https://github.com/libsdl-org/SDL.git
+        GIT_TAG release-2.30.9
+        GIT_SHALLOW TRUE
+        OVERRIDE_FIND_PACKAGE
+    )
+    FetchContent_MakeAvailable(SDL2)
     FetchContent_Declare(raylib
         GIT_REPOSITORY https://github.com/raysan5/raylib.git
         GIT_TAG 5.5
@@ -59,6 +81,18 @@ if(EMSCRIPTEN)
         --shell-file "${CMAKE_SOURCE_DIR}/web/shell.html"
     )
 else()
+    if(CMAKE_SYSTEM_NAME STREQUAL "iOS")
+        set_target_properties(FlightGame PROPERTIES
+            MACOSX_BUNDLE TRUE
+            MACOSX_BUNDLE_GUI_IDENTIFIER com.flightgame.FlightGame
+            XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER com.flightgame.FlightGame
+        )
+        target_link_libraries(FlightGame PRIVATE
+            "-framework UIKit" "-framework OpenGLES" "-framework AudioToolbox"
+            "-framework CoreAudio" "-framework AVFoundation" "-framework CoreGraphics"
+            "-framework QuartzCore" "-framework Foundation"
+        )
+    endif()
     # Copy assets next to the built executable so it finds them via
     # GetApplicationDirectory() regardless of the working directory the
     # launcher (terminal, VSCode CMake Tools, Xcode, ...) starts it from.
