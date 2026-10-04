@@ -4,6 +4,7 @@
 #include "scatter.h"
 #include "clouds.h"
 #include "rain.h"
+#include "snow.h"
 #include <vector>
 
 struct Obstacle {
@@ -28,6 +29,8 @@ struct WorldState {
     ScatterState scatter;
     CloudsState clouds;
     RainState rain;
+    SnowState snow;
+    bool snowRun = false;
 };
 
 // Builds the terrain heightmap and obstacle layout. Call once at startup.
@@ -36,7 +39,7 @@ void GenerateWorld(WorldState &world, const GraphicsSettings &gfx);
 // Swaps the terrain vertex colours to match gfx.terrainColors; no-op when already current.
 void ApplyTerrainColors(WorldState &world, const GraphicsSettings &gfx);
 
-// Draws terrain, distance-marker pillars, obstacles, decorative trees/rocks and clouds near viewPosition (density from gfx.scatterDensity), and rain (gfx.rainDrops).
+// Draws terrain, distance-marker pillars, obstacles, decorative trees/rocks and clouds near viewPosition (density from gfx.scatterDensity), and the run's weather: rain (gfx.rainDrops) or snow (gfx.snowFlakes), never both.
 void DrawWorldObject(const WorldState &world, const GraphicsSettings &gfx, Vector3 viewPosition);
 
 // Flat translucent plane-shaped shadow on the terrain below the plane; hidden above a max altitude.
@@ -53,5 +56,10 @@ void AddSoftObstacle(WorldState &world, float x, float z, float height, float ra
 
 // Hard wins over soft when the plane overlaps both.
 ObstacleHit CheckObstacleHit(const WorldState &world, Vector3 planePosition, float planeRadius);
+
+// Rain and snow are mutually exclusive: when both counts are > 0 the run's weather alternates (see AdvanceWeather); a count of 0 disables that kind.
+void AdvanceWeather(WorldState &world);
+int ActiveRainDrops(const WorldState &world, const GraphicsSettings &gfx);
+int ActiveSnowFlakes(const WorldState &world, const GraphicsSettings &gfx);
 
 void UnloadWorld(WorldState &world);

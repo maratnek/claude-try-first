@@ -12,6 +12,13 @@ owner can skim what happened without digging through git log. Format:
 - PR: <link or branch, if one was opened>
 ```
 
+## 2026-10-04 night run (34)
+- Did: Snow, the last open piece of B3. New `src/objects/snow.{h,cpp}`: pool of 200 flakes in an 80x45x80 m box around the camera, falling at about 2-3 m/s with sideways drift, wrapping at the edges, drawn as short white lines in one rlgl batch with depth write off. New `GraphicsSettings::snowFlakes` (Low 0, Medium 0, High 120). Rain and snow are mutually exclusive: `AdvanceWeather` flips `snowRun` when a run starts (menu Play, R), so on High runs alternate (first run snow, next rain); Medium is rain only, Low has neither. The menu shows the last run's weather. Physics untouched. ARCHITECTURE.md updated.
+- Why: B3 snow was the only open feature item; Tracks A and B are otherwise done, and iOS steps left need a device or the owner's Apple enrolment.
+- Verified: code-reviewer found no hard blockers but one real flaw (weather advanced inside `resetRun`, so every menu-started run was snow) plus a stale doc line; one fix pass moved `AdvanceWeather` to the Play and R paths and fixed the docs. game-tester rebuilt the fixed tree (raylib 5.5 hand-build, -std=gnu++23) and ran it under Xvfb, plain and ASan/UBSan: menu, Play, crash, R, M, replay and F1 cycling all clean, and the logged weather sequence matched the intended one at every step; no regressions against origin/dev. Conan/CMake, Web and macOS builds are proven only by CI. CI status: see PR.
+- Open: Snow was barely visible in the tester's screenshots (0.09 m, 1 px lines). I then raised flake size to 0.25 m and alpha to 255 after the review, and only syntax-checked that tweak, so it was never seen rendered. Owner should judge the look and density on High, and on Web and phone. Real obstacle-collision crash path was not exercised (crashes were injected). No weather toggle or system beyond the alternation.
+- PR: see PR into dev from agents
+
 ## 2026-10-04 night run (33)
 - Did: Safe-area insets for the menu, crash screen and results screen (the leftover from run 32). New `GetSafeRect()` in `src/safe_area.{h,cpp}` (screen minus insets); `menu.cpp` entries, title and hint, and the `level.cpp` crash and results layouts centre on it. Dim overlays stay full-screen; menu drawing and hit-testing still share `EntryRect`. ARCHITECTURE.md updated.
 - Why: Release-plan iOS v1.0 scope lists safe-area handling; run 32 left these screens centred on the full screen, so they could sit under the notch or home indicator.

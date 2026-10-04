@@ -105,6 +105,7 @@ void UpdateFrame(Game &g) {
         ClearSmoke(g.smoke);
         ClearStreaks(g.streaks);
         ClearRain(world.rain);
+        ClearSnow(world.snow);
         ClearDebris(g.debris);
         g.planeAnim = PlaneAnim{};
         ResetLevelProgress(level);
@@ -115,6 +116,7 @@ void UpdateFrame(Game &g) {
     if (g.screen == Screen::Menu) {
         if (menuAction == MenuAction::Play) {
             resetRun();
+            AdvanceWeather(world);
             g.screen = Screen::Playing;
         } else if (menuAction == MenuAction::Exit) {
             g.quitRequested = true;
@@ -125,6 +127,7 @@ void UpdateFrame(Game &g) {
         g.screen = Screen::Menu;
     } else if (input.restart && (level.crashed || g.screen == Screen::Finished || HasLandedSafely(plane))) {
         resetRun();
+        AdvanceWeather(world);
         g.screen = Screen::Playing;
     } else if (g.screen == Screen::Playing) {
         float groundHeight = GetGroundHeight(world, plane.position.x, plane.position.z);
@@ -178,7 +181,8 @@ void UpdateFrame(Game &g) {
     UpdateStreaks(g.streaks, camera.position, GetPlaneForward(plane), plane.speed / g.planeParams.maxSpeed,
                   g.screen == Screen::Playing && plane.airborne, g.gfx.speedStreaks);
 
-    UpdateRain(world.rain, camera.position, g.gfx.rainDrops, dt);
+    UpdateRain(world.rain, camera.position, ActiveRainDrops(world, g.gfx), dt);
+    UpdateSnow(world.snow, camera.position, ActiveSnowFlakes(world, g.gfx), dt);
 
     BeginDrawing();
     ClearBackground(SKYBLUE);

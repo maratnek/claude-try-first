@@ -178,7 +178,8 @@ void DrawWorldObject(const WorldState &world, const GraphicsSettings &gfx, Vecto
         }
     }
 
-    DrawRain(world.rain, gfx.rainDrops);
+    DrawRain(world.rain, ActiveRainDrops(world, gfx));
+    DrawSnow(world.snow, ActiveSnowFlakes(world, gfx));
 }
 
 void DrawBlobShadow(const WorldState &world, Vector3 planePosition, float yawDegrees) {
@@ -249,4 +250,16 @@ ObstacleHit CheckObstacleHit(const WorldState &world, Vector3 planePosition, flo
 
 void UnloadWorld(WorldState &world) {
     UnloadModel(world.terrainModel);
+}
+
+void AdvanceWeather(WorldState &world) {
+    world.snowRun = !world.snowRun;
+}
+
+int ActiveRainDrops(const WorldState &world, const GraphicsSettings &gfx) {
+    return (world.snowRun && gfx.snowFlakes > 0) ? 0 : gfx.rainDrops;
+}
+
+int ActiveSnowFlakes(const WorldState &world, const GraphicsSettings &gfx) {
+    return (world.snowRun || gfx.rainDrops <= 0) ? gfx.snowFlakes : 0;
 }
