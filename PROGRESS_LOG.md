@@ -12,6 +12,13 @@ owner can skim what happened without digging through git log. Format:
 - PR: <link or branch, if one was opened>
 ```
 
+## 2026-10-04 night run (28)
+- Did: Fixed the failing `ios-sim` CI job from run 27. Its Build step died compiling raylib's raudio.c: miniaudio includes AVFoundation (Objective-C) on iOS but raylib's CMake builds the file as plain C. The iOS branch of CMakeLists.txt now sets `-x objective-c` on raudio.c. No other files changed; desktop and Web branches untouched.
+- Why: Release-plan risk 1 (iOS toolchain). Run 27 left the spike red, and the Configure step already worked, so this was the one concrete blocker.
+- Verified: code-reviewer checked the CMake semantics against raylib 5.5 sources (TARGET_DIRECTORY, `raylib_SOURCE_DIR`, no conflicting flags): no blockers; I applied its comment-wording nit. CI on the agents push: `ios-sim` now ends with BUILD SUCCEEDED and the bundled-assets check passes; `build` (macOS) and `web` green.
+- Open: The simulator app still will not run properly (no SDL_main entry point, no iOS touch/main-loop work). Next iOS steps: make it launch in the simulator, then device build and signing (owner needs Apple Developer enrolment). CLAUDE.md line saying iOS is not set up is stale.
+- PR: see PR into dev from agents
+
 ## 2026-10-04 evening run (27)
 - Did: iOS Simulator build spike (release-plan risk 1). New CI job `ios-sim` on macos-14 (Xcode generator, CMAKE_SYSTEM_NAME=iOS, iphonesimulator sysroot, arm64, signing off), `continue-on-error: true` so it can never turn dev red. CMakeLists.txt gets an iOS-only branch: skips Conan, builds SDL2 2.30.9 (static) and raylib 5.5 from source with FetchContent (PLATFORM=SDL, OpenGL ES 2.0, since raylib 5.5 has no iOS platform), sets bundle id and Apple frameworks. Assets are copied into the .app by the existing POST_BUILD step. Desktop and Web branches unchanged; no src/ changes. ARCHITECTURE.md updated.
 - Why: Release plan names the iOS toolchain as the largest unknown; Tracks A and B are otherwise done (snow and the owner-owed timed runs remain), so de-risking iOS is the most useful next step.
