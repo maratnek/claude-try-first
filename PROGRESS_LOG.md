@@ -12,6 +12,13 @@ owner can skim what happened without digging through git log. Format:
 - PR: <link or branch, if one was opened>
 ```
 
+## 2026-10-04 day run (30)
+- Did: iOS landscape-only bundle. New `ios/Info.plist.in` (landscape left/right only for iPhone and iPad keys, full screen, status bar hidden, empty `UILaunchScreen`), wired through `MACOSX_BUNDLE_INFO_PLIST` in the iOS-only CMake branch, plus bundle name and version properties (1.0 / 1). The `ios-sim` job gets a PlistBuddy step asserting the built Info.plist has those keys. ARCHITECTURE.md updated. Desktop, Web and src/ unchanged.
+- Why: Release-plan iOS v1.0 scope needs landscape-only and a launch screen; run 29 left the simulator app without either.
+- Verified: code-reviewer found one blocker: the "no Portrait" check used `! pipeline`, which bash -e does not treat as a failure, so it could never fail. Fixed with an explicit `if ... exit 1`. xmllint passes on the plist and the workflow YAML parses. Nothing built or run (no Xcode here). CI status: see PR.
+- Open: Unproven that CMake's Xcode generator fills the placeholders as intended; read the `ios-sim` log (continue-on-error). Launch screen has no custom colour (needs an asset catalog). Orientation handling by SDL, safe areas and touch are unverified until someone runs it in a simulator. Device build and signing still need the owner's Apple Developer enrolment. Snow (rest of B3) not done.
+- PR: see PR into dev from agents
+
 ## 2026-10-04 night run (29)
 - Did: iOS entry point. On iOS only, `src/main.cpp` includes `<SDL_main.h>` (renames `main` to `SDL_main`, signature `int main(int, char **)`) and the CMake iOS branch links `SDL2::SDL2main` and `SDL2::SDL2`, so SDL's UIKit app delegate can start the game. Desktop and Web code paths unchanged. Refreshed the stale iOS lines in CLAUDE.md and docs/ARCHITECTURE.md.
 - Why: Release-plan risk 1 (iOS toolchain). Run 28 got the simulator build compiling but the app had no iOS entry point.

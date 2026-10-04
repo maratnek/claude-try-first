@@ -87,7 +87,11 @@ else()
     if(CMAKE_SYSTEM_NAME STREQUAL "iOS")
         set_target_properties(FlightGame PROPERTIES
             MACOSX_BUNDLE TRUE
+            MACOSX_BUNDLE_INFO_PLIST "${CMAKE_SOURCE_DIR}/ios/Info.plist.in"
             MACOSX_BUNDLE_GUI_IDENTIFIER com.flightgame.FlightGame
+            MACOSX_BUNDLE_BUNDLE_NAME FlightGame
+            MACOSX_BUNDLE_SHORT_VERSION_STRING 1.0
+            MACOSX_BUNDLE_BUNDLE_VERSION 1
             XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER com.flightgame.FlightGame
         )
         target_link_libraries(FlightGame PRIVATE
