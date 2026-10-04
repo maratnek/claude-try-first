@@ -71,3 +71,20 @@ jobs:
 
       - name: Check bundled assets
         run: test -f build-ios/Release-iphonesimulator/FlightGame.app/assets/models/biplane-1920.glb
+
+      - name: Check Info.plist orientation and launch screen
+        run: |
+          plist=build-ios/Release-iphonesimulator/FlightGame.app/Info.plist
+          pb=/usr/libexec/PlistBuddy
+          for key in UISupportedInterfaceOrientations "UISupportedInterfaceOrientations~ipad"; do
+            out=$($pb -c "Print :$key" "$plist")
+            echo "$out"
+            echo "$out" | grep -q UIInterfaceOrientationLandscapeLeft
+            echo "$out" | grep -q UIInterfaceOrientationLandscapeRight
+            if echo "$out" | grep -q Portrait; then exit 1; fi
+          done
+          test "$($pb -c 'Print :UIRequiresFullScreen' "$plist")" = true
+          test "$($pb -c 'Print :UIStatusBarHidden' "$plist")" = true
+          test "$($pb -c 'Print :UIViewControllerBasedStatusBarAppearance' "$plist")" = false
+          $pb -c 'Print :UILaunchScreen' "$plist"
+          test "$($pb -c 'Print :CFBundleIdentifier' "$plist")" = com.flightgame.FlightGame
