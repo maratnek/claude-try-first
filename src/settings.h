@@ -24,6 +24,7 @@ struct GraphicsSettings {
     int debrisPieces = 7;
     int speedStreaks = 40;
     int rainDrops = 200;
+    int snowFlakes = 120;
 };
 
 void ApplyGraphicsPreset(GraphicsSettings &settings, GraphicsPreset preset);
