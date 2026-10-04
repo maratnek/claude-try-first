@@ -11,8 +11,9 @@ ships to production.
 CMake + Conan via the cmake-conan dependency provider (no manual
 `conan install` step — `cmake -S . -B build -DCMAKE_BUILD_TYPE=Release`
 handles it). raylib comes from Conan. Currently built/tested on macOS;
-Web and iOS build targets are not set up yet and are near-term roadmap
-items.
+Web (Emscripten) builds in CI; an iOS Simulator build (raylib SDL backend,
+SDL2 static, entry via SDL2main) builds in the non-blocking `ios-sim` CI job
+but has never been run in a simulator or on a device.
 
 ```
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release

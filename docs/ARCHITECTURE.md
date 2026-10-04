@@ -3,7 +3,7 @@
 Игра — один исполняемый файл на C++23 и raylib 5.5. Код устроен как набор
 простых структур (`PlaneState`, `LevelState`, `WorldState`…) и свободных
 функций над ними, без классов и слоёв абстракции. Один и тот же код
-собирается под macOS (desktop) и Web (Emscripten); iOS — в планах.
+собирается под macOS (desktop) и Web (Emscripten); iOS Simulator — спайк в CI (запуск в симуляторе ещё не проверен).
 
 ## Модули
 
@@ -134,7 +134,7 @@ stateDiagram-v2
 | Web | `emcmake cmake -S . -B build-web -DCMAKE_BUILD_TYPE=Release && cmake --build build-web` | raylib 5.5 через CMake FetchContent; Conan при Emscripten отключён |
 | iOS Simulator (спайк) | CI-job `ios-sim`: `cmake -G Xcode -DCMAKE_SYSTEM_NAME=iOS -DCMAKE_OSX_SYSROOT=iphonesimulator`, без подписи; ветка `iOS` в `CMakeLists.txt` | raylib 5.5 (бэкенд SDL, OpenGL ES 2.0) и SDL2 через FetchContent; Conan отключён |
 
-CI (`.github/workflows/build.yml`) собирает desktop и Web (job `ios-sim` — `continue-on-error`, пока это спайк: падение не краснит `dev`; точка входа SDL на iOS и тач-цикл ещё не сделаны) на каждый push и PR. Web-job дополнительно выкладывает артефакт `FlightGame-web` (`index.html`, `index.js`, `index.wasm`, `index.data` в корне архива) — его можно сразу загружать на itch.io.
+CI (`.github/workflows/build.yml`) собирает desktop и Web (job `ios-sim` — `continue-on-error`, пока это спайк: падение не краснит `dev`; точка входа SDL на iOS сделана через `SDL_main.h` + `SDL2main`, но запуск не проверен; тач-цикл на iOS не проверен) на каждый push и PR. Web-job дополнительно выкладывает артефакт `FlightGame-web` (`index.html`, `index.js`, `index.wasm`, `index.data` в корне архива) — его можно сразу загружать на itch.io.
 
 ## Производительность
 

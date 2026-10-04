@@ -12,6 +12,13 @@ owner can skim what happened without digging through git log. Format:
 - PR: <link or branch, if one was opened>
 ```
 
+## 2026-10-04 night run (29)
+- Did: iOS entry point. On iOS only, `src/main.cpp` includes `<SDL_main.h>` (renames `main` to `SDL_main`, signature `int main(int, char **)`) and the CMake iOS branch links `SDL2::SDL2main` and `SDL2::SDL2`, so SDL's UIKit app delegate can start the game. Desktop and Web code paths unchanged. Refreshed the stale iOS lines in CLAUDE.md and docs/ARCHITECTURE.md.
+- Why: Release-plan risk 1 (iOS toolchain). Run 28 got the simulator build compiling but the app had no iOS entry point.
+- Verified: code-reviewer checked it against SDL 2.30.9 and raylib 5.5 sources (SDL_main.h, SDL_uikit_main.c, link order, include dirs, TargetConditionals): no blockers; I applied its comment-wording nit. Nothing was built or run here (no Xcode, no raylib). CI status: see PR.
+- Open: `ios-sim` is continue-on-error, so check its actual job result. The app has still never launched in a simulator: Info.plist/launch screen, touch input and any missing frameworks are unverified. Then device build and signing (owner needs Apple Developer enrolment). Snow (rest of B3) not done.
+- PR: see PR into dev from agents
+
 ## 2026-10-04 night run (28)
 - Did: Fixed the failing `ios-sim` CI job from run 27. Its Build step died compiling raylib's raudio.c: miniaudio includes AVFoundation (Objective-C) on iOS but raylib's CMake builds the file as plain C. The iOS branch of CMakeLists.txt now sets `-x objective-c` on raudio.c. No other files changed; desktop and Web branches untouched.
 - Why: Release-plan risk 1 (iOS toolchain). Run 27 left the spike red, and the Configure step already worked, so this was the one concrete blocker.
