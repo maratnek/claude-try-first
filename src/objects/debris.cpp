@@ -13,10 +13,19 @@ constexpr float kKickSpeed = 7.0f;
 constexpr float kKickUp = 6.0f;
 constexpr float kMaxSpinRate = 540.0f;
 
-const PlanePart kSpawnOrder[] = {
+constexpr PlanePart kSpawnOrder[] = {
     PART_PROPELLER, PART_WHEEL_RIGHT, PART_WHEEL_LEFT, PART_RUDDER,
     PART_ELEVATOR, PART_AILERON_RIGHT, PART_AILERON_LEFT,
 };
+
+constexpr bool SpawnOrderExcludesHead() {
+    for (PlanePart part : kSpawnOrder)
+        if (part == PART_PILOT_HEAD) return false;
+    return true;
+}
+static_assert(sizeof(kSpawnOrder) / sizeof(kSpawnOrder[0]) == kMaxDebrisPieces,
+              "kMaxDebrisPieces must match kSpawnOrder");
+static_assert(SpawnOrderExcludesHead(), "pilot head must never be thrown as debris");
 
 float Random(float range) {
     return GetRandomValue(-1000, 1000) / 1000.0f * range;

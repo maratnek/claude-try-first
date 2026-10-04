@@ -12,6 +12,13 @@ owner can skim what happened without digging through git log. Format:
 - PR: <link or branch, if one was opened>
 ```
 
+## 2026-10-04 night run (36)
+- Did: Compile-time guard in `src/objects/debris.cpp`: `kSpawnOrder` is now `constexpr`, with a `static_assert` that its length equals `kMaxDebrisPieces` and another that it never contains `PART_PILOT_HEAD`. No behaviour change.
+- Why: Run 33-era reviewer nit (B5): reordering the `PlanePart` enum or the spawn array could silently throw the pilot head as debris. Tracks A and B are otherwise done; remaining items need the owner (device, Apple enrolment, judging the look), so I kept this to the one concrete follow-up rather than inventing work.
+- Verified: code-reviewer read the diff and the real enum and constant definitions: no blockers. It and game-developer only syntax-checked a standalone copy of the enum, constant and asserts with g++ -std=gnu++23 (compiles; adding the head to the copy trips both asserts). raylib and Conan are not available in this sandbox, so `debris.cpp` itself was not compiled and the game was not launched. CI status: see PR.
+- Open: Snow look on High, rain, smoke and clouds still need the owner's eyes; iOS device build and signing need the owner's Apple Developer enrolment; Web and phone behaviour unchecked. The size assert does not catch duplicate entries in `kSpawnOrder` (reviewer note, harmless).
+- PR: see PR into dev from agents
+
 ## 2026-10-04 night run (35)
 - Did: Made snow visible. A render check of run 34's snow on High showed 1 px line flakes were nearly invisible (about 25 faint slashes per frame, lost against terrain). Flakes are now 0.5 m camera-facing quads (two triangles, same rlgl batch, depth write off), High count 120 -> 200, spawn box 80 -> 60 m wide. Low/Medium still 0 snow, rain and physics untouched. ARCHITECTURE.md updated.
 - Why: run 34 left the snow look unverified; the render check proved it was too faint to read as snow.
