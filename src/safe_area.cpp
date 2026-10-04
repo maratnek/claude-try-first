@@ -26,3 +26,8 @@ SafeArea GetSafeArea() {
 #endif
     return area;
 }
+
+Rectangle GetSafeRect() {
+    SafeArea sa = GetSafeArea();
+    return {sa.left, sa.top, GetScreenWidth() - sa.left - sa.right, GetScreenHeight() - sa.top - sa.bottom};
+}

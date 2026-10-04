@@ -1,5 +1,7 @@
 #pragma once
 
+#include "raylib.h"
+
 struct SafeArea {
     float left = 0.0f;
     float top = 0.0f;
@@ -8,3 +10,5 @@ struct SafeArea {
 };
 
 SafeArea GetSafeArea();
+
+Rectangle GetSafeRect();
