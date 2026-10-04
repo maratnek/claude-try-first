@@ -6,6 +6,7 @@
 #include "input.h"
 #include "level.h"
 #include "menu.h"
+#include "safe_area.h"
 #include "settings.h"
 #include "objects/plane.h"
 #include "objects/world.h"
@@ -199,7 +200,8 @@ void UpdateFrame(Game &g) {
 
     if (g.volumeShownSeconds > 0.0f) {
         const char *volumeText = TextFormat("Volume: %d%%", (int)roundf(g.masterVolume * 100.0f));
-        DrawText(volumeText, GetScreenWidth() - MeasureText(volumeText, 20) - 10, 85, 20, DARKGRAY);
+        DrawText(volumeText, GetScreenWidth() - (int)GetSafeArea().right - MeasureText(volumeText, 20) - 10,
+                 85 + (int)GetSafeArea().top, 20, DARKGRAY);
     }
 
     if (g.screen == Screen::Menu) {
@@ -208,23 +210,25 @@ void UpdateFrame(Game &g) {
         return;
     }
 
+    const SafeArea sa = GetSafeArea();
+    const int ox = 10 + (int)sa.left, oy = (int)sa.top;
     DrawText(g.inputState.touchUsed ? "Left stick: pitch/roll  +/-: throttle"
                                     : "Arrows = pitch/roll, A/D = rudder, W/S = throttle",
-             10, 10, 20, DARKGRAY);
+             ox, 10 + oy, 20, DARKGRAY);
     DrawText(TextFormat("Speed: %.1f m/s   Altitude: %.1f m   %s",
                          plane.speed, plane.position.y, plane.airborne ? "AIRBORNE" : "ON GROUND - throttle up, pull up to take off"),
-             10, 35, 20, DARKGRAY);
+             ox, 35 + oy, 20, DARKGRAY);
     DrawLevelHUD(level, plane.damaged);
     if (plane.landing == LandingResult::Hard) {
-        DrawText("Hard landing!", 10, 150, 30, MAROON);
+        DrawText("Hard landing!", ox, 150 + oy, 30, MAROON);
     } else if (HasLandedSafely(plane)) {
-        DrawText("Landed safely - take off again", 10, 150, 30, DARKGREEN);
+        DrawText("Landed safely - take off again", ox, 150 + oy, 30, DARKGREEN);
     }
     if (g.screen == Screen::Playing && level.gateCrossed && g.inputState.touchUsed) {
-        DrawText("Hold the - button to brake after landing", 10, 215, 24, DARKGRAY);
+        DrawText("Hold the - button to brake after landing", ox, 215 + oy, 24, DARKGRAY);
     }
-    DrawFPS(10, 60);
-    DrawText(TextFormat("Graphics: %s (F1)", GraphicsPresetName(g.gfx)), 110, 60, 20, DARKGRAY);
+    DrawFPS(ox, 60 + oy);
+    DrawText(TextFormat("Graphics: %s (F1)", GraphicsPresetName(g.gfx)), ox + 100, 60 + oy, 20, DARKGRAY);
     if (level.crashed) DrawCrashScreen(level, g.inputState.touchUsed);
     if (g.screen == Screen::Finished) DrawResultsScreen(level, plane.damaged, g.inputState.touchUsed);
     DrawTouchOverlay(g.inputState, level.crashed || g.screen == Screen::Finished);

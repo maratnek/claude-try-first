@@ -1,5 +1,6 @@
 #include "menu.h"
 #include "raylib.h"
+#include "safe_area.h"
 #include "settings.h"
 
 namespace {
@@ -76,5 +77,5 @@ void DrawMenu(const MenuState &menu) {
 #else
     const char *hint = "Up/Down + Enter/Space, or click     Q: Exit";
 #endif
-    DrawText(hint, (w - MeasureText(hint, 24)) / 2, h - 60, 24, WHITE);
+    DrawText(hint, (w - MeasureText(hint, 24)) / 2, h - 60 - (int)GetSafeArea().bottom, 24, WHITE);
 }

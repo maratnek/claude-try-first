@@ -1,5 +1,6 @@
 #include "level.h"
 #include "raymath.h"
+#include "safe_area.h"
 #include "settings.h"
 #include <cmath>
 
@@ -157,17 +158,18 @@ void DrawLevelHUD(const LevelState &level, bool damaged) {
     for (const Checkpoint &cp : level.checkpoints) {
         if (cp.passed) passedCount++;
     }
+    SafeArea sa = GetSafeArea();
 
     DrawText(TextFormat("Distance: %.0f / %.0f m   Checkpoints: %d/%d",
                          level.distanceFlown, level.targetDistance,
                          passedCount, (int)level.checkpoints.size()),
-             10, 85, 20, DARKGRAY);
+             10 + (int)sa.left, 85 + (int)sa.top, 20, DARKGRAY);
 
-    DrawText(damaged ? "Plane: DAMAGED" : "Plane: OK", 10, 180, 20, damaged ? MAROON : DARKGREEN);
+    DrawText(damaged ? "Plane: DAMAGED" : "Plane: OK", 10 + (int)sa.left, 180 + (int)sa.top, 20, damaged ? MAROON : DARKGREEN);
 
     if (level.gateCrossed && kRequireLandingAfterGate) {
         const char *banner = "GATE! Land to finish";
-        DrawText(banner, (GetScreenWidth() - MeasureText(banner, 40)) / 2, 110, 40, GOLD);
+        DrawText(banner, (GetScreenWidth() - MeasureText(banner, 40)) / 2, 110 + (int)sa.top, 40, GOLD);
     }
 }
 
