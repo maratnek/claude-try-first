@@ -88,6 +88,7 @@ else()
         set(IOS_ASSET_CATALOG "${CMAKE_SOURCE_DIR}/ios/Assets.xcassets")
         target_sources(FlightGame PRIVATE "${IOS_ASSET_CATALOG}")
         set_target_properties(FlightGame PROPERTIES
+            RESOURCE "${IOS_ASSET_CATALOG}"
             XCODE_ATTRIBUTE_ASSETCATALOG_COMPILER_APPICON_NAME AppIcon
             MACOSX_BUNDLE TRUE
             MACOSX_BUNDLE_INFO_PLIST "${CMAKE_SOURCE_DIR}/ios/Info.plist.in"

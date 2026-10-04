@@ -92,6 +92,7 @@ jobs:
       - name: Check app icon
         run: |
           app=build-ios/Release-iphonesimulator/FlightGame.app
+          ls "$app"
           test -f "$app/Assets.car"
           out=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIcons' "$app/Info.plist") || exit 1
           echo "$out"
