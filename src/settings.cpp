@@ -29,7 +29,7 @@ void ApplyGraphicsPreset(GraphicsSettings &settings, GraphicsPreset preset) {
     settings.debrisPieces = low ? 0 : (high ? 7 : 3);
     settings.speedStreaks = low ? 0 : (high ? 40 : 16);
     settings.rainDrops = low ? 0 : (high ? 200 : 80);
-    settings.snowFlakes = high ? 120 : 0;
+    settings.snowFlakes = high ? 200 : 0;
 }
 
 void CycleGraphicsPreset(GraphicsSettings &settings) {

@@ -12,6 +12,13 @@ owner can skim what happened without digging through git log. Format:
 - PR: <link or branch, if one was opened>
 ```
 
+## 2026-10-04 night run (35)
+- Did: Made snow visible. A render check of run 34's snow on High showed 1 px line flakes were nearly invisible (about 25 faint slashes per frame, lost against terrain). Flakes are now 0.5 m camera-facing quads (two triangles, same rlgl batch, depth write off), High count 120 -> 200, spawn box 80 -> 60 m wide. Low/Medium still 0 snow, rain and physics untouched. ARCHITECTURE.md updated.
+- Why: run 34 left the snow look unverified; the render check proved it was too faint to read as snow.
+- Verified: game-tester built (hand-built raylib 5.5, -std=gnu++23) and ran under Xvfb on High: no crash, snow too faint. game-developer made the change and rebuilt and ran it: flakes clearly visible in a flight screenshot, no crash. code-reviewer read the diff: no blockers (billboard axes, winding, batch sizing and depth-mask pairing all correct); it did not build. CI status: see PR.
+- Open: Look is judgement only. Flakes are hard-edged squares, only about 7 in view in one screenshot, and the biggest close ones get chunky (about 30 px). Fall motion, takeoff, Web and phone look unchecked. If too chunky or sparse, tune `kFlakeHalf`, `snowFlakes`, `kHalfWidth`. Owner should look at it on High.
+- PR: see PR into dev from agents
+
 ## 2026-10-04 night run (34)
 - Did: Snow, the last open piece of B3. New `src/objects/snow.{h,cpp}`: pool of 200 flakes in an 80x45x80 m box around the camera, falling at about 2-3 m/s with sideways drift, wrapping at the edges, drawn as short white lines in one rlgl batch with depth write off. New `GraphicsSettings::snowFlakes` (Low 0, Medium 0, High 120). Rain and snow are mutually exclusive: `AdvanceWeather` flips `snowRun` when a run starts (menu Play, R), so on High runs alternate (first run snow, next rain); Medium is rain only, Low has neither. The menu shows the last run's weather. Physics untouched. ARCHITECTURE.md updated.
 - Why: B3 snow was the only open feature item; Tracks A and B are otherwise done, and iOS steps left need a device or the owner's Apple enrolment.
