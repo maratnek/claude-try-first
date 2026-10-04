@@ -3,12 +3,12 @@
 #include "rlgl.h"
 
 namespace {
-const float kHalfWidth = 40.0f;
+const float kHalfWidth = 30.0f;
 const float kBelow = 15.0f;
 const float kAbove = 30.0f;
 const float kFallSpeed = 2.5f;
 const float kDriftSpeed = 1.2f;
-const float kFlakeSize = 0.25f;
+const float kFlakeHalf = 0.25f;
 
 float Wrap(float value, float center, float size, float below) {
     float lo = center - below;
@@ -66,13 +66,24 @@ void DrawSnow(const SnowState &snow, int flakeCount) {
 
     rlDrawRenderBatchActive();
     rlDisableDepthMask();
-    rlCheckRenderBatchLimit(2 * flakeCount);
-    rlBegin(RL_LINES);
+    rlCheckRenderBatchLimit(6 * flakeCount);
+    Matrix view = rlGetMatrixModelview();
+    Vector3 right = {view.m0 * kFlakeHalf, view.m4 * kFlakeHalf, view.m8 * kFlakeHalf};
+    Vector3 up = {view.m1 * kFlakeHalf, view.m5 * kFlakeHalf, view.m9 * kFlakeHalf};
+    rlBegin(RL_TRIANGLES);
+    rlColor4ub(255, 255, 255, 255);
     for (int i = 0; i < flakeCount; i++) {
-        const Vector3 &a = snow.positions[i];
-        rlColor4ub(255, 255, 255, 255);
-        rlVertex3f(a.x, a.y, a.z);
-        rlVertex3f(a.x + kFlakeSize, a.y + kFlakeSize, a.z);
+        const Vector3 &c = snow.positions[i];
+        Vector3 bl = {c.x - right.x - up.x, c.y - right.y - up.y, c.z - right.z - up.z};
+        Vector3 br = {c.x + right.x - up.x, c.y + right.y - up.y, c.z + right.z - up.z};
+        Vector3 tr = {c.x + right.x + up.x, c.y + right.y + up.y, c.z + right.z + up.z};
+        Vector3 tl = {c.x - right.x + up.x, c.y - right.y + up.y, c.z - right.z + up.z};
+        rlVertex3f(bl.x, bl.y, bl.z);
+        rlVertex3f(br.x, br.y, br.z);
+        rlVertex3f(tr.x, tr.y, tr.z);
+        rlVertex3f(bl.x, bl.y, bl.z);
+        rlVertex3f(tr.x, tr.y, tr.z);
+        rlVertex3f(tl.x, tl.y, tl.z);
     }
     rlEnd();
     rlDrawRenderBatchActive();
