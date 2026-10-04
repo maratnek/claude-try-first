@@ -18,6 +18,15 @@
 #include <emscripten/emscripten.h>
 #endif
 
+#ifdef __APPLE__
+#include <TargetConditionals.h>
+#if TARGET_OS_IOS
+#define FLIGHT_IOS_SDL_MAIN 1
+// UIKit needs SDL2main's real main to start the app delegate, which then calls SDL_main.
+#include <SDL_main.h>
+#endif
+#endif
+
 namespace {
 enum class Screen { Menu, Playing, Crashed, Finished };
 
@@ -227,7 +236,11 @@ void UpdateFrameCallback(void *arg) {
 }
 }  // namespace
 
+#ifdef FLIGHT_IOS_SDL_MAIN
+int main(int, char **) {
+#else
 int main() {
+#endif
     const int screenWidth = 1280;
     const int screenHeight = 720;
 

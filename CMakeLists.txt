@@ -91,6 +91,7 @@ else()
             XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER com.flightgame.FlightGame
         )
         target_link_libraries(FlightGame PRIVATE
+            SDL2::SDL2main SDL2::SDL2
             "-framework UIKit" "-framework OpenGLES" "-framework AudioToolbox"
             "-framework CoreAudio" "-framework AVFoundation" "-framework CoreGraphics"
             "-framework QuartzCore" "-framework Foundation"
