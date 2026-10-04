@@ -174,32 +174,34 @@ void DrawLevelHUD(const LevelState &level, bool damaged) {
 }
 
 void DrawCrashScreen(const LevelState &level, bool touchUsed) {
-    int w = GetScreenWidth(), h = GetScreenHeight();
-    DrawRectangle(0, 0, w, h, (Color){0, 0, 0, 150});
+    DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), (Color){0, 0, 0, 150});
+    Rectangle safe = GetSafeRect();
+    int cx = (int)(safe.x + safe.width * 0.5f), cy = (int)(safe.y + safe.height * 0.5f);
     const char *title = "CRASHED";
-    DrawText(title, (w - MeasureText(title, 60)) / 2, h / 2 - 150, 60, RED);
+    DrawText(title, cx - MeasureText(title, 60) / 2, cy - 150, 60, RED);
     if (level.gateCrossed) {
         const char *gateLine = TextFormat("Gate reached in %.2f s", level.elapsed);
-        DrawText(gateLine, (w - MeasureText(gateLine, 28)) / 2, h / 2 - 70, 28, WHITE);
+        DrawText(gateLine, cx - MeasureText(gateLine, 28) / 2, cy - 70, 28, WHITE);
     }
 #ifdef SETTINGS_MOBILE_OR_WEB
     const char *hint = "R: Restart     M: Menu";
 #else
     const char *hint = "R: Restart     M: Menu     Esc / Q: Exit";
 #endif
-    if (!touchUsed) DrawText(hint, (w - MeasureText(hint, 28)) / 2, h / 2 + 170, 28, WHITE);
+    if (!touchUsed) DrawText(hint, cx - MeasureText(hint, 28) / 2, cy + 170, 28, WHITE);
 }
 
 void DrawResultsScreen(const LevelState &level, bool damaged, bool touchUsed) {
-    int w = GetScreenWidth(), h = GetScreenHeight();
-    DrawRectangle(0, 0, w, h, (Color){0, 0, 0, 150});
+    DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), (Color){0, 0, 0, 150});
+    Rectangle safe = GetSafeRect();
+    float h = safe.height;
 
     constexpr float kLayoutHeight = 500.0f;
     float s = fminf(h / 600.0f, 1.0f);
-    float top = (h - kLayoutHeight * s) / 2.0f;
+    float top = safe.y + (h - kLayoutHeight * s) / 2.0f;
     auto sz = [&](int base) { return (int)fmaxf(base * s, 10.0f); };
     auto y = [&](float base) { return (int)(top + base * s); };
-    int cx = w / 2;
+    int cx = (int)(safe.x + safe.width * 0.5f);
 
     DrawCentered("LEVEL COMPLETE", cx, y(0), sz(50), GOLD);
 

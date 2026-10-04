@@ -9,8 +9,9 @@ constexpr float kEntryHeight = 70.0f;
 constexpr float kEntrySpacing = 20.0f;
 
 Rectangle EntryRect(int index) {
-    return {(GetScreenWidth() - kEntryWidth) * 0.5f,
-            GetScreenHeight() * 0.5f + index * (kEntryHeight + kEntrySpacing), kEntryWidth, kEntryHeight};
+    Rectangle safe = GetSafeRect();
+    return {safe.x + (safe.width - kEntryWidth) * 0.5f,
+            safe.y + safe.height * 0.5f + index * (kEntryHeight + kEntrySpacing), kEntryWidth, kEntryHeight};
 }
 }  // namespace
 
@@ -60,10 +61,11 @@ MenuAction UpdateMenu(MenuState &menu) {
 }
 
 void DrawMenu(const MenuState &menu) {
-    int w = GetScreenWidth(), h = GetScreenHeight();
-    DrawRectangle(0, 0, w, h, (Color){0, 0, 0, 120});
+    DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), (Color){0, 0, 0, 120});
+    Rectangle safe = GetSafeRect();
+    int cx = (int)(safe.x + safe.width * 0.5f), cy = (int)(safe.y + safe.height * 0.5f);
     const char *title = "FLIGHT GAME";
-    DrawText(title, (w - MeasureText(title, 80)) / 2, h / 2 - 200, 80, WHITE);
+    DrawText(title, cx - MeasureText(title, 80) / 2, cy - 200, 80, WHITE);
     for (int i = 0; i < (int)menu.entries.size(); i++) {
         Rectangle r = EntryRect(i);
         bool selected = i == menu.selected;
@@ -77,5 +79,5 @@ void DrawMenu(const MenuState &menu) {
 #else
     const char *hint = "Up/Down + Enter/Space, or click     Q: Exit";
 #endif
-    DrawText(hint, (w - MeasureText(hint, 24)) / 2, h - 60 - (int)GetSafeArea().bottom, 24, WHITE);
+    DrawText(hint, cx - MeasureText(hint, 24) / 2, (int)(safe.y + safe.height) - 60, 24, WHITE);
 }

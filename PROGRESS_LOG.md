@@ -12,6 +12,13 @@ owner can skim what happened without digging through git log. Format:
 - PR: <link or branch, if one was opened>
 ```
 
+## 2026-10-04 night run (33)
+- Did: Safe-area insets for the menu, crash screen and results screen (the leftover from run 32). New `GetSafeRect()` in `src/safe_area.{h,cpp}` (screen minus insets); `menu.cpp` entries, title and hint, and the `level.cpp` crash and results layouts centre on it. Dim overlays stay full-screen; menu drawing and hit-testing still share `EntryRect`. ARCHITECTURE.md updated.
+- Why: Release-plan iOS v1.0 scope lists safe-area handling; run 32 left these screens centred on the full screen, so they could sit under the notch or home indicator.
+- Verified: code-reviewer found no blockers (nit: text centring now uses `cx - width/2`, which can differ by 1 px from dev on odd widths; left as is). game-tester hand-built raylib 5.5 and all sources (-std=gnu++23) for the working tree and origin/dev, ran both under Xvfb through menu, takeoff, crash, R, M and replay: no crash, and menu and crash layouts match dev pixel for pixel at zero insets. With stubbed insets in a scratch copy the menu and crash screens moved inside the safe rect. CI status: see PR.
+- Open: The results screen was not exercised at runtime (compiles; checked by reading only). Real iOS insets via SDL are still unverified on a device or simulator. Conan/CMake, Web and iOS builds are proven only by CI. Snow (rest of B3) not done.
+- PR: see PR into dev from agents
+
 ## 2026-10-04 evening run (32)
 - Did: iOS safe-area insets. New `src/safe_area.{h,cpp}` with `GetSafeArea()`: on iOS only it takes SDL display bounds minus usable bounds, scaled to the raylib window; zeros on desktop and Web. HUD text (main.cpp, level.cpp), throttle and Restart/Menu buttons (input.cpp) and the menu hint are offset by the insets; hit-testing shares the drawn rects. ARCHITECTURE.md updated.
 - Why: Release-plan iOS v1.0 scope lists safe-area handling; runs 29-31 covered entry point, orientation, launch screen and icon.
