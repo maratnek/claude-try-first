@@ -1,5 +1,6 @@
 #include "input.h"
 #include "raymath.h"
+#include "safe_area.h"
 
 namespace {
 
@@ -9,18 +10,20 @@ constexpr float kButtonSize = 100.0f;
 constexpr float kButtonMargin = 20.0f;
 
 Rectangle ThrottleUpRect() {
-    return {GetScreenWidth() - kButtonSize - kButtonMargin,
-            GetScreenHeight() - 2.0f * kButtonSize - 2.0f * kButtonMargin, kButtonSize, kButtonSize};
+    SafeArea sa = GetSafeArea();
+    return {GetScreenWidth() - sa.right - kButtonSize - kButtonMargin,
+            GetScreenHeight() - sa.bottom - 2.0f * kButtonSize - 2.0f * kButtonMargin, kButtonSize, kButtonSize};
 }
 
 Rectangle ThrottleDownRect() {
-    return {GetScreenWidth() - kButtonSize - kButtonMargin,
-            GetScreenHeight() - kButtonSize - kButtonMargin, kButtonSize, kButtonSize};
+    SafeArea sa = GetSafeArea();
+    return {GetScreenWidth() - sa.right - kButtonSize - kButtonMargin,
+            GetScreenHeight() - sa.bottom - kButtonSize - kButtonMargin, kButtonSize, kButtonSize};
 }
 
 Rectangle RestartRect() {
     const float w = 220.0f, h = 60.0f, gap = 20.0f;
-    return {GetScreenWidth() * 0.5f - gap * 0.5f - w, GetScreenHeight() - h - 20.0f, w, h};
+    return {GetScreenWidth() * 0.5f - gap * 0.5f - w, GetScreenHeight() - GetSafeArea().bottom - h - 20.0f, w, h};
 }
 
 Rectangle MenuRect() {
@@ -112,7 +115,9 @@ void DrawTouchOverlay(const InputState &state, bool endButtonsShown) {
         Vector2 offset = Vector2ClampValue(Vector2Subtract(state.stickPos, state.stickOrigin), 0.0f, kStickRadius);
         DrawCircleV(Vector2Add(state.stickOrigin, offset), 32.0f, (Color){255, 255, 255, 140});
     } else {
-        Vector2 hint = {GetScreenWidth() * 0.18f, GetScreenHeight() * 0.75f};
+        SafeArea sa = GetSafeArea();
+        Vector2 hint = {sa.left + (GetScreenWidth() - sa.left - sa.right) * 0.18f,
+                        GetScreenHeight() * 0.75f - sa.bottom * 0.5f};
         DrawCircleV(hint, kStickRadius, fill);
         DrawCircleLinesV(hint, kStickRadius, line);
     }

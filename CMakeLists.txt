@@ -56,6 +56,7 @@ add_executable(FlightGame
     src/input.cpp
     src/level.cpp
     src/menu.cpp
+    src/safe_area.cpp
     src/settings.cpp
     src/objects/glb_nodes.cpp
     src/objects/plane.cpp
