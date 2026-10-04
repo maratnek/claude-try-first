@@ -42,7 +42,7 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL "iOS")
         GIT_SHALLOW TRUE
     )
     FetchContent_MakeAvailable(raylib)
-    # miniaudio pulls in AVFoundation on Apple platforms, which needs Objective-C; raylib only sets this for macOS.
+    # raylib's CMake compiles raudio.c as plain C, but miniaudio includes AVFoundation (Objective-C) on iOS.
     set_source_files_properties("${raylib_SOURCE_DIR}/src/raudio.c"
         TARGET_DIRECTORY raylib PROPERTIES COMPILE_FLAGS "-x objective-c")
 else()
