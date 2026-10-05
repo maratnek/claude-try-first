@@ -12,6 +12,13 @@ owner can skim what happened without digging through git log. Format:
 - PR: <link or branch, if one was opened>
 ```
 
+## 2026-10-05 day run (39)
+- Did: Release blocker 3 (release-relevant, cherry-pick into `release`): a plane that has clipped a soft obstacle now shows it. The left aileron hangs bent (32 deg, follows control input at 30%) and the left aileron and rudder are darkened to a burnt tint, on top of the existing smoke and HUD. New toggle `GraphicsSettings::damageVisuals` (on for Medium and High, off for Low); `damaged`, HUD and smoke still work on every preset. No physics change. ARCHITECTURE.md and DEVELOPMENT_HISTORY.md updated. Also release-manager cherry-picked blockers 1 and 2 (a572fb9, bef8d74) into `release` through PR #44 (build, web, ios-sim green, rebase-merged).
+- Why: Next item in the priority list; blockers 1 and 2 were already on `dev` but not on `release`.
+- Verified: code-reviewer read the diff: no blockers (colour restore after each draw, part mapping, call sites checked); two nits fixed (a "what" comment removed, history row points at the branch). Developer hand-built raylib 5.5 and compiled all sources with ASan/UBSan, ran under Xvfb with `damaged` injected at frame 300: Medium screenshot shows the blackened left aileron, Low screenshot is clean, no ASan/UBSan reports (only the usual no-audio-device warnings). Restart was not exercised from a real crash; it relies on `plane = planeStart` clearing `damaged`. CI status: see PR.
+- Open: Not flown into a real bush; the aileron bend direction and the strength of the scorch tint (`kDamagedAileronDroopDeg`, `kScorchTint` in plane.cpp) need the owner's eyes. Debris pieces and the non-rigged fallback model draw undamaged. Next: blocker 4 (progression design proposal).
+- PR: see PR into dev from agents/2026-10-05-1520-visible-damage
+
 ## 2026-10-05 night run (38)
 - Did: Release blocker 2 (release-relevant, cherry-pick into `release`): flat spin-on-the-spot turns replaced by coordinated turns. Airborne turn rate is `g*tan(bank)/max(speed, stallSpeed)` clamped to `maxTurnRate` (55 deg/s); rudder alone only adds 8 deg/s (was 40); lift is multiplied by `cos(bank)`, so a banked plane sinks unless pitched up; on the ground steering rate is `speed/taxiTurnRadius` (15 m, cap 35 deg/s), so there is no turning at standstill. `bankTurnRate` replaced by `maxTurnRate`; new `taxiTurnRadius`, `taxiMaxTurnRate` in `PlaneParams`. ARCHITECTURE.md updated.
 - Why: Owner's play session on the release candidate: arrow + D rotated the plane almost in place with no altitude loss.
