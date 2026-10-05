@@ -79,8 +79,8 @@ so the game runs regardless of the launcher's working directory.
 
 `release` was cut from `dev` on 2026-10-05 (commit 9543bba). The owner
 played it and found the issues below. Fix them on `dev` in this order,
-one per run; say in each PROGRESS_LOG entry that the fix is
-release-relevant so the owner can cherry-pick it into `release`.
+one per run; mark each PROGRESS_LOG entry "release-relevant" so
+release-manager cherry-picks the fix into `release`.
 
 1. **Throttle is a brake, and a plane with no speed hangs in mid-air.**
    Repro: fly, hold S → the propeller stops and the plane stands still in
@@ -111,17 +111,41 @@ release-relevant so the owner can cherry-pick it into `release`.
    show on the plane, not only in the HUD: e.g. a darkened/scorched part,
    a bent or missing aileron/strut piece, plus the existing smoke. Must
    stay switchable per A1 where it is decorative.
-4. **Level select + level 2.** Main menu gets "Levels": level 1 and 2, with
-   2 locked until level 1 is finished. game-designer first writes
-   `design-notes/level-2.md` (new layout, harder checkpoints/obstacles,
-   same niche), then game-developer builds it. Persist unlocked levels and
-   best times: a file on desktop, localStorage on Web. Keep the screen
-   switch extensible for more levels.
-5. **World improvement proposals (proposal only, owner approves).**
-   game-designer writes `design-notes/world-improvements.md`: 5–8 concrete,
-   cheap ideas to make the world more interesting (landmarks, varied
-   biomes, time of day, readable obstacles, ...), each with cost and the
-   A1 toggle it would use. Do not implement until the owner picks.
+4. **Progression design proposal (proposal only, owner approves).** The
+   owner is not sure a plain "level select + level 2" is the right loop.
+   He wants anticipation: the player should feel that new things are
+   coming and unlock over time. game-designer writes
+   `design-notes/progression.md` with 2–3 alternative progression loops
+   (e.g. teased locked content, unlocks by stars/skills, a world that
+   opens up), how level 2+ fits in, what is persisted, how it supports the
+   Track D future modes and the aerobatics idea below, and what it costs.
+   Do not build until the owner picks one.
+5. **release-manager: rollout plan.** Write `design-notes/rollout-plan.md`
+   (see the release-manager agent and "Release success criteria" below)
+   and cherry-pick merged blocker fixes into `release`.
+
+Lower priority — only after 1–5, and never ahead of a bug:
+- **World improvement proposals (owner picks).** game-designer writes
+  `design-notes/world-improvements.md`: 5–8 concrete, cheap ideas to make
+  the world more interesting (landmarks, varied biomes, time of day,
+  readable obstacles, ...), each with cost and the A1 toggle it would use.
+  The owner chooses; nothing is built until he does.
+- **Monetization options (owner decides, undecided for now).** A short
+  `design-notes/monetization.md`: options that fit a free, chill game and
+  App Store rules (e.g. free + optional cosmetic plane skins, a one-time
+  "supporter" unlock, no ads at first), with pros/cons. Nothing is built.
+
+## Release success criteria
+
+- **Web (itch.io), free:** the first test is about fun, not money. Goal:
+  at least 60% of playtesters react positively (a like / "would play
+  again"), and nobody should feel pushed to pay — the game is free.
+  release-manager defines how this is measured (itch.io rating/comments,
+  a one-question survey) in the rollout plan.
+- **App Store:** only once the game is a complete game — enough content
+  and progression that Apple's guideline 4.2 (minimum functionality) is
+  not a risk — and the Web criterion above is met. The owner enrols in
+  the Apple Developer Program later; do not plan around it being done.
 
 ## Weekend sprint: Web v0.1 on itch.io (done — kept for reference)
 
@@ -255,6 +279,14 @@ iPhones (iPhone 11 / A13 class). Gameplay-critical rendering stays on.
 - **B4. Damage smoke** trailing from a damaged plane.
 - **B5. Pilot head turns into turns** (pilot_head_pivot node).
 
+### Aerobatics for advanced players (idea, feeds the progression design)
+
+Over time, skilled players learn aerobatic manoeuvres — barrel roll, loop,
+Immelmann, split-S and the like — recognised by the game (e.g. scored,
+unlocking content). Needs the reworked flight model from blocker 2 first.
+Not scheduled yet; game-designer should consider it in
+`design-notes/progression.md`.
+
 ### Track D — future game modes (only after the first revenue from the simple game)
 
 Owner's long-term idea: the game grows into a family of "things that fly
@@ -306,6 +338,13 @@ integrates it and moves the request to `asset-requests/fulfilled/`.
   builder's summary) against CLAUDE.md conventions and whether it really
   does what it claims. Can call something a blocker.
 
+**Release** — owns all rollout:
+- **release-manager** — plans where, when and how each build ships
+  (`design-notes/rollout-plan.md`), keeps `release` current by
+  cherry-picking merged release-relevant fixes, packages builds (local
+  packages only in the gitignored `dist/` folder inside the repo), writes
+  release notes. Stops before anything goes public — see Branches.
+
 **Required flow**: every builder-team task must go through at least one
 verifier-team agent before it is merged into `dev`. If a verifier raises a
 real, concrete blocking issue: send it back to the relevant builder agent
@@ -332,20 +371,23 @@ Flow: `agents` → `dev` → `release` → `main`.
   promotes `release` into `main`, after testing the candidate, and tags
   the version (`v0.1`, `v1.0`, ...). This is the "I reviewed and approved
   this for production" gate.
-- **release** — the current release candidate. The project owner cuts it
-  from `dev` when a feature set is ready (per
-  `design-notes/release-plan.md`); after that it only gets stabilization
-  fixes, and test builds (itch.io, TestFlight) are made from it. Bugs found
-  while testing a candidate are fixed on `dev` first and then
-  cherry-picked into `release` by the owner (or an interactive session on
-  the owner's request).
+- **release** — the current release candidate (cut 2026-10-05 from `dev`).
+  It only gets stabilization fixes; test builds (itch.io, TestFlight) are
+  made from it. Bugs are fixed on `dev` first; the **release-manager**
+  agent then cherry-picks the merged, CI-green, release-relevant fixes
+  into `release` (one cherry-pick per fix, never force-push). Cutting a
+  whole new candidate from `dev` needs the owner's ask.
 - **dev** — integration branch for ongoing work.
 - **agents** — the scheduled routine's own working branch. It commits and
   pushes here freely, and may merge `agents` into `dev` on its own. It
-  must never push to, merge into, or open PRs against `release` or `main`.
-  If a bug looks release-relevant, fix it on `dev` as usual and call it out
-  in the run's write-up and PROGRESS_LOG.md entry so the owner can
-  cherry-pick it.
+  must never touch `main`, and only the release-manager role may write to
+  `release` (cherry-picks as above). If a bug looks release-relevant, fix
+  it on `dev` as usual and mark it "release-relevant" in the run's
+  PROGRESS_LOG.md entry so release-manager picks it up.
+- **Going public is the owner's call:** making the itch.io page public,
+  promoting `release` into `main`, tagging a version, and any App Store /
+  external TestFlight submission happen only on the owner's explicit go.
+  release-manager prepares all of it and lists what needs approval.
 - **start-with-raylib** — the original branch used before this structure
   existed; left as-is, not part of the new workflow.
 
@@ -356,8 +398,9 @@ project owner's explicit, standing permission to `git commit`, `push`, and
 merge its `agents` branch into `dev` on its own, without waiting for
 approval first — the owner reviews the result asynchronously rather than
 approving each action in advance. It must never push to or merge into
-`release` or `main`; cutting a release and promoting it to production is
-the owner's call alone. The one non-negotiable
+`main`; it writes to `release` only through release-manager cherry-picks
+(see Branches), and going public / promoting to production is the
+owner's call alone. The one non-negotiable
 condition on everything it does: every run must end with a full, clear,
 specific write-up of what was done and why (in the final summary and in
 commit messages), since that explanation is what the owner's review relies

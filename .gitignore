@@ -4,3 +4,5 @@ CMakeUserPresets.json
 *.obj
 .DS_Store
 graphics.cfg
+dist/
+build-web/
