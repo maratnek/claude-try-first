@@ -25,8 +25,8 @@ joint prop       engine  0.0  1.0  2.9  0.5
 joint tail_fin   hull    0.0  1.2 -3.6  1.0
 joint tail_plane hull    0.0  1.0 -3.6  1.0
 joint wing_lo    hull    0.0  0.6 -0.15 1.4
-joint aileron_l wing_up -3.0 2.0 -0.3 1.0
-joint aileron_r wing_up  3.0 2.0 -0.3 1.0
+joint aileron_l wing_up -2.6 2.02 -0.43 1.0
+joint aileron_r wing_up  2.6 2.02 -0.43 1.0
 joint cabane     hull    0.0  1.4  0.2  1.0
 joint wing_up    cabane  0.0  2.0  0.2  1.0
 joint gear_l     hull   -0.7  0.8  1.35 0.8
