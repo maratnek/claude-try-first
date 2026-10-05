@@ -12,6 +12,13 @@ owner can skim what happened without digging through git log. Format:
 - PR: <link or branch, if one was opened>
 ```
 
+## 2026-10-05 evening run (41)
+- Did: Release blocker 5: `design-notes/rollout-plan.md` (itch.io Web, TestFlight, App Store: what ships, entry criteria, checklists, owner's manual steps, how the 60% positive-reaction criterion is measured: one-question survey, only "Yes" counts, at least 10 responses) and a draft `design-notes/release-notes/v0.1.md` with known issues. Docs only; `release` already holds blockers 1-3 (head d225632), so no cherry-pick was needed this run.
+- Why: Next item in the priority list.
+- Verified: code-reviewer checked both files against source, CI config and `git log origin/release`: one blocker (release notes listed trees and rocks as deadly and mentioned branches; real hard obstacles are red balls, soft ones are treetops and bushes) fixed in one pass and re-checked by grep. Numbers such as 30 fps, 10 responses and 14-28 days are proposals, labelled as such. CI status: see PR.
+- Open: Owner decides the flight-feel check, game name, itch.io account, and each go-live step (public page, v0.1 tag, promote to main, external TestFlight, App Store). Blocker 6 (breakup v2 design note) is next; blocker 4 still needs the owner's pick.
+- PR: PR into dev from agents/2026-10-05-1710-rollout-plan
+
 ## 2026-10-05 evening run (40)
 - Did: Release blocker 4: `design-notes/progression.md`, a proposal (nothing built) with three loops: A star ladder with a teaser level-select map, B open island opened by skill, C hangar of locked planes plus a flight school of aerobatic tricks. Covers level 2+, shared `progress.cfg` persistence (desktop, Web, iOS), Track D and aerobatics fit, run-count costs, Apple 4.2 risk. The designer suggests A first, then C; the owner decides. Release-manager also cherry-picked blocker 3 (dev 98a5e87) into `release` as 60b3b30 on `release-fix/2026-10-05-1610-blocker-3` (PR #46, release-relevant).
 - Why: Next item in the priority list; blocker 3 was on `dev` but not yet on `release`.
