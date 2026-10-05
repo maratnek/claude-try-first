@@ -37,11 +37,13 @@ PlaneParams BiplaneParams() {
     p.controlSpeed = 25.0f;
     p.pitchRate = 60.0f;
     p.rollRate = 90.0f;
-    p.yawRate = 40.0f;
+    p.yawRate = 8.0f;
+    p.taxiTurnRadius = 15.0f;
+    p.taxiMaxTurnRate = 35.0f;
     p.stallDropRate = 70.0f;
     p.stallAuthority = 0.4f;
     p.stallPitchFloor = 20.0f;
-    p.bankTurnRate = 0.6f;
+    p.maxTurnRate = 55.0f;
     p.maxPitch = 60.0f;
     p.maxRoll = 75.0f;
     p.levelRate = 50.0f;
@@ -93,10 +95,16 @@ void UpdatePlaneControls(PlaneState &plane, const PlaneParams &params, const Fli
     }
     plane.roll = Clamp(plane.roll, -params.maxRoll, params.maxRoll);
 
-    // Taxi steering is linear in ground speed and saturates early so it works at low speed.
-    float yawAuthority = plane.airborne ? authority : Clamp(plane.speed / (params.controlSpeed * 0.4f), 0.0f, 1.0f);
-    plane.yaw += yawInput * params.yawRate * yawAuthority * dt;
-    plane.yaw += plane.roll * params.bankTurnRate * Authority(plane.speed, params.controlSpeed) * dt;
+    if (plane.airborne) {
+        float airspeed = fmaxf(plane.speed, params.stallSpeed);
+        float bankRad = plane.roll * DEG2RAD;
+        float turnRate = Clamp(params.gravity * tanf(bankRad) / airspeed * RAD2DEG, -params.maxTurnRate, params.maxTurnRate);
+        plane.yaw += turnRate * dt;
+        plane.yaw += yawInput * params.yawRate * authority * dt;
+    } else {
+        float taxiRate = Clamp(plane.speed / params.taxiTurnRadius * RAD2DEG, 0.0f, params.taxiMaxTurnRate);
+        plane.yaw += yawInput * taxiRate * dt;
+    }
 
     plane.speed += plane.enginePower * params.accel * dt;
     plane.speed -= (params.dragLinear * plane.speed + params.dragQuad * plane.speed * plane.speed) * dt;
@@ -122,7 +130,7 @@ void UpdatePlaneControls(PlaneState &plane, const PlaneParams &params, const Fli
         }
     } else {
         Vector3 forward = GetPlaneForward(plane);
-        float lift = Authority(plane.speed, params.stallSpeed);
+        float lift = Authority(plane.speed, params.stallSpeed) * cosf(plane.roll * DEG2RAD);
         plane.fallSpeed += (params.gravity * (1.0f - lift) - plane.fallSpeed * params.liftDamping * lift) * dt;
         plane.position = Vector3Add(plane.position, Vector3Scale(forward, plane.speed * dt));
         plane.position.y -= plane.fallSpeed * dt;
