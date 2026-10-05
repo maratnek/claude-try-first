@@ -75,7 +75,55 @@ so the game runs regardless of the launcher's working directory.
     controls/drag/stall/ground handling, A3 soft obstacles + damage +
     crash screen, A3b main menu (Play/Exit) + procedural crash sound.
 
-## Weekend sprint: Web v0.1 on itch.io (overrides the Track order below)
+## Current priority: v0.1 release blockers, then level 2 (overrides everything below)
+
+`release` was cut from `dev` on 2026-10-05 (commit 9543bba). The owner
+played it and found the issues below. Fix them on `dev` in this order,
+one per run; say in each PROGRESS_LOG entry that the fix is
+release-relevant so the owner can cherry-pick it into `release`.
+
+1. **Throttle is a brake, and a plane with no speed hangs in mid-air.**
+   Repro: fly, hold S → the propeller stops and the plane stands still in
+   the air. Cause: `UpdatePlaneControls` does
+   `plane.speed += throttle * accel * dt`, so S actively decelerates at
+   16 m/s², speed clamps to 0, and the plane only ever moves along its nose
+   (`forward * speed`) — there is no gravity term, so zero speed = frozen.
+   Fix: make throttle a persistent engine power level (W/S raise/lower it,
+   it stays where it was left; thrust = power × accel); never brake in the
+   air from throttle; add gravity so an unpowered plane glides (shallow
+   descent at a sane glide ratio) and below stall speed sinks/falls
+   instead of hovering. Propeller RPM follows engine power, windmilling
+   slowly when power is off but the plane still moves. Keep W/S on touch
+   working the same way. Keep PlaneParams-driven, no biplane constants in
+   code.
+2. **Flat spin-on-the-spot turns.** Repro: arrow + D → the plane rotates
+   almost in place like only the tail turned, with no altitude loss. Cause:
+   rudder input sets `yaw` directly at up to 40°/s, plus `roll × 0.6`
+   (up to 45°/s more) — a ~17 m turn radius at 25 m/s, and banking never
+   costs lift. Fix: turn rate comes mainly from bank angle and airspeed
+   (coordinated-turn style, rate ∝ g·tan(bank)/v), so slow flight turns
+   wide and fast flight turns tight only with steep bank; rudder alone gives
+   only a small yaw/sideslip; banking reduces vertical lift so the plane
+   sinks in a turn unless pitched up. No turning in place at any speed.
+   Verify with a headless sim (turn radius at 20/35/50 m/s, altitude loss
+   in a 45° bank) and report the numbers.
+3. **Visible damage from soft obstacles.** Clipping a bush/branch should
+   show on the plane, not only in the HUD: e.g. a darkened/scorched part,
+   a bent or missing aileron/strut piece, plus the existing smoke. Must
+   stay switchable per A1 where it is decorative.
+4. **Level select + level 2.** Main menu gets "Levels": level 1 and 2, with
+   2 locked until level 1 is finished. game-designer first writes
+   `design-notes/level-2.md` (new layout, harder checkpoints/obstacles,
+   same niche), then game-developer builds it. Persist unlocked levels and
+   best times: a file on desktop, localStorage on Web. Keep the screen
+   switch extensible for more levels.
+5. **World improvement proposals (proposal only, owner approves).**
+   game-designer writes `design-notes/world-improvements.md`: 5–8 concrete,
+   cheap ideas to make the world more interesting (landmarks, varied
+   biomes, time of day, readable obstacles, ...), each with cost and the
+   A1 toggle it would use. Do not implement until the owner picks.
+
+## Weekend sprint: Web v0.1 on itch.io (done — kept for reference)
 
 The owner plans to put a first Web build in front of 5–10 real players
 this weekend (Sat 3 – Sun 4 Oct 2026), before any App Store work. Until
@@ -206,6 +254,18 @@ iPhones (iPhone 11 / A13 class). Gameplay-critical rendering stays on.
   particles, speed streaks. Visual only; weather affecting flight is later.
 - **B4. Damage smoke** trailing from a damaged plane.
 - **B5. Pilot head turns into turns** (pilot_head_pivot node).
+
+### Track D — future game modes (only after the first revenue from the simple game)
+
+Owner's long-term idea: the game grows into a family of "things that fly
+or fall", each one unlocking further levels. Do NOT work on these yet —
+they are recorded so the current architecture doesn't block them (e.g.
+keep `PlaneParams`/controls per vehicle type, keep the screen/level switch
+open for new modes):
+- Gliding and parachuting: free fall, opening a parachute, steering the
+  canopy to a landing target.
+- Helicopter / copter control with dedicated missions.
+- Space: an orbital-station docking mission.
 
 ### Track C — later
 
