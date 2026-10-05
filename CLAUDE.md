@@ -527,6 +527,9 @@ change that makes them stale (written in Russian, like the existing text):
 - `docs/ARCHITECTURE.md` — when a module, screen, build target or asset
   path is added, removed or changes responsibility: update the module
   table, the mermaid diagrams and the relevant section.
+- `docs/STATUS.md` — the owner's one-page status and blockers; rewritten
+  only by the status-reporter routine (3×/day) or an interactive session,
+  each time on its own `agents/<date>-status` / `session/...` branch.
 - `docs/PROCESS.md` — when the workflow itself changes (agents, branches,
   schedule, rules).
 - `README.md` — build/run commands and controls, when they change.
