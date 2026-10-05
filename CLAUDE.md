@@ -470,12 +470,31 @@ waiting for a human approval. The point of the PR is a visible, diffable
 record on GitHub, not a gate. Write the PR body as the same clear
 explanation described above.
 
+**Finish the PR in the same run.** After opening a PR, stay in the run
+and wait for its CI checks to finish (poll the check runs every minute or
+two, up to ~30 minutes), then integrate it. Never end the run planning
+to "come back later" — scheduled self-resumes (`send_later` and similar)
+have been seen not to fire, which left PR #43 open and blocked every
+following run for hours. If CI is still not done after ~30 minutes,
+leave the PR open and say so in the write-up.
+
 **Overlap guard for scheduled runs:** another run is in progress if there
-is an open PR from any `agents/*` branch into `dev`, or an `agents/*`
-branch with commits not in `origin/dev` whose last commit is less than 2
-hours old. An unmerged `agents/*` branch older than that is an abandoned
-or blocked task: leave it untouched (it is history), mention it in the
-PROGRESS_LOG entry, and carry on.
+is an open PR from any `agents/*` branch into `dev` that is **less than 1
+hour old**, or an `agents/*` branch with commits not in `origin/dev`
+whose last commit is less than 1 hour old. Then exit.
+
+**Stale open PR = finish it first.** An open `agents/*` PR older than 1
+hour is a stuck run, not a running one. The new run finishes it before
+anything else: if its CI is green and its body is clean of any Claude/AI
+mention, rebase-merge it; if CI is red or a verifier blocker is recorded,
+leave it open, note it in PROGRESS_LOG.md, and carry on with the next
+task. An unmerged `agents/*` branch with no PR and no commits for over 1
+hour is abandoned: leave it untouched (it is history) and mention it.
+
+**Branch name gotcha:** git cannot have a branch `X` and branches `X/...`
+at the same time. The old shared `agents` branch was renamed to
+`legacy/agents` for this reason — never recreate a plain `agents`,
+`session` or `release-fix` branch.
 
 ## CI
 
