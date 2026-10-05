@@ -20,11 +20,13 @@ struct PlaneParams {
     float controlSpeed;  // m/s at which control authority reaches 1
     float pitchRate;     // deg/sec at full authority
     float rollRate;
-    float yawRate;
+    float yawRate;          // deg/sec rudder-only yaw at full authority, small on purpose
+    float taxiTurnRadius;   // m, tightest ground turn; taxi yaw rate = speed / radius so it never spins in place
+    float taxiMaxTurnRate;  // deg/sec cap on taxi steering
     float stallDropRate;  // deg/sec nose-drop at zero airspeed
     float stallAuthority; // authority multiplier while stalled
     float stallPitchFloor;  // deg, stall nose-drop stops this far below level
-    float bankTurnRate;     // extra yaw deg/sec per degree of roll
+    float maxTurnRate;      // deg/sec cap on the bank-driven turn rate (g * tan(bank) / v)
     float maxPitch;
     float maxRoll;
     float levelRate;        // deg/sec auto-level when no input
@@ -55,7 +57,9 @@ struct PlaneState {
 };
 
 // Advances the plane's orientation, speed and position by dt seconds from
-// the given input (roll also turns the plane). input.throttle changes
+// the given input (airborne, bank angle turns the plane at g*tan(bank)/v and
+// costs vertical lift by cos(bank); rudder only adds a small yaw; grounded,
+// steering rate is proportional to ground speed). input.throttle changes
 // plane.enginePower, which stays put; thrust = power * params.accel and
 // never brakes in the air. Control authority scales with airspeed squared,
 // drag decays speed, gravity pulls speed along the climb angle, and below
