@@ -10,6 +10,7 @@ constexpr float kElevatorMaxDeg = 25.0f;
 constexpr float kAileronMaxDeg = 25.0f;
 constexpr float kRudderMaxDeg = 30.0f;
 constexpr float kIdleRpm = 0.2f;
+constexpr float kWindmillRpm = 0.12f;
 constexpr float kBlurStartRpm = 0.45f;
 constexpr float kBlurFullRpm = 0.75f;
 // The exported disc material is only ~0.22 alpha, which vanishes against terrain from the chase camera.
@@ -223,9 +224,9 @@ void UpdatePlaneAnimation(PlaneAnim &anim, const PlaneState &plane, const Flight
     float headTarget = (pilotHead && !crashed) ? Clamp(anim.aileron * 0.6f + anim.rudder * 0.6f, -1.0f, 1.0f) * kHeadMaxDeg : 0.0f;
     anim.headYaw = Approach(anim.headYaw, headTarget, kHeadFollowRate, dt);
 
-    float rpmTarget = kIdleRpm + (1.0f - kIdleRpm) * (plane.speed / maxSpeed);
+    float rpmTarget = kWindmillRpm * Clamp(plane.speed / maxSpeed * 4.0f, 0.0f, 1.0f);
+    if (plane.enginePower > 0.0f) rpmTarget = kIdleRpm + (1.0f - kIdleRpm) * plane.enginePower;
     if (crashed) rpmTarget = 0.0f;
-    else if (input.throttle > 0.0f) rpmTarget = fminf(1.0f, rpmTarget + 0.2f);
     anim.rpm = Approach(anim.rpm, rpmTarget, 3.0f, dt);
     anim.propAngle = fmodf(anim.propAngle + anim.rpm * kPropMaxDegPerSec * dt, 360.0f);
 

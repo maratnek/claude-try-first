@@ -206,14 +206,25 @@ void UpdateWindAudio(EngineAudio &audio, float speedFraction, bool airborne) {
     SetSoundVolume(audio.windSound, volume);
 }
 
-void UpdateEngineAudio(EngineAudio &audio, float speedFraction) {
-    float t = Clamp(speedFraction, 0.0f, 1.0f);
+void UpdateEngineAudio(EngineAudio &audio, float power, float speedFraction) {
+    float t = Clamp(power, 0.0f, 1.0f);
+    float pitch = 0.7f + t * 0.8f;
+    float volume = 0.35f + t * 0.35f;
+    if (t <= 0.0f) {
+        float windmill = Clamp(speedFraction * 4.0f, 0.0f, 1.0f);
+        if (windmill < 0.05f) {
+            StopEngineAudio(audio);
+            return;
+        }
+        pitch = 0.5f;
+        volume = 0.12f * windmill;
+    }
 
     if (!IsSoundPlaying(audio.engineSound)) {
         PlaySound(audio.engineSound);
     }
-    SetSoundPitch(audio.engineSound, 0.7f + t * 0.8f);
-    SetSoundVolume(audio.engineSound, 0.35f + t * 0.35f);
+    SetSoundPitch(audio.engineSound, pitch);
+    SetSoundVolume(audio.engineSound, volume);
 }
 
 void UnloadEngineAudio(EngineAudio &audio) {

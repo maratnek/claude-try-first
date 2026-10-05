@@ -15,9 +15,11 @@ struct EngineAudio {
 // Call once after InitAudioDevice().
 void LoadEngineAudio(EngineAudio &audio);
 
-// Restarts the loop if it ended, and adjusts pitch/volume from 0..1 speed
-// fraction so the engine sounds busier at higher throttle.
-void UpdateEngineAudio(EngineAudio &audio, float speedFraction);
+// Restarts the loop if it ended, and adjusts pitch/volume from 0..1 engine
+// power so the engine sounds busier at higher power. With power at zero the
+// loop drops to a faint low windmilling rumble scaled by 0..1 speed fraction,
+// and stops once the plane is nearly still.
+void UpdateEngineAudio(EngineAudio &audio, float power, float speedFraction);
 
 // Silences the engine loop (crash, menu); UpdateEngineAudio restarts it.
 void StopEngineAudio(EngineAudio &audio);

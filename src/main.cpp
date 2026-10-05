@@ -166,7 +166,7 @@ void UpdateFrame(Game &g) {
     UpdateDebris(g.debris, world, g.gfx.debrisPieces, dt);
     UpdatePlaneAnimation(g.planeAnim, plane, input, level.crashed, g.gfx.pilotHead, g.planeParams.maxSpeed, dt);
     if (g.screen == Screen::Playing) {
-        UpdateEngineAudio(engineAudio, plane.speed / g.planeParams.maxSpeed);
+        UpdateEngineAudio(engineAudio, plane.enginePower, plane.speed / g.planeParams.maxSpeed);
         UpdateWindAudio(engineAudio, plane.speed / g.planeParams.maxSpeed, plane.airborne);
     } else {
         StopEngineAudio(engineAudio);
@@ -216,11 +216,11 @@ void UpdateFrame(Game &g) {
 
     const SafeArea sa = GetSafeArea();
     const int ox = 10 + (int)sa.left, oy = (int)sa.top;
-    DrawText(g.inputState.touchUsed ? "Left stick: pitch/roll  +/-: throttle"
-                                    : "Arrows = pitch/roll, A/D = rudder, W/S = throttle",
+    DrawText(g.inputState.touchUsed ? "Left stick: pitch/roll  +/-: engine power"
+                                    : "Arrows = pitch/roll, A/D = rudder, W/S = engine power",
              ox, 10 + oy, 20, DARKGRAY);
-    DrawText(TextFormat("Speed: %.1f m/s   Altitude: %.1f m   %s",
-                         plane.speed, plane.position.y, plane.airborne ? "AIRBORNE" : "ON GROUND - throttle up, pull up to take off"),
+    DrawText(TextFormat("Speed: %.1f m/s   Altitude: %.1f m   Power: %d%%   %s",
+                         plane.speed, plane.position.y, (int)roundf(plane.enginePower * 100.0f), plane.airborne ? "AIRBORNE" : "ON GROUND - raise power (W), pull up to take off; brake: power 0, then S"),
              ox, 35 + oy, 20, DARKGRAY);
     DrawLevelHUD(level, plane.damaged);
     if (plane.landing == LandingResult::Hard) {
@@ -229,7 +229,7 @@ void UpdateFrame(Game &g) {
         DrawText("Landed safely - take off again", ox, 150 + oy, 30, DARKGREEN);
     }
     if (g.screen == Screen::Playing && level.gateCrossed && g.inputState.touchUsed) {
-        DrawText("Hold the - button to brake after landing", ox, 215 + oy, 24, DARKGRAY);
+        DrawText("Power to zero, then hold - to brake after landing", ox, 215 + oy, 24, DARKGRAY);
     }
     DrawFPS(ox, 60 + oy);
     DrawText(TextFormat("Graphics: %s (F1)", GraphicsPresetName(g.gfx)), ox + 100, 60 + oy, 20, DARKGRAY);
