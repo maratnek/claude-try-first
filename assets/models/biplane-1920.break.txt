@@ -1,0 +1,28 @@
+# Break data for biplane-1920.glb. Format: design-notes/breakup-v2.md
+# Units: metres, kg, plane space (Y up, nose +Z, +X right wing). Node names are the GLB node names.
+# Every listed node and its descendants join the group unless a descendant is listed in another group.
+# Unlisted meshes (pilot, axle, ...) belong to the hull. Strength is in impact energy units (0.5 * speed^2:
+# 15 m/s = 112, 25 m/s = 312, 45 m/s = 1250) and is not used by the physics yet.
+# group name mass strength nodes...
+group hull        180  -    fuselage fuselage_band cockpit_rim cockpit_interior headrest windscreen tail_cone tailplane_fairing gear_suspension tail_skid tail_skid_shoe
+group engine       90  1000 engine_cowl cowl_ring
+group prop          6  40   propeller
+group tail_fin      8  150  vertical_fin rudder_pivot
+group tail_plane   10  150  horizontal_stabilizer elevator_pivot
+group wing_up      44  280  wing_upper wing_upper_leading_edge wing_upper_marking aileron_left_pivot aileron_right_pivot
+group wing_lo      40  300  wing_lower wing_lower_leading_edge strut_l_front strut_l_rear strut_r_front strut_r_rear wire_l_c wire_l_d wire_r_c wire_r_d
+group cabane        6  200  cabane_l_front cabane_l_rear cabane_r_front cabane_r_rear
+group gear_l       14  80   gear_l_front gear_l_rear bungee_l wheel_left
+group gear_r       14  80   gear_r_front gear_r_rear bungee_r wheel_right
+# joint child parent x y z strength_scale
+joint engine     hull    0.0  1.0  2.1  1.5
+joint prop       engine  0.0  1.0  2.9  0.5
+joint tail_fin   hull    0.0  1.2 -3.6  1.0
+joint tail_plane hull    0.0  1.0 -3.6  1.0
+joint wing_lo    hull    0.0  0.6 -0.15 1.4
+joint cabane     hull    0.0  1.4  0.2  1.0
+joint wing_up    cabane  0.0  2.0  0.2  1.0
+joint gear_l     hull   -0.7  0.8  1.35 0.8
+joint gear_r     hull    0.7  0.8  1.35 0.8
+order prop gear_l gear_r tail_plane tail_fin wing_up wing_lo cabane engine
+fuel_tank 0.0 1.0 1.4 0.5

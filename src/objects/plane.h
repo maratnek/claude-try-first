@@ -1,5 +1,6 @@
 #pragma once
 #include "raylib.h"
+#include "objects/break_data.h"
 #include "objects/glb_nodes.h"
 #include "flight.h"
 #include <vector>
@@ -33,6 +34,7 @@ struct PlaneModel {
     PlanePartRig parts[PART_COUNT];
     std::vector<int> meshPart;  // per raylib mesh: PlanePart it moves with, or -1
     std::vector<bool> meshIsBlur;
+    BreakData breakData;
 };
 
 // Control-surface deflections in [-1, 1], propeller/wheel angles in degrees.
@@ -58,8 +60,9 @@ void UpdatePlaneAnimation(PlaneAnim &anim, const PlaneState &plane, const Flight
 // Draws the plane model at the given world position and orientation in
 // degrees, matching PlaneState's convention (positive pitch climbs,
 // positive roll banks right).
-void DrawPlaneObject(const PlaneModel &planeModel, const PlaneAnim &anim, Vector3 position, float yawDegrees, float pitchDegrees, float rollDegrees, bool propBlur, unsigned detachedParts = 0, bool showDamage = false);
+void DrawPlaneObject(const PlaneModel &planeModel, const PlaneAnim &anim, Vector3 position, float yawDegrees, float pitchDegrees, float rollDegrees, bool propBlur, unsigned detachedParts = 0, unsigned detachedGroups = 0, bool showDamage = false);
 
 void DrawPlanePart(const PlaneModel &planeModel, PlanePart part);
+void DrawPlaneGroup(const PlaneModel &planeModel, int group);
 
 void UnloadPlaneModel(PlaneModel &planeModel);

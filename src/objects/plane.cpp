@@ -1,4 +1,5 @@
 #include "plane.h"
+#include "objects/break_data.h"
 #include "objects/glb_nodes.h"
 #include "raymath.h"
 #include "rlgl.h"
@@ -206,6 +207,10 @@ void DrawPropellerBlades(const PlanePartRig &rig, float angleDeg, float alpha) {
     rlPopMatrix();
 }
 
+bool MeshInGroups(const PlaneModel &planeModel, int mesh, unsigned groups) {
+    return planeModel.breakData.valid && (groups & (1u << planeModel.breakData.meshGroup[mesh]));
+}
+
 }  // namespace
 
 void LoadPlaneModel(PlaneModel &planeModel, const char *path) {
@@ -217,7 +222,9 @@ void LoadPlaneModel(PlaneModel &planeModel, const char *path) {
     planeModel.animated = LoadGlbNodes(path, nodes) && BuildRig(planeModel, nodes);
     if (!planeModel.animated) {
         TraceLog(LOG_WARNING, "PLANE: node rig unavailable, drawing %s statically", path);
+        return;
     }
+    LoadBreakData(planeModel.breakData, path, nodes, planeModel.model);
 }
 
 void UpdatePlaneAnimation(PlaneAnim &anim, const PlaneState &plane, const FlightInput &input, bool crashed, bool pilotHead, float maxSpeed, float dt) {
@@ -239,7 +246,7 @@ void UpdatePlaneAnimation(PlaneAnim &anim, const PlaneState &plane, const Flight
     anim.wheelAngle = fmodf(anim.wheelAngle + anim.wheelRate * dt, 360.0f);
 }
 
-void DrawPlaneObject(const PlaneModel &planeModel, const PlaneAnim &anim, Vector3 position, float yawDegrees, float pitchDegrees, float rollDegrees, bool propBlur, unsigned detachedParts, bool showDamage) {
+void DrawPlaneObject(const PlaneModel &planeModel, const PlaneAnim &anim, Vector3 position, float yawDegrees, float pitchDegrees, float rollDegrees, bool propBlur, unsigned detachedParts, unsigned detachedGroups, bool showDamage) {
     if (!planeModel.loaded) return;
 
     rlPushMatrix();
@@ -277,6 +284,9 @@ void DrawPlaneObject(const PlaneModel &planeModel, const PlaneAnim &anim, Vector
 
         // Translucent blades and blur disc go last so they blend over the opaque parts behind them.
         bool propDetached = detachedParts & (1u << PART_PROPELLER);
+        for (int i = 0; i < planeModel.model.meshCount; i++) {
+            if (planeModel.meshPart[i] == PART_PROPELLER && MeshInGroups(planeModel, i, detachedGroups)) propDetached = true;
+        }
         for (int pass = 0; pass < 2; pass++) {
             if (pass == 1 && !propDetached) DrawPropellerBlades(planeModel.parts[PART_PROPELLER], anim.propAngle, 1.0f - blurAlpha);
             for (int i = 0; i < planeModel.model.meshCount; i++) {
@@ -285,6 +295,7 @@ void DrawPlaneObject(const PlaneModel &planeModel, const PlaneAnim &anim, Vector
                 if (blur && blurAlpha <= 0.0f) continue;
                 int part = planeModel.meshPart[i];
                 if (part >= 0 && (detachedParts & (1u << part))) continue;
+                if (MeshInGroups(planeModel, i, detachedGroups)) continue;
                 Matrix transform = part >= 0 ? transforms[part] : MatrixIdentity();
                 Material &material = planeModel.model.materials[planeModel.model.meshMaterial[i]];
                 Color original = material.maps[MATERIAL_MAP_DIFFUSE].color;
@@ -317,6 +328,16 @@ void DrawPlanePart(const PlaneModel &planeModel, PlanePart part) {
         DrawMesh(planeModel.model.meshes[i], planeModel.model.materials[planeModel.model.meshMaterial[i]], MatrixIdentity());
     }
     if (part == PART_PROPELLER) DrawPropellerBlades(planeModel.parts[part], 0.0f, 1.0f);
+}
+
+void DrawPlaneGroup(const PlaneModel &planeModel, int group) {
+    bool hasPropeller = false;
+    for (int i = 0; i < planeModel.model.meshCount; i++) {
+        if (planeModel.breakData.meshGroup[i] != group || planeModel.meshIsBlur[i]) continue;
+        if (planeModel.meshPart[i] == PART_PROPELLER) hasPropeller = true;
+        DrawMesh(planeModel.model.meshes[i], planeModel.model.materials[planeModel.model.meshMaterial[i]], MatrixIdentity());
+    }
+    if (hasPropeller) DrawPropellerBlades(planeModel.parts[PART_PROPELLER], 0.0f, 1.0f);
 }
 
 void UnloadPlaneModel(PlaneModel &planeModel) {

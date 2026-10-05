@@ -23,8 +23,8 @@ constexpr bool SpawnOrderExcludesHead() {
         if (part == PART_PILOT_HEAD) return false;
     return true;
 }
-static_assert(sizeof(kSpawnOrder) / sizeof(kSpawnOrder[0]) == kMaxDebrisPieces,
-              "kMaxDebrisPieces must match kSpawnOrder");
+static_assert(sizeof(kSpawnOrder) / sizeof(kSpawnOrder[0]) == kMaxFixedDebrisParts,
+              "kMaxFixedDebrisParts must match kSpawnOrder");
 static_assert(SpawnOrderExcludesHead(), "pilot head must never be thrown as debris");
 
 float Random(float range) {
@@ -36,6 +36,17 @@ Vector3 PlaneToWorld(Vector3 v, const PlaneState &plane) {
     v = Vector3RotateByAxisAngle(v, {1.0f, 0.0f, 0.0f}, -plane.pitch * DEG2RAD);
     return Vector3RotateByAxisAngle(v, {0.0f, 1.0f, 0.0f}, plane.yaw * DEG2RAD);
 }
+
+void InitDebrisMotion(DebrisPiece &p, const PlaneState &plane, Vector3 planeVelocity) {
+    p.position = Vector3Add(plane.position, PlaneToWorld(p.pivot, plane));
+    p.velocity = Vector3Add(planeVelocity, {Random(kKickSpeed), kKickUp * (0.4f + 0.6f * fabsf(Random(1.0f))), Random(kKickSpeed)});
+    p.spinAngle = {0.0f, 0.0f, 0.0f};
+    p.spinRate = {Random(kMaxSpinRate), Random(kMaxSpinRate), Random(kMaxSpinRate)};
+    p.yaw = plane.yaw;
+    p.pitch = plane.pitch;
+    p.roll = plane.roll;
+    p.settled = false;
+}
 }  // namespace
 
 void ClearDebris(DebrisState &debris) {
@@ -45,21 +56,33 @@ void ClearDebris(DebrisState &debris) {
 void SpawnDebris(DebrisState &debris, const PlaneModel &planeModel, const PlaneState &plane, Vector3 planeVelocity, int pieceCount) {
     debris.count = 0;
     if (!planeModel.animated || pieceCount <= 0) return;
-    if (pieceCount > kMaxDebrisPieces) pieceCount = kMaxDebrisPieces;
+    const BreakData &breakData = planeModel.breakData;
 
+    if (breakData.valid) {
+        for (int group : breakData.order) {
+            if (debris.count >= pieceCount || debris.count >= kMaxDebrisPieces) break;
+            const BreakGroup &g = breakData.groups[group];
+            if (g.meshCount == 0) continue;
+            DebrisPiece &p = debris.pieces[debris.count++];
+            p.group = group;
+            p.part = PART_COUNT;
+            p.pivot = g.centreOfMass;
+            // Upright rest pose only; tumbling groups can still hover or sink until debris physics learns bounds.
+            p.restHeight = fmaxf(kRestHeight, g.centreOfMass.y - g.boundsMin.y);
+            InitDebrisMotion(p, plane, planeVelocity);
+        }
+        return;
+    }
+
+    if (pieceCount > kMaxFixedDebrisParts) pieceCount = kMaxFixedDebrisParts;
     for (int i = 0; i < pieceCount; i++) {
         PlanePart part = kSpawnOrder[i];
         DebrisPiece &p = debris.pieces[debris.count++];
+        p.group = -1;
         p.part = part;
         p.pivot = planeModel.parts[part].pivot;
-        p.position = Vector3Add(plane.position, PlaneToWorld(p.pivot, plane));
-        p.velocity = Vector3Add(planeVelocity, {Random(kKickSpeed), kKickUp * (0.4f + 0.6f * fabsf(Random(1.0f))), Random(kKickSpeed)});
-        p.spinAngle = {0.0f, 0.0f, 0.0f};
-        p.spinRate = {Random(kMaxSpinRate), Random(kMaxSpinRate), Random(kMaxSpinRate)};
-        p.yaw = plane.yaw;
-        p.pitch = plane.pitch;
-        p.roll = plane.roll;
-        p.settled = false;
+        p.restHeight = kRestHeight;
+        InitDebrisMotion(p, plane, planeVelocity);
     }
 }
 
@@ -76,7 +99,7 @@ void UpdateDebris(DebrisState &debris, const WorldState &world, int pieceCount, 
         p.position = Vector3Add(p.position, Vector3Scale(p.velocity, dt));
         p.spinAngle = Vector3Add(p.spinAngle, Vector3Scale(p.spinRate, dt));
 
-        float floor = GetGroundHeight(world, p.position.x, p.position.z) + kRestHeight;
+        float floor = GetGroundHeight(world, p.position.x, p.position.z) + p.restHeight;
         if (p.position.y > floor) continue;
         p.position.y = floor;
         if (p.velocity.y < 0.0f) p.velocity.y = -p.velocity.y * kBounceKeep;
@@ -91,9 +114,19 @@ void UpdateDebris(DebrisState &debris, const WorldState &world, int pieceCount, 
     }
 }
 
-unsigned DebrisDetachedMask(const DebrisState &debris) {
+unsigned DebrisDetachedParts(const DebrisState &debris) {
     unsigned mask = 0;
-    for (int i = 0; i < debris.count; i++) mask |= 1u << debris.pieces[i].part;
+    for (int i = 0; i < debris.count; i++) {
+        if (debris.pieces[i].group < 0) mask |= 1u << debris.pieces[i].part;
+    }
+    return mask;
+}
+
+unsigned DebrisDetachedGroups(const DebrisState &debris) {
+    unsigned mask = 0;
+    for (int i = 0; i < debris.count; i++) {
+        if (debris.pieces[i].group >= 0) mask |= 1u << debris.pieces[i].group;
+    }
     return mask;
 }
 
@@ -109,7 +142,8 @@ void DrawDebris(const DebrisState &debris, const PlaneModel &planeModel) {
         rlRotatef(-p.pitch, 1.0f, 0.0f, 0.0f);
         rlRotatef(-p.roll, 0.0f, 0.0f, 1.0f);
         rlTranslatef(-p.pivot.x, -p.pivot.y, -p.pivot.z);
-        DrawPlanePart(planeModel, p.part);
+        if (p.group >= 0) DrawPlaneGroup(planeModel, p.group);
+        else DrawPlanePart(planeModel, p.part);
         rlPopMatrix();
     }
 }
