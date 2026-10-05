@@ -21,9 +21,16 @@ float Authority(float speed, float controlSpeed) {
 PlaneParams BiplaneParams() {
     PlaneParams p;
     p.maxSpeed = 60.0f;
-    p.accel = 16.0f;
+    p.accel = 12.0f;
+    p.throttleRate = 2.0f;
+    p.levelPower = 0.2f;
+    p.glideRatio = 9.0f;
+    p.gravity = 9.81f;
+    p.liftDamping = 3.0f;
+    p.groundDrag = 0.8f;
+    p.brakeDecel = 6.0f;
     p.dragLinear = 0.01f;
-    p.dragQuad = 0.001f;
+    p.dragQuad = 0.0031f;
     p.stallSpeed = 14.0f;
     p.liftoffSpeed = 18.0f;
     p.liftoffPitch = 5.0f;
@@ -33,7 +40,6 @@ PlaneParams BiplaneParams() {
     p.yawRate = 40.0f;
     p.stallDropRate = 70.0f;
     p.stallAuthority = 0.4f;
-    p.climbDecel = 3.0f;
     p.stallPitchFloor = 20.0f;
     p.bankTurnRate = 0.6f;
     p.maxPitch = 60.0f;
@@ -52,7 +58,7 @@ void UpdatePlaneControls(PlaneState &plane, const PlaneParams &params, const Fli
     float pitchInput = input.pitch;
     float rollInput = input.roll;
     float yawInput = input.yaw;
-    float throttleInput = input.throttle;
+    plane.enginePower = Clamp(plane.enginePower + input.throttle * params.throttleRate * dt, 0.0f, 1.0f);
 
     float authority = Authority(plane.speed, params.controlSpeed);
     bool stalled = plane.airborne && plane.speed < params.stallSpeed;
@@ -65,6 +71,9 @@ void UpdatePlaneControls(PlaneState &plane, const PlaneParams &params, const Fli
         if (!plane.airborne) {
             float slopeLimit = params.liftoffPitch * 0.5f;
             restPitch = Clamp(groundSlopeDeg, -slopeLimit, slopeLimit);
+        } else {
+            float unpowered = 1.0f - Clamp(plane.enginePower / params.levelPower, 0.0f, 1.0f);
+            restPitch = -atanf(1.0f / params.glideRatio) * RAD2DEG * unpowered;
         }
         plane.pitch = MoveToward(plane.pitch, restPitch, params.levelRate * dt);
     }
@@ -89,9 +98,14 @@ void UpdatePlaneControls(PlaneState &plane, const PlaneParams &params, const Fli
     plane.yaw += yawInput * params.yawRate * yawAuthority * dt;
     plane.yaw += plane.roll * params.bankTurnRate * Authority(plane.speed, params.controlSpeed) * dt;
 
-    plane.speed += throttleInput * params.accel * dt;
+    plane.speed += plane.enginePower * params.accel * dt;
     plane.speed -= (params.dragLinear * plane.speed + params.dragQuad * plane.speed * plane.speed) * dt;
-    if (plane.airborne) plane.speed -= params.climbDecel * sinf(plane.pitch * DEG2RAD) * dt;
+    if (plane.airborne) {
+        plane.speed -= params.gravity * sinf(plane.pitch * DEG2RAD) * dt;
+    } else {
+        plane.speed -= params.groundDrag * dt;
+        if (input.throttle < 0.0f && plane.enginePower <= 0.0f) plane.speed -= params.brakeDecel * dt;
+    }
     plane.speed = Clamp(plane.speed, 0.0f, params.maxSpeed);
 
     if (!plane.airborne) {
@@ -103,22 +117,27 @@ void UpdatePlaneControls(PlaneState &plane, const PlaneParams &params, const Fli
         if (plane.speed >= params.liftoffSpeed && plane.pitch > params.liftoffPitch) {
             plane.airborne = true;
             plane.airTime = 0.0f;
+            plane.fallSpeed = 0.0f;
             plane.landing = LandingResult::None;
         }
     } else {
         Vector3 forward = GetPlaneForward(plane);
+        float lift = Authority(plane.speed, params.stallSpeed);
+        plane.fallSpeed += (params.gravity * (1.0f - lift) - plane.fallSpeed * params.liftDamping * lift) * dt;
         plane.position = Vector3Add(plane.position, Vector3Scale(forward, plane.speed * dt));
+        plane.position.y -= plane.fallSpeed * dt;
 
         plane.airTime += dt;
 
         float minY = groundHeight + params.minAltitudeAboveGround;
         if (plane.position.y <= minY && plane.airTime > kMinAirTimeForLanding) {
-            float sinkRate = -plane.speed * sinf(plane.pitch * DEG2RAD);
+            float sinkRate = plane.fallSpeed - plane.speed * sinf(plane.pitch * DEG2RAD);
             bool gentle = sinkRate <= params.landingMaxSinkRate && plane.speed <= params.landingMaxSpeed &&
                           plane.pitch <= params.liftoffPitch && plane.pitch >= -params.landingMaxNoseDown && fabsf(plane.roll) <= params.landingMaxRoll;
             if (gentle) {
                 plane.landing = LandingResult::Safe;
                 plane.airborne = false;
+                plane.fallSpeed = 0.0f;
                 plane.position.y = groundHeight + params.wheelHeight;
             } else {
                 plane.landing = LandingResult::Hard;
