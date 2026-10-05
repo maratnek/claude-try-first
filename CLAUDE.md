@@ -124,7 +124,38 @@ release-manager cherry-picks the fix into `release`.
    (see the release-manager agent and "Release success criteria" below)
    and cherry-pick merged blocker fixes into `release`.
 
-Lower priority — only after 1–5, and never ahead of a bug:
+6. **Breakup v2: the model defines how it breaks, fuel drives the
+   explosion (owner-requested; design first, then build in iterations).**
+   Today's B2 debris (`src/objects/debris.cpp`) throws the rigged parts
+   from a fixed spawn list. The owner wants the geometry to come apart
+   *correctly* — pieces that are physically one unit stay together, and
+   the break points are part of the model, declared when the model is
+   built, not hardcoded in game code.
+   - Design note first: `design-notes/breakup-v2.md` (game-designer +
+     game-developer), reviewed by code-reviewer before any code.
+   - **Break data in the model.** A per-model parameter set: which nodes
+     form a break group (e.g. left lower wing + its struts + aileron),
+     each group's mass and break strength, and which joints fail first.
+     For the existing biplane GLB (generated externally, no glTF extras),
+     use a sidecar file next to it (e.g. `biplane-1920.break.txt`, same
+     style as the generator's `rig.txt`). For future models, add the same
+     fields to the asset-request template in `asset-requests/README.md`,
+     and note for the `design` branch that `tools/aircraft-gen` should
+     export the same data (aircraft-generator agent, there).
+   - **Breakup.** Impact speed and direction decide which joints fail;
+     groups fly off with momentum from the plane's velocity plus an
+     impulse, tumble, hit the ground and settle. No interpenetrating or
+     floating pieces.
+   - **Fuel and explosion.** Add fuel to `PlaneState`/`PlaneParams`
+     (amount, capacity; consumption by engine power can come later). On a
+     crash, explosion size (flash, fireball, smoke, sound) scales with the
+     fuel left; near-empty tanks give a breakup with little or no fire.
+   - Decorative parts (fireball, extra smoke, debris count) follow the A1
+     presets; on Low the breakup still reads clearly.
+   - Verify with screenshots from a headless run at several impact speeds
+     and fuel levels, attached to the PR.
+
+Lower priority — only after 1–6, and never ahead of a bug:
 - **World improvement proposals (owner picks).** game-designer writes
   `design-notes/world-improvements.md`: 5–8 concrete, cheap ideas to make
   the world more interesting (landmarks, varied biomes, time of day,
