@@ -115,3 +115,12 @@ Out of scope: fuel burn by engine power, fire spreading/burning wreck on the gro
 - `wing_upper`/`wing_lower` as single nodes: iteration 1 uses whole-wing groups (one upper, one lower, both sides leave together) as the default. Optional later step, only if one-sided wing loss is wanted: splitting needs NEW raylib Mesh objects, because one Mesh exists per primitive with node transforms baked in and `meshPart` maps one Mesh to one part. The step copies each wing Mesh twice (triangle centroid X < 0 and X >= 0), `UploadMesh`es both, extends `meshPart`/`meshGroup`/`meshIsBlur`, frees the original, and enables the `@L`/`@R` sidecar suffix. The cut at X = 0 lies inside the fuselage/cabane, so it should be invisible.
 - Strength units are tuned by eye; iteration 2 should expose them only through the sidecar so tuning needs no rebuild.
 - Existing `PlanePart` rig (animation) is kept unchanged; groups are an overlay for debris only.
+
+## Open items found in review (resolve in the named iteration)
+
+- Iteration 1 (sidecar): the example strengths are far below the impact energy scale in section 2 (E = 0.5·speed² gives 112 / 312 / 1250 at 15 / 25 / 45 m/s; the engine strength is about 90, wings 30–48), so at 25 m/s nearly everything fails. Rescale strengths (roughly 3–10×) or the energy formula so the stated outcomes (15 m/s prop/gear only, 25 m/s adds tail/ailerons, 45 m/s sheds wings) hold; tune by the headless crash test.
+- Iteration 1: the hull record has strength `-`; special-case it in the loader validation (it never detaches).
+- Iteration 1: `axle` is one node spanning both wheels but sits in `gear_l`; put it in the hull or accept the right wheel losing its axle. Check aileron parentage (upper or lower wing) against real node transforms.
+- Iteration 2: the cap keeps the highest-overload roots, which can drop the prop on Low; add a forced-include priority (prop, one wing, one gear) so the Low readability rule holds. Delete or clarify the "second test at E×2" sentence for surviving children of a detached parent, and define the hull centre used in the exposure formula.
+- Iteration 4: Medium smoke is stated as 24 idle puffs and 32 crash-column puffs; confirm the crash column is a separate field. With this model only 9 detachable groups exist, so the High cap of 12 is never reached.
+- Known cosmetic limits: struts and wires may dangle if only one wing leaves; cabane stubs may remain if the upper wing leaves.

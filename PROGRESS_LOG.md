@@ -12,6 +12,13 @@ owner can skim what happened without digging through git log. Format:
 - PR: <link or branch, if one was opened>
 ```
 
+## 2026-10-05 evening run (42)
+- Did: Release blocker 6, iteration 0: `design-notes/breakup-v2.md` (design only, no code). Sidecar `assets/models/biplane-1920.break.txt` format with a full proposed file for the biplane's real node names (break groups, mass, strength, joint failure order); impact-driven joint failure; debris physics (momentum + impulse, tumble, ground settle); fuel in `PlaneParams`/`PlaneState` and explosion scaling with fuel; A1 preset behaviour incl. Low; text for the asset-request template and a note for the `design` branch; four iteration tasks verified by a headless crash test with screenshots. Docs history row added.
+- Why: Next item in the priority list (blocker 6 starts with a reviewed design note).
+- Verified: code-reviewer checked the note against the GLB node tree and source: first pass found 3 blockers (wheels swallowed into the hull group by the parent rule, preset values misdescribed vs `ApplyGraphicsPreset`, infeasible left/right wing split); one fix pass; re-review found them resolved and no new blockers. Remaining findings are recorded in the note's "Open items" section (strengths too low for the energy formula, Low cap can drop the prop, hull strength validation, axle placement). Nothing was built or run (design only). CI status: see PR.
+- Open: Iteration 1 (sidecar loader and groups, whole-wing groups, old physics) is next; strength numbers need rescaling then. Blocker 4 still needs the owner's progression pick. Not release-relevant (design only).
+- PR: https://github.com/maratnek/claude-try-first/pull/50 (branch agents/2026-10-05-1910-breakup-v2-design)
+
 ## 2026-10-05 evening run (41)
 - Did: Release blocker 5: `design-notes/rollout-plan.md` (itch.io Web, TestFlight, App Store: what ships, entry criteria, checklists, owner's manual steps, how the 60% positive-reaction criterion is measured: one-question survey, only "Yes" counts, at least 10 responses) and a draft `design-notes/release-notes/v0.1.md` with known issues. Docs only; `release` already holds blockers 1-3 (head d225632), so no cherry-pick was needed this run.
 - Why: Next item in the priority list.
