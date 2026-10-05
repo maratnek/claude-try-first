@@ -22,7 +22,7 @@ struct GraphicsSettings {
     float scatterDensity = 1.0f;
     int cloudCount = 30;
     int smokePuffs = 64;
-    int debrisPieces = 7;
+    int debrisPieces = 12;
     int speedStreaks = 40;
     int rainDrops = 200;
     int snowFlakes = 200;

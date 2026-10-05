@@ -88,6 +88,7 @@ void LoadBreakData(BreakData &data, const char *glbPath, const std::vector<GlbNo
     std::vector<std::vector<int>> groupNodes;
     std::vector<JointRecord> joints;
     std::vector<std::string> orderNames;
+    std::vector<std::vector<std::string>> keepNames;
     std::vector<int> nodeGroup(nodes.size(), -1);
 
     std::string text;
@@ -142,6 +143,9 @@ void LoadBreakData(BreakData &data, const char *glbPath, const std::vector<GlbNo
             joints.push_back(j);
         } else if (tok[0] == "order") {
             orderNames.assign(tok.begin() + 1, tok.end());
+        } else if (tok[0] == "keep") {
+            if (tok.size() < 2) { fail(lineNo, "keep needs at least one group:", text.c_str()); continue; }
+            keepNames.emplace_back(tok.begin() + 1, tok.end());
         } else if (tok[0] == "fuel_tank") {
             if (tok.size() != 5 || !ParseFloat(tok[1], data.fuelTank.x) || !ParseFloat(tok[2], data.fuelTank.y) ||
                 !ParseFloat(tok[3], data.fuelTank.z) || !ParseFloat(tok[4], data.fuelRadius) || data.fuelRadius <= 0.0f) {
@@ -192,6 +196,17 @@ void LoadBreakData(BreakData &data, const char *glbPath, const std::vector<GlbNo
     for (size_t gi = 0; gi < data.groups.size(); gi++) {
         if ((int)gi != data.hull && !ordered[gi]) data.order.push_back((int)gi);
     }
+
+    for (const std::vector<std::string> &names : keepNames) {
+        std::vector<int> members;
+        for (const std::string &name : names) {
+            int gi = FindGroup(data, name);
+            if (gi < 0 || gi == data.hull) { fail(0, "keep names unknown or hull group", name.c_str()); continue; }
+            members.push_back(gi);
+        }
+        data.keep.push_back(members);
+    }
+    if (failed) return;
 
     int triangleMeshes = 0;
     for (const GlbNode &n : nodes) triangleMeshes += n.trianglePrimitives;

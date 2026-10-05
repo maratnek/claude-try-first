@@ -152,7 +152,9 @@ void UpdateFrame(Game &g) {
             level.crashed = true;
             g.screen = Screen::Crashed;
             PlayCrashSound(engineAudio);
-            SpawnDebris(g.debris, planeModel, plane, Vector3Scale(GetPlaneForward(plane), plane.speed), g.gfx.debrisPieces);
+            Vector3 velocity = Vector3Add(Vector3Scale(GetPlaneForward(plane), plane.speed), {0.0f, -plane.fallSpeed, 0.0f});
+            ImpactInfo impact = {plane.position, velocity, Vector3Length(velocity), plane.landing == LandingResult::Hard};
+            SpawnDebris(g.debris, planeModel, plane, impact, g.gfx.debrisPieces);
         } else if (IsRunFinished(level, plane.airborne, plane.speed)) {
             RecordFinish(level);
             g.screen = Screen::Finished;
@@ -163,7 +165,7 @@ void UpdateFrame(Game &g) {
 #endif
 
     UpdateSmoke(g.smoke, plane.position, GetPlaneForward(plane), plane.damaged && g.screen == Screen::Playing, g.gfx.smokePuffs, dt);
-    UpdateDebris(g.debris, world, g.gfx.debrisPieces, dt);
+    UpdateDebris(g.debris, world, dt);
     UpdatePlaneAnimation(g.planeAnim, plane, input, level.crashed, g.gfx.pilotHead, g.planeParams.maxSpeed, dt);
     if (g.screen == Screen::Playing) {
         UpdateEngineAudio(engineAudio, plane.enginePower, plane.speed / g.planeParams.maxSpeed);

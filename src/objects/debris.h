@@ -16,6 +16,13 @@ struct DebrisPiece {
     bool settled;
 };
 
+struct ImpactInfo {
+    Vector3 point;
+    Vector3 velocity;
+    float speed;
+    bool ground;
+};
+
 constexpr int kMaxFixedDebrisParts = PART_PILOT_HEAD;
 constexpr int kMaxDebrisPieces = kMaxBreakGroups > kMaxFixedDebrisParts ? kMaxBreakGroups : kMaxFixedDebrisParts;
 
@@ -24,8 +31,8 @@ struct DebrisState {
     int count = 0;
 };
 
-void SpawnDebris(DebrisState &debris, const PlaneModel &planeModel, const PlaneState &plane, Vector3 planeVelocity, int pieceCount);
-void UpdateDebris(DebrisState &debris, const WorldState &world, int pieceCount, float dt);
+void SpawnDebris(DebrisState &debris, const PlaneModel &planeModel, const PlaneState &plane, const ImpactInfo &impact, int pieceCount);
+void UpdateDebris(DebrisState &debris, const WorldState &world, float dt);
 void ClearDebris(DebrisState &debris);
 unsigned DebrisDetachedParts(const DebrisState &debris);
 unsigned DebrisDetachedGroups(const DebrisState &debris);
