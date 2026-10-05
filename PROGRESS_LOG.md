@@ -12,6 +12,13 @@ owner can skim what happened without digging through git log. Format:
 - PR: <link or branch, if one was opened>
 ```
 
+## 2026-10-05 night run (37)
+- Did: Release blocker 1 (release-relevant, cherry-pick into `release`): throttle is now a persistent engine power level (W/S and touch +/- change it at `throttleRate`, it stays put; thrust = power x accel) and never brakes in the air. Added gravity: unpowered flight trims nose-down to about a 9:1 glide, and below stall speed the plane sinks (fall speed up to about 13 m/s, a hard landing on impact) instead of hovering. Propeller windmills when power is off but the plane moves; engine sound follows power. Wheel brake (S) works on the ground once power is 0. `BiplaneParams` retuned (accel 12, throttleRate 2.0, dragQuad 0.0031, levelPower 0.20); `climbDecel` replaced by `gravity`. HUD shows Power %. ARCHITECTURE.md updated.
+- Why: Owner's play session on the release candidate: S stopped the plane dead in mid-air.
+- Verified: code-reviewer and game-tester both flagged one blocker on the first version: level 1 gold (24 s) became unreachable (gate in about 25 s). One fix pass retuned the plane; re-review with an independent headless sim of the real `flight.cpp` gave gate in 21.0 s, takeoff 2.2 s / 20 m, glide about 9:1, stall fall confirmed, no braking from S in the air. game-tester built the first version with ASan/UBSan under Xvfb and drove menu, takeoff, crash, R, M with no errors; the fixed version was only compile-checked (g++ -std=c++23) and sim-tested, not re-run in the game. CI status: see PR.
+- Open: Feel is unchecked by a human (power ramp, takeoff, stall mush, audio). Landing from top speed needs an early power cut: cutting at the gate rolls out about 500 m, past the 300 m landing zone and the 1400 m world edge. Unused `input` param in `UpdatePlaneAnimation` may remain (reviewer nit; developer says the surface animation still uses it). Next: blocker 2 (flat turns).
+- PR: see PR into dev from agents
+
 ## 2026-10-04 night run (36)
 - Did: Compile-time guard in `src/objects/debris.cpp`: `kSpawnOrder` is now `constexpr`, with a `static_assert` that its length equals `kMaxDebrisPieces` and another that it never contains `PART_PILOT_HEAD`. No behaviour change.
 - Why: Run 33-era reviewer nit (B5): reordering the `PlanePart` enum or the spawn array could silently throw the pilot head as debris. Tracks A and B are otherwise done; remaining items need the owner (device, Apple enrolment, judging the look), so I kept this to the one concrete follow-up rather than inventing work.
