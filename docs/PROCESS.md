@@ -24,7 +24,7 @@ flowchart LR
     pm --> builder["Builder-команда<br/>делает"]
     builder --> verifier["Verifier-команда<br/>проверяет"]
     verifier -- "блокер" --> builder
-    verifier -- "ок" --> pr["PR agents → dev"]
+    verifier -- "ок" --> pr["PR agents/задача → dev<br/>(rebase)"]
     pr --> ci["CI: desktop + web"]
     ci --> log["PROGRESS_LOG.md<br/>отчёт"]
     log --> owner["Владелец<br/>смотрит и играет"]
@@ -61,16 +61,25 @@ flowchart LR
 
 ```mermaid
 flowchart LR
-    agents --> dev --> release --> main
+    task["agents/задача<br/>session/тема"] -- "rebase" --> dev
+    dev --> fix["release-fix/фикс"] -- "rebase" --> release
+    release --> main
     design -. "по решению владельца" .-> dev
 ```
 
+Правило владельца: **в `dev` и `release` ничего не коммитится напрямую.**
+Каждая задача — своя промежуточная ветка, интеграция через rebase (без
+merge-коммитов), ветки после интеграции не удаляются — по ним видна
+история каждой задачи.
+
 | Ветка | Что в ней | Кто пишет |
 | --- | --- | --- |
-| `agents` | рабочая ветка агентов | агенты |
-| `dev` | всё, что слито и прошло CI | агенты через PR, интерактивная сессия |
+| `agents/<дата-время>-<задача>` | одна задача агента, остаётся для истории | агенты |
+| `session/<тема>` | одна тема интерактивной сессии | интерактивная сессия |
+| `dev` | всё, что прошло проверку и CI | только через rebase из веток выше |
 | `design` | генератор самолётов и новые модели | интерактивная сессия, агент aircraft-generator |
-| `release` | кандидат на выпуск, только фиксы | release-manager (cherry-pick фиксов из `dev`) |
+| `release-fix/<фикс>` | перенос одного фикса в релиз | release-manager |
+| `release` | кандидат на выпуск, только фиксы | только через rebase из `release-fix/*` |
 | `main` | то, что выпущено, с тегом версии | только по «да» владельца |
 
 Выпуск ведёт release-manager по плану `design-notes/rollout-plan.md`:
