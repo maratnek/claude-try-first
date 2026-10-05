@@ -77,7 +77,6 @@ int TopFailedAncestor(const BreakData &data, const bool *failed, int group) {
     return top;
 }
 
-// Fills `detach` per group: joints that fail from the impact, their subtrees, and the piece cap.
 int SelectDetached(const BreakData &data, const PlaneState &plane, const ImpactInfo &impact, int cap, bool *detach, float *overload) {
     const int n = (int)data.groups.size();
     const float energy = 0.5f * impact.speed * impact.speed;
