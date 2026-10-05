@@ -2,16 +2,21 @@
 # Units: metres, kg, plane space (Y up, nose +Z, +X right wing). Node names are the GLB node names.
 # Every listed node and its descendants join the group unless a descendant is listed in another group.
 # Unlisted meshes (pilot, axle, ...) belong to the hull. Strength is in impact energy units (0.5 * speed^2:
-# 15 m/s = 112, 25 m/s = 312, 45 m/s = 1250) and is not used by the physics yet.
+# 15 m/s = 112, 25 m/s = 312, 45 m/s = 1012). A joint fails when energy * exposure >= strength * joint scale
+# (exposure 0.2..1.0 from the joint's direction versus the impact, +0.3 for the lowest joints on ground impact,
+# +-15% seeded jitter), so a trailing group such as the tail only sees about 0.2 of the energy in a head-on hit.
+# `keep` lines: when the piece cap is tight, one detached member of each line is kept first (readability).
 # group name mass strength nodes...
 group hull        180  -    fuselage fuselage_band cockpit_rim cockpit_interior headrest windscreen tail_cone tailplane_fairing gear_suspension tail_skid tail_skid_shoe
-group engine       90  1000 engine_cowl cowl_ring
+group engine       90  2000 engine_cowl cowl_ring
 group prop          6  40   propeller
-group tail_fin      8  150  vertical_fin rudder_pivot
-group tail_plane   10  150  horizontal_stabilizer elevator_pivot
-group wing_up      44  280  wing_upper wing_upper_leading_edge wing_upper_marking aileron_left_pivot aileron_right_pivot
+group tail_fin      8  40   vertical_fin rudder_pivot
+group tail_plane   10  40   horizontal_stabilizer elevator_pivot
+group wing_up      44  400  wing_upper wing_upper_leading_edge wing_upper_marking
 group wing_lo      40  300  wing_lower wing_lower_leading_edge strut_l_front strut_l_rear strut_r_front strut_r_rear wire_l_c wire_l_d wire_r_c wire_r_d
-group cabane        6  200  cabane_l_front cabane_l_rear cabane_r_front cabane_r_rear
+group aileron_l    4  70  aileron_left_pivot
+group aileron_r    4  70  aileron_right_pivot
+group cabane        6  400  cabane_l_front cabane_l_rear cabane_r_front cabane_r_rear
 group gear_l       14  80   gear_l_front gear_l_rear bungee_l wheel_left
 group gear_r       14  80   gear_r_front gear_r_rear bungee_r wheel_right
 # joint child parent x y z strength_scale
@@ -20,9 +25,14 @@ joint prop       engine  0.0  1.0  2.9  0.5
 joint tail_fin   hull    0.0  1.2 -3.6  1.0
 joint tail_plane hull    0.0  1.0 -3.6  1.0
 joint wing_lo    hull    0.0  0.6 -0.15 1.4
+joint aileron_l wing_up -3.0 2.0 -0.3 1.0
+joint aileron_r wing_up  3.0 2.0 -0.3 1.0
 joint cabane     hull    0.0  1.4  0.2  1.0
 joint wing_up    cabane  0.0  2.0  0.2  1.0
 joint gear_l     hull   -0.7  0.8  1.35 0.8
 joint gear_r     hull    0.7  0.8  1.35 0.8
-order prop gear_l gear_r tail_plane tail_fin wing_up wing_lo cabane engine
+order prop gear_l gear_r tail_plane tail_fin aileron_l aileron_r wing_up wing_lo cabane engine
+keep prop
+keep wing_up wing_lo
+keep gear_l gear_r
 fuel_tank 0.0 1.0 1.4 0.5

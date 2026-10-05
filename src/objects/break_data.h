@@ -25,6 +25,7 @@ struct BreakData {
     std::vector<BreakGroup> groups;
     std::vector<int> meshGroup;  // per raylib mesh: index into groups
     std::vector<int> order;      // detach priority, weakest first
+    std::vector<std::vector<int>> keep;  // classes of which one detached member must survive the piece cap
     bool hasFuelTank = false;
     Vector3 fuelTank = {0.0f, 0.0f, 0.0f};
     float fuelRadius = 0.0f;
