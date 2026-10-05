@@ -192,7 +192,7 @@ void UpdateFrame(Game &g) {
     DrawFinishGate(level);
     DrawCheckpoints(level);
     if (g.gfx.blobShadow) DrawBlobShadow(world, plane.position, plane.yaw);
-    DrawPlaneObject(planeModel, g.planeAnim, plane.position, plane.yaw, plane.pitch, plane.roll, g.gfx.propBlur, DebrisDetachedMask(g.debris));
+    DrawPlaneObject(planeModel, g.planeAnim, plane.position, plane.yaw, plane.pitch, plane.roll, g.gfx.propBlur, DebrisDetachedMask(g.debris), plane.damaged && g.gfx.damageVisuals);
     DrawDebris(g.debris, planeModel);
     if (g.gfx.smokePuffs > 0) DrawSmoke(g.smoke, camera);
     if (g.gfx.speedStreaks > 0) DrawStreaks(g.streaks);

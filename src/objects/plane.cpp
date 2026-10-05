@@ -23,6 +23,10 @@ constexpr float kPropMaxDegPerSec = 2400.0f;
 constexpr float kHeadMaxDeg = 35.0f;
 constexpr float kHeadFollowRate = 6.0f;
 constexpr float kWheelRadius = 0.44f;
+constexpr float kDamagedAileronDroopDeg = 32.0f;
+constexpr float kDamagedAileronControl = 0.3f;
+constexpr Color kScorchTint = {55, 48, 44, 255};
+constexpr unsigned kScorchedParts = (1u << PART_AILERON_LEFT) | (1u << PART_RUDDER);
 constexpr float kMinHingeAngleRad = 1.0f * DEG2RAD;
 
 struct PartSpec {
@@ -235,7 +239,7 @@ void UpdatePlaneAnimation(PlaneAnim &anim, const PlaneState &plane, const Flight
     anim.wheelAngle = fmodf(anim.wheelAngle + anim.wheelRate * dt, 360.0f);
 }
 
-void DrawPlaneObject(const PlaneModel &planeModel, const PlaneAnim &anim, Vector3 position, float yawDegrees, float pitchDegrees, float rollDegrees, bool propBlur, unsigned detachedParts) {
+void DrawPlaneObject(const PlaneModel &planeModel, const PlaneAnim &anim, Vector3 position, float yawDegrees, float pitchDegrees, float rollDegrees, bool propBlur, unsigned detachedParts, bool showDamage) {
     if (!planeModel.loaded) return;
 
     rlPushMatrix();
@@ -258,6 +262,7 @@ void DrawPlaneObject(const PlaneModel &planeModel, const PlaneAnim &anim, Vector
         angles[PART_ELEVATOR] = anim.elevator * kElevatorMaxDeg;
         angles[PART_AILERON_RIGHT] = anim.aileron * kAileronMaxDeg;
         angles[PART_AILERON_LEFT] = -anim.aileron * kAileronMaxDeg;
+        if (showDamage) angles[PART_AILERON_LEFT] = angles[PART_AILERON_LEFT] * kDamagedAileronControl - kDamagedAileronDroopDeg;
         angles[PART_WHEEL_RIGHT] = anim.wheelAngle;
         angles[PART_WHEEL_LEFT] = anim.wheelAngle;
         angles[PART_PILOT_HEAD] = anim.headYaw;
@@ -283,6 +288,13 @@ void DrawPlaneObject(const PlaneModel &planeModel, const PlaneAnim &anim, Vector
                 Matrix transform = part >= 0 ? transforms[part] : MatrixIdentity();
                 Material &material = planeModel.model.materials[planeModel.model.meshMaterial[i]];
                 Color original = material.maps[MATERIAL_MAP_DIFFUSE].color;
+                bool scorched = showDamage && part >= 0 && (kScorchedParts & (1u << part));
+                if (scorched) {
+                    Color &c = material.maps[MATERIAL_MAP_DIFFUSE].color;
+                    c.r = (unsigned char)(original.r * kScorchTint.r / 255);
+                    c.g = (unsigned char)(original.g * kScorchTint.g / 255);
+                    c.b = (unsigned char)(original.b * kScorchTint.b / 255);
+                }
                 if (blur) {
                     material.maps[MATERIAL_MAP_DIFFUSE].color.a = (unsigned char)(fmaxf(original.a, kBlurMinAlpha) * blurAlpha);
                     // The disc is a single-sided plane facing forward and raylib ignores glTF doubleSided,
