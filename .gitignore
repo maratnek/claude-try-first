@@ -3,3 +3,4 @@ CMakeUserPresets.json
 *.o
 *.obj
 .DS_Store
+graphics.cfg
