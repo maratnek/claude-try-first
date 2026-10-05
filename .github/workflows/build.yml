@@ -2,7 +2,7 @@ name: Build
 
 on:
   push:
-    branches: [main, release, dev, agents, start-with-raylib]
+    branches: [main, release, dev, 'agents/**', 'session/**', 'release-fix/**']
   pull_request:
     branches: [main, release, dev]
 

@@ -396,7 +396,15 @@ every run and weigh real entries over invented ideas once any exist.
 
 ## Branches
 
-Flow: `agents` → `dev` → `release` → `main`.
+Flow: `agents/<task>` or `session/<topic>` → `dev` → `release` → `main`.
+
+**Owner's rule: nothing lands on `dev` (or `release`) directly.** Every
+change — by an agent run or an interactive session — is committed on its
+own intermediate branch first, and that branch is kept on GitHub after it
+is integrated, so each task's history can be reviewed later. Integrate
+with **rebase, not merge**: rebase the branch onto the latest target and
+fast-forward the target (for PRs: `gh pr merge --rebase`). No merge
+commits, no deleting task branches after integration.
 
 - **main** — production: exactly what has shipped. Only the project owner
   promotes `release` into `main`, after testing the candidate, and tags
@@ -405,16 +413,24 @@ Flow: `agents` → `dev` → `release` → `main`.
 - **release** — the current release candidate (cut 2026-10-05 from `dev`).
   It only gets stabilization fixes; test builds (itch.io, TestFlight) are
   made from it. Bugs are fixed on `dev` first; the **release-manager**
-  agent then cherry-picks the merged, CI-green, release-relevant fixes
-  into `release` (one cherry-pick per fix, never force-push). Cutting a
-  whole new candidate from `dev` needs the owner's ask.
+  agent then brings the merged, CI-green, release-relevant fixes into
+  `release` via its own branch `release-fix/<slug>` cut from `release`
+  (cherry-pick there, PR into `release`, rebase-merge; never force-push).
+  Cutting a whole new candidate from `dev` needs the owner's ask.
 - **dev** — integration branch for ongoing work.
-- **agents** — the scheduled routine's own working branch. It commits and
-  pushes here freely, and may merge `agents` into `dev` on its own. It
-  must never touch `main`, and only the release-manager role may write to
-  `release` (cherry-picks as above). If a bug looks release-relevant, fix
-  it on `dev` as usual and mark it "release-relevant" in the run's
-  PROGRESS_LOG.md entry so release-manager picks it up.
+- **agents/<YYYY-MM-DD-HHMM>-<slug>** — one fresh branch per agent task,
+  cut from the latest `origin/dev`, e.g. `agents/2026-10-05-1400-flat-turns`.
+  The run commits there, opens a PR into `dev`, and rebase-merges it
+  itself. The branch is never deleted, never reused for another task, and
+  never force-pushed after the PR is opened. Agents must never touch
+  `main`, and only the release-manager role writes to `release` (as
+  above). If a bug looks release-relevant, fix it on `dev` as usual and
+  mark it "release-relevant" in the run's PROGRESS_LOG.md entry so
+  release-manager picks it up. (The old shared `agents` branch is retired;
+  leave it as-is.)
+- **session/<topic>** — interactive sessions with the owner use the same
+  pattern: commit on `session/<topic>`, push, rebase onto `dev`,
+  fast-forward `dev`, keep the branch.
 - **Going public is the owner's call:** making the itch.io page public,
   promoting `release` into `main`, tagging a version, and any App Store /
   external TestFlight submission happen only on the owner's explicit go.
@@ -426,7 +442,7 @@ Flow: `agents` → `dev` → `release` → `main`.
 
 The scheduled/cloud routine that drives ongoing work on this game has the
 project owner's explicit, standing permission to `git commit`, `push`, and
-merge its `agents` branch into `dev` on its own, without waiting for
+rebase-merge its `agents/<task>` branch into `dev` on its own, without waiting for
 approval first — the owner reviews the result asynchronously rather than
 approving each action in advance. It must never push to or merge into
 `main`; it writes to `release` only through release-manager cherry-picks
@@ -444,14 +460,22 @@ pass, even on a run that fires more frequently (e.g. a nighttime run).
 Extra throughput should come from running more often, not from inflating
 the size of any single run.
 
-## Merging: open a PR, don't merge silently
+## Integrating: one branch + one PR per task, rebase-merged
 
-Instead of a plain `git merge`, push the `agents` branch and open a pull
-request into `dev` (`gh pr create --base dev --head agents --title "..."
---body "..."`), then merge it yourself (`gh pr merge --merge`) — you still
-have full autonomy to do this without waiting for a human approval. The
-point of the PR is a visible, diffable record on GitHub, not a gate. Write
-the PR body as the same clear explanation described above.
+Push the task branch and open a pull request into `dev`
+(`gh pr create --base dev --head agents/<task> --title "..." --body-file ...`),
+then rebase-merge it yourself (`gh pr merge --rebase`, never `--merge`,
+never `--delete-branch`) — you still have full autonomy to do this without
+waiting for a human approval. The point of the PR is a visible, diffable
+record on GitHub, not a gate. Write the PR body as the same clear
+explanation described above.
+
+**Overlap guard for scheduled runs:** another run is in progress if there
+is an open PR from any `agents/*` branch into `dev`, or an `agents/*`
+branch with commits not in `origin/dev` whose last commit is less than 2
+hours old. An unmerged `agents/*` branch older than that is an abandoned
+or blocked task: leave it untouched (it is history), mention it in the
+PROGRESS_LOG entry, and carry on.
 
 ## CI
 
