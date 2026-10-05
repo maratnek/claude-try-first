@@ -12,6 +12,13 @@ owner can skim what happened without digging through git log. Format:
 - PR: <link or branch, if one was opened>
 ```
 
+## 2026-10-05 evening run (40)
+- Did: Release blocker 4: `design-notes/progression.md`, a proposal (nothing built) with three loops: A star ladder with a teaser level-select map, B open island opened by skill, C hangar of locked planes plus a flight school of aerobatic tricks. Covers level 2+, shared `progress.cfg` persistence (desktop, Web, iOS), Track D and aerobatics fit, run-count costs, Apple 4.2 risk. The designer suggests A first, then C; the owner decides. Release-manager also cherry-picked blocker 3 (dev 98a5e87) into `release` as 60b3b30 on `release-fix/2026-10-05-1610-blocker-3` (PR #46, release-relevant).
+- Why: Next item in the priority list; blocker 3 was on `dev` but not yet on `release`.
+- Verified: code-reviewer read the note against CLAUDE.md and the source (ComputeStars, 24 s gold, session-only best time, graphics.cfg, menu entries): no blockers; one nit fixed (levels count). Run estimates are guesses. The cherry-pick applied cleanly but was not compiled locally (no raylib here); CI status: see PR.
+- Open: Owner must pick a progression loop and answer the three questions at the end of the note. Next: blocker 5 (rollout plan).
+- PR: PR into dev from agents/2026-10-05-1610-progression-proposal; PR #46 into release
+
 ## 2026-10-05 day run (39)
 - Did: Release blocker 3 (release-relevant, cherry-pick into `release`): a plane that has clipped a soft obstacle now shows it. The left aileron hangs bent (32 deg, follows control input at 30%) and the left aileron and rudder are darkened to a burnt tint, on top of the existing smoke and HUD. New toggle `GraphicsSettings::damageVisuals` (on for Medium and High, off for Low); `damaged`, HUD and smoke still work on every preset. No physics change. ARCHITECTURE.md and DEVELOPMENT_HISTORY.md updated. Also release-manager cherry-picked blockers 1 and 2 (a572fb9, bef8d74) into `release` through PR #44 (build, web, ios-sim green, rebase-merged).
 - Why: Next item in the priority list; blockers 1 and 2 were already on `dev` but not on `release`.
