@@ -12,6 +12,13 @@ owner can skim what happened without digging through git log. Format:
 - PR: <link or branch, if one was opened>
 ```
 
+## 2026-10-06 night run (48)
+- Did: Monetization options note (last lower-priority item, design only): `design-notes/monetization.md` with six options (free baseline, itch.io tip text, earned or paid cosmetic paints, one-time non-gating supporter unlock, premium upfront, ads), pros and cons, Web vs iOS table, fit with progression loops and the 60% criterion, cost in runs, recommended order, six open questions for the owner. Docs history row added. No code changed.
+- Why: Blockers 1-6 are done or waiting on the owner, and the world-improvements note is done, so this is the next listed item. Not release-relevant.
+- Verified: code-reviewer checked every repo claim against progression.md, rollout-plan.md and source: no blockers; two nits fixed (a filename mention reworded, a Loop C cost clarified). Store-rule claims (Apple 3.1.1, 4.2, fees, ATT, itch.io terms) come from memory and are all marked verify-before-relying. Nothing built or run (docs only). Dev CI before this run: green on the last 4 merges. CI status of this PR: see PR.
+- Open: Owner picks a monetization direction (or stays free) and answers the open questions at the end of the note, including the biplane model's licence and the Apple paid-apps and itch.io payout setup. Blocker 4 still needs the owner's progression pick; world-improvements still needs the owner's picks.
+- PR: PR into dev from agents/2026-10-06-0310-monetization
+
 ## 2026-10-06 night run (47)
 - Did: World improvements proposal (lower-priority item, design only): `design-notes/world-improvements.md` with 8 cheap ideas (gradient sky and sun, distance haze, landmarks, biomes, lake/river, time-of-day presets, readable obstacles, ambient birds/balloon), each with what the player sees, cost in runs, what it does on Low, and the A1 toggle it would use; recommended order and open questions for the owner. Docs history row added. No code changed.
 - Why: Blockers 1-6 are done or waiting on the owner (blocker 4 needs the progression pick), so the next listed item is this proposal. Not release-relevant.
