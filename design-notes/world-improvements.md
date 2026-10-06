@@ -5,70 +5,71 @@ Status: PROPOSAL, AWAITING OWNER CHOICE. Nothing here is built. The owner picks 
 Inputs: PLAYER_FEEDBACK.md is empty (no players yet), so this is designed against the niche (chill/arcade low-poly flight, comps A Short Hike / Sky Rogue). Revisit once itch.io feedback exists.
 
 ## What exists today (checked in src/)
-- Terrain: one sine-based heightmap, flat corridor at x=0, grass/dirt/rock vertex colours by height and slope (`terrainColors`), flat backdrop beyond the patch (`world.cpp`).
-- Scatter: only two prop kinds, tree (cone) and rock, placed at random outside the corridor, scaled by `scatterDensity` (`scatter.cpp`).
-- Clouds: ellipsoid puffs, count by `cloudCount`. Weather: rain or snow, alternating per run (`AdvanceWeather`).
-- Sky: a flat `SKYBLUE` clear colour, no gradient, no sun, no fog. Lighting is baked into vertex colours.
-- Obstacles: 4 hard pillars (6 m tall, radius 3) and 4 soft ones, drawn as wires when `obstacleWires`; distance-marker pillars (`distanceMarkers`).
+- Terrain: one sine heightmap, flat corridor at x=0, grass/dirt/rock vertex colours (`terrainColors`), plus a 50000 m `DrawPlane` backdrop in single-colour `kGrass` (`world.cpp`).
+- Scatter: trees and rocks only, outside the corridor, culled at a hard-coded 450 m; clouds culled at 600 m (both literals in `DrawWorldObject`, not settings).
+- Weather: rain or snow, alternating per run. Sky: flat `ClearBackground(SKYBLUE)`; no gradient, sun or fog.
+- Obstacles are spheres, not pillars. Hard: red `DrawSphere`, centre 6 m above ground, radius 3. Soft: green foliage sphere (radius 1.6-2.5) on a brown trunk cylinder when raised, so they read as trees/bushes. `obstacleWires` adds sphere wires. 5 distance-marker pillars per side (`distanceMarkers`).
 - Level: 1 km, rings, finish gate, landing after the gate.
-Nothing in the world is a landmark, and nothing tells the player where they are on the 1 km besides the markers.
 
-## Ideas (each is cheap; all are draw-only unless stated)
+## What Low gets (Web/iOS default, `ApplyGraphicsPreset`)
+Low is: `terrainColors` off (flat green terrain), `scatterDensity` 0, `cloudCount` 0, `obstacleWires` off (High only), `distanceMarkers` off, rain 0, snow 0 (snow is High only). Only `blobShadow` is on. So the world on Low is a flat green field with red and green spheres: any idea gated on those toggles is invisible exactly where most players are. Rule used below: an idea that matters for the first impression gets a cheap always-on path on Low or a new bool that Low keeps on; the rest is explicitly "none on Low".
+
+## Ideas (each is cheap; all are draw-only)
 
 ### 1. Gradient sky and sun disc
-- Sees: sky fades from deep blue at the top to pale near the horizon, with a low-poly sun disc. Rain/snow runs get a grey gradient.
-- Cost: 1 run. One full-screen quad drawn before the 3D pass (4 vertices, no texture) plus one small fan. Zero perf impact.
-- Toggle: always on (cheaper than the clear colour path in practice); sun disc hides when `cloudCount` is 0 only if it looks wrong, otherwise no new toggle.
+- Sees: sky fades from deep blue to pale at the horizon, plus a low-poly sun disc. Rain/snow runs use a grey gradient.
+- Cost: 1 run. One full-screen quad (4 vertices, vertex colours, no texture) before the 3D pass, one small fan. No measurable cost expected; measure on iPhone 11 before claiming.
+- Low: gradient yes, always on, no toggle. Sun disc also draws on Low (it is a single fan, independent of `cloudCount`); if it looks odd with no clouds the owner can veto it.
 
-### 2. Distance fog / horizon haze
-- Sees: hills and far props fade into the sky colour, which hides the backdrop-plane seam and pop-in of scatter.
-- Cost: 1-2 runs. Simplest is blending vertex colours toward the sky colour by distance at mesh build (terrain is static) and tinting scatter by distance in `DrawScatter`. A shader fog is not needed. Risk: the terrain tint is baked once, so view-dependent fog is only approximate (use a height-based haze, not camera-based).
-- Toggle: `terrainColors` (flat colours skip it). Allows shrinking `drawDistance` on Low.
+### 2. Distance haze
+- Sees: far hills fade toward the sky colour.
+- Cost: 1-2 runs. Limits: the 50000 m backdrop is one `kGrass` colour, so baked vertex haze on the 1 km terrain cannot hide the horizon seam; hiding it needs the plane drawn as a gradient (vertex colours blending to the sky horizon colour, 4 vertices) in `DrawWorldObject`. Scatter pop-in comes from the 450 m cull; haze only softens it, it does not remove it. Terrain haze is baked once, so it is height-based, not camera-based.
+- Low: only the backdrop-plane gradient (always on, cheap). The terrain-colour haze does nothing on Low because `terrainColors` is off there (flat colours).
 
-### 3. Landmarks: windmill, lighthouse, lone big tree (3 fixed ones along the strip)
-- Sees: a windmill with slowly spinning blades at z~250 beside the corridor (x=45), a tall striped lighthouse at z~600 (x=-60), a lone oversized tree at z~850. Seen from the takeoff roll as goals, and they give "I passed the windmill" orientation. Distinct silhouettes also make levels 2+ (progression.md Loop A) feel different by swapping the set.
-- Cost: 2 runs. Procedural prisms/cones like `AddTree`; about 100 triangles each; 3 objects total. Behind a `AddLandmark(world, kind, x, z)` function so a loaded model can replace it later (CLAUDE.md convention). Must be placed outside obstacle clearance and not collide (decorative, or optionally solid hard obstacle).
-- Toggle: `scatterDensity` > 0 (draw), skipped at 0. On Low, still drawn since only 3.
+### 3. Landmarks: windmill, lighthouse, lone big tree
+- Sees: windmill with slowly turning blades at z~250 (x=45), striped lighthouse at z~600 (x=-60), oversized tree at z~850. Orientation on the 1 km and a different silhouette set per level later.
+- Cost: 2 runs. Procedural prisms/cones like `AddTree`, about 100 triangles each, 3 in total, behind `AddLandmark(world, kind, x, z)` so a model can replace them. Outside obstacle clearance; decor only unless the owner wants solid.
+- Toggle: not `scatterDensity` (0 on Low). Own rule: a new `landmarks` bool, true on all presets because only 3 objects are drawn. Blade spin stops on Low.
 
 ### 4. Biome zones along z (meadow / forest / rocky / sand)
-- Sees: the strip changes colour as you fly: meadow green, a dense dark-green forest stretch, a grey rocky stretch, and a sandy dry stretch near the finish. Gives a sense of travel.
-- Cost: 2 runs. Add a biome function of z (and the colour palette per biome) to `TerrainVertexColor`; scatter picks tree/rock/cactus-like (cone-less) kinds by biome and density multiplier per biome. Static, baked in the existing vertex colour buffer, so no runtime cost.
-- Toggle: `terrainColors` for the colours, `scatterDensity` for the prop mix.
+- Sees: ground colour and prop mix change along the strip.
+- Cost: 2 runs. Biome function of z in `TerrainVertexColor`, per-biome density in scatter. Baked, no runtime cost.
+- Low: nothing, since Low has flat terrain colours and no scatter. To give Low anything, flat mode would need a per-biome single colour (4 colour bands in the existing `terrainFlatColors` buffer), which costs +0.5 run and is still free at runtime. Recommended if the idea is taken.
 
-### 5. Water: a lake or river with a flat blue surface
-- Sees: a shallow lake low in a hollow beside the corridor, and a river strip crossing at z~400. Sun-like shine is faked by a lighter blue band.
-- Cost: 2 runs. Terrain colour below a water height becomes blue (no extra mesh) plus one flat translucent-free quad at that height. Flying low over water gives the chill feel. Question: what does the plane do touching water (nothing, crash, splash)? Default: nothing (decor only).
-- Toggle: `terrainColors`; flat-colour mode keeps all green (water omitted).
+### 5. Water: lake and river
+- Sees: shallow lake beside the corridor, river strip crossing at z~400, decor only.
+- Cost: 2 runs. Terrain colour below a water height goes blue plus one flat quad at that height.
+- Low: with flat colours the lake would be one blue quad only (no shaded shore); draw the quad on Low, skip the colour work. Touching water does nothing.
 
-### 6. Time of day: dawn, noon, dusk presets per run
-- Sees: warmer light and orange-pink sky at dawn/dusk, with long-looking shading and a bigger sun. Pairs with progression.md Loop A level 5 (snow night/dusk) and gives replays a different mood with no new level.
-- Cost: 2 runs. A `TimeOfDay` value chosen per run (like `AdvanceWeather`) feeds the sky gradient (idea 1), a terrain colour multiplier (done by re-uploading the colour buffer, as `ApplyTerrainColors` already does), and the cloud tint. No dynamic lights.
-- Toggle: `terrainColors` (flat mode ignores the tint, only the sky changes). Depends on idea 1.
+### 6. Time of day: dawn, noon, dusk per run
+- Sees: warmer sky and larger sun at dawn/dusk, tinted terrain and clouds.
+- Cost: 2 runs. A `TimeOfDay` value per run feeds the sky gradient (idea 1), a terrain colour multiplier (re-uploading the colour buffer as `ApplyTerrainColors` does) and cloud tint. No dynamic lights. Depends on idea 1.
+- Low: sky and sun only (the terrain tint needs `terrainColors`; the flat `kGrass` colour could take the tint as a single multiplier, +0.5 run). Clouds are off on Low.
 
-### 7. Readable obstacles: colour banding and shadow/ground markers
-- Sees: hard pillars get red/white stripes, soft ones a warm yellow tint, so "this will break you" vs "this will scratch you" is obvious at speed. A bright ground ring under each obstacle shows where it stands against the terrain.
-- Cost: 1 run. Obstacle drawing only (a few extra vertices per pillar). Directly serves the crash/soft-damage design already in the game and removes "I could not see it" crashes. Most likely player complaint once feedback exists.
-- Toggle: `obstacleWires` (stripes replace/accompany the wires, ground ring only when on). Cheap on Low.
+### 7. Readable obstacles (spheres): bands and ground ring
+- Sees: the red hard sphere gets a white equator band or two (a short cylinder/ring or a few triangle strips on the sphere), so it reads as a warning ball and not a generic red ball. A dark ground ring/blob under each hard sphere shows where it stands. Soft obstacles keep their green foliage and trunk (no tint change, so they stay "tree/bush"); they only gain the same ground blob. Today the only "readable" cue is wire overlay, which is High only.
+- Cost: 1 run. About 30-60 extra triangles per obstacle, 8 obstacles; reuse the blob-shadow drawing in `DrawBlobShadow`.
+- Toggle: none (always on, all presets), since it is a gameplay-clarity fix and wires are High only. Wires stay as the extra High cue.
 
-### 8. Ambient life: birds and drifting balloon
-- Sees: a flock of 5-8 small V-shaped birds that circle over the hills, one hot air balloon floating near z~700, slowly drifting. Adds movement to a still world.
-- Cost: 2 runs. Birds are 2 triangles each on a sine path, no collision (or optional soft collision later). Balloon is a lathe/cone sphere. About 20-60 draw triangles in total.
-- Toggle: new `ambientLife` bool, off on Low (or capped at 3 birds). Skip entirely if time is short.
+### 8. Ambient life: birds and a drifting balloon
+- Sees: 5-8 V-shaped birds circling over the hills, one balloon near z~700. No collision.
+- Cost: 2 runs, about 20-60 triangles total.
+- Toggle: new `ambientLife` int (bird count). Low: 0 (nothing); Medium 3; High 8.
 
 ## Fit with progression
-Landmarks (3), biomes (4), water (5) and time of day (6) are the parameters Loop A levels 2-5 need (coast, canyon, rain mountains, snow dusk), so they are not wasted: each becomes a `LevelDef` field later. Ideas 1, 2 and 7 improve every level immediately and carry over to Loop B/C unchanged.
+Landmarks (3), biomes (4), water (5), time of day (6) are the parameters progression.md Loop A levels 2-5 need (coast, canyon, rain mountains, snow dusk), so each becomes a `LevelDef` field later. Ideas 1, 2 and 7 improve every level now and carry over to Loops B/C.
 
 ## Recommended order (suggestion only)
-1. Idea 7 (readable obstacles): small and addresses a real gameplay clarity risk.
-2. Idea 1 (sky gradient and sun) then 2 (haze): about 2-3 runs together, biggest visual jump for the cost, hides the horizon seam.
+1. Idea 7 (readable obstacles): small, works on Low, fixes "I could not see it" crashes.
+2. Idea 1 (sky gradient and sun) with idea 2's backdrop gradient: the biggest change for Low players, who otherwise see a flat green field and blue sky.
 3. Idea 3 (landmarks): orientation and screenshots for the itch.io page.
-4. Idea 4 (biomes), then 6 (time of day) as the first step toward level variety.
-5. Ideas 5 and 8 only if the owner wants more life; lowest priority.
+4. Idea 4 (with the flat per-biome colours) then 6.
+5. Ideas 5 and 8 only if the owner wants more life.
 Total for 1+2+3+7: about 5-6 runs.
 
 ## Questions for the owner
-1. Is the target look "bright and cheerful" (stay daytime) or "moody variety" (time of day, idea 6)?
-2. Should landmarks be solid (a crash risk, extra challenge) or decor only?
-3. Is water decor-only acceptable, or must touching it do something (splash, crash)?
-4. Is a new `ambientLife` toggle acceptable, or should the Low preset stay at the current toggle list?
-5. Should any of this wait until Loop A's `LevelDef` table exists, so the ideas become per-level data from the start?
+1. Bright daytime look, or moody variety (idea 6)?
+2. Landmarks solid (crash risk) or decor only?
+3. Water decor only, or should touching it do something?
+4. Are new always-on-Low draws (sky, backdrop gradient, landmarks, obstacle bands) acceptable for the iPhone 11 budget, and a new `landmarks` bool plus `ambientLife` int in `GraphicsSettings`?
+5. Should this wait for Loop A's `LevelDef` table so the ideas become per-level data from the start?
