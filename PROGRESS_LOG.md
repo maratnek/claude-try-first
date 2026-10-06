@@ -12,6 +12,13 @@ owner can skim what happened without digging through git log. Format:
 - PR: <link or branch, if one was opened>
 ```
 
+## 2026-10-06 night run (47)
+- Did: World improvements proposal (lower-priority item, design only): `design-notes/world-improvements.md` with 8 cheap ideas (gradient sky and sun, distance haze, landmarks, biomes, lake/river, time-of-day presets, readable obstacles, ambient birds/balloon), each with what the player sees, cost in runs, what it does on Low, and the A1 toggle it would use; recommended order and open questions for the owner. Docs history row added. No code changed.
+- Why: Blockers 1-6 are done or waiting on the owner (blocker 4 needs the progression pick), so the next listed item is this proposal. Not release-relevant.
+- Verified: code-reviewer checked the note against world.cpp, scatter.cpp, clouds.cpp, settings.cpp: first pass found no hard blocker but two real errors (several ideas were gated on toggles that are off on Low, the Web/iOS default; obstacles were described as pillars but are spheres) plus idea-2 limits (horizon seam is the 50000 m backdrop plane, draw distances are literals). One fix pass by the designer, then re-reviewed. Nothing built or run (docs only). Dev CI before this run: green on the last 4 merges. CI status of this PR: see PR.
+- Open: Owner picks which ideas to build and answers the open questions at the end of the note (always-on draws on Low, new `landmarks` and `ambientLife` settings, wait for Loop A's `LevelDef` table or not). Monetization options note is the last lower-priority item. Blocker 4 still needs the owner's progression pick.
+- PR: PR into dev from agents/2026-10-06-0215-world-improvements
+
 ## 2026-10-06 night run (46)
 - Did: Release blocker 6, iteration 4 (final): fuel and explosion. `PlaneParams::fuelCapacity` (100) and `PlaneState::fuel`, reset with the plane. A crash now starts an explosion scaled by the fuel fraction: High gets 3 fireballs and a white flash, Medium 1 fireball, Low an orange ring; a separate crash smoke column (new `ExplosionSmoke` mode); a re-synthesised boom whose gain and length scale with fuel; debris impulse grows slightly with fuel. Near-empty tanks give debris and a little dust, no fire, no boom. New A1 fields `explosionFire` and `explosionSmoke` (12/32/64). New `src/objects/explosion.{h,cpp}`. Debug-only `FLIGHT_FUEL`, `FLIGHT_PRESET`, `FLIGHT_SPEED` and `--crash-test` behind the CMake option `FLIGHT_DEBUG` (off by default, not set in CI, Web or iOS). Asset-request README, design note, ARCHITECTURE.md and DEVELOPMENT_HISTORY.md updated.
 - Why: Last iteration of blocker 6 in `design-notes/breakup-v2.md`. Not release-relevant.
