@@ -9,6 +9,7 @@ struct EngineAudio {
     Sound touchdownSound{};
     Sound clickSound{};
     Sound damageSound{};
+    Sound boomSound{};  // rebuilt per crash, its length depends on the explosion scale
 };
 
 // Synthesizes a looping engine-drone waveform (no external audio files).
@@ -24,8 +25,9 @@ void UpdateEngineAudio(EngineAudio &audio, float power, float speedFraction);
 // Silences the engine loop (crash, menu); UpdateEngineAudio restarts it.
 void StopEngineAudio(EngineAudio &audio);
 
-// One-shot impact + crunch.
-void PlayCrashSound(EngineAudio &audio);
+// One-shot impact + crunch, plus a low boom whose gain and length grow with
+// the explosion scale s (0..1, from fuel). Below 0.05 there is no boom.
+void PlayCrashSound(EngineAudio &audio, float s);
 
 // One-shot two-note chime for a checkpoint ring.
 void PlayChimeSound(EngineAudio &audio);

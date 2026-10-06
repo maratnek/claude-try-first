@@ -23,6 +23,8 @@ struct GraphicsSettings {
     int cloudCount = 30;
     int smokePuffs = 64;
     int debrisPieces = 12;
+    bool explosionFire = true;
+    int explosionSmoke = 64;
     int speedStreaks = 40;
     int rainDrops = 200;
     int snowFlakes = 200;

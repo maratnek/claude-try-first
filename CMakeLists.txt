@@ -69,9 +69,16 @@ add_executable(FlightGame
     src/objects/rain.cpp
     src/objects/snow.cpp
     src/objects/debris.cpp
+    src/objects/explosion.cpp
     src/objects/character.cpp
 )
 target_include_directories(FlightGame PRIVATE src)
+
+# Test hooks (FLIGHT_FUEL, FLIGHT_PRESET, --crash-test); never enable for Web, iOS or release CI builds.
+option(FLIGHT_DEBUG "Enable debug-only test hooks" OFF)
+if(FLIGHT_DEBUG)
+    target_compile_definitions(FlightGame PRIVATE FLIGHT_DEBUG)
+endif()
 target_link_libraries(FlightGame PRIVATE raylib)
 
 if(EMSCRIPTEN)

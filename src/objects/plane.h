@@ -62,6 +62,9 @@ void UpdatePlaneAnimation(PlaneAnim &anim, const PlaneState &plane, const Flight
 // positive roll banks right).
 void DrawPlaneObject(const PlaneModel &planeModel, const PlaneAnim &anim, Vector3 position, float yawDegrees, float pitchDegrees, float rollDegrees, bool propBlur, unsigned detachedParts = 0, unsigned detachedGroups = 0, bool showDamage = false);
 
+// Rotates a plane-space vector (nose +Z, up +Y, right +X) into world axes.
+Vector3 PlaneToWorld(Vector3 v, const PlaneState &plane);
+
 void DrawPlanePart(const PlaneModel &planeModel, PlanePart part);
 void DrawPlaneGroup(const PlaneModel &planeModel, int group);
 

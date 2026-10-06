@@ -11,12 +11,17 @@
 #include "objects/plane.h"
 #include "objects/world.h"
 #include "objects/smoke.h"
+#include "objects/explosion.h"
 #include "objects/streaks.h"
 #include "objects/debris.h"
 #include "objects/character.h"
 
 #ifdef __EMSCRIPTEN__
 #include <emscripten/emscripten.h>
+#endif
+
+#ifdef FLIGHT_DEBUG
+#include <cstdlib>
 #endif
 
 #ifdef __APPLE__
@@ -31,6 +36,19 @@
 namespace {
 enum class Screen { Menu, Playing, Crashed, Finished };
 
+#ifdef FLIGHT_DEBUG
+// Debug-only crash harness: --crash-test dives into the ground from FLIGHT_SPEED, saves PNGs named
+// "<FLIGHT_SHOT_PREFIX>-<seconds after impact>.png" and quits. FLIGHT_FUEL (0..1) and FLIGHT_PRESET (0..2) also apply.
+struct CrashTest {
+    bool active = false;
+    float speed = 40.0f;
+    float timer = 0.0f;
+    int nextShot = 0;
+    const char *prefix = "crash";
+};
+constexpr float kCrashTestShots[] = {0.1f, 0.3f, 1.0f, 3.0f};
+#endif
+
 struct Game {
     Screen screen = Screen::Menu;
     MenuState menu;
@@ -40,6 +58,8 @@ struct Game {
     PlaneAnim planeAnim;
     WorldState world;
     SmokeState smoke;
+    SmokeState crashSmoke;
+    ExplosionState explosion;
     StreakState streaks;
     DebrisState debris;
     PlaneState planeStart;
@@ -51,10 +71,18 @@ struct Game {
     bool quitRequested = false;
     float masterVolume = 1.0f;
     float volumeShownSeconds = 0.0f;
+#ifdef FLIGHT_DEBUG
+    CrashTest crashTest;
+#endif
 };
 
 bool HasLandedSafely(const PlaneState &plane) {
     return plane.landing == LandingResult::Safe && !plane.airborne;
+}
+
+Vector3 FuelTankWorld(const PlaneModel &planeModel, const PlaneState &plane) {
+    if (!planeModel.breakData.hasFuelTank) return plane.position;
+    return Vector3Add(plane.position, PlaneToWorld(planeModel.breakData.fuelTank, plane));
 }
 
 // Emscripten preloads assets into the virtual FS root; there is no meaningful application directory.
@@ -103,6 +131,8 @@ void UpdateFrame(Game &g) {
     auto resetRun = [&]() {
         plane = planeStart;
         ClearSmoke(g.smoke);
+        ClearSmoke(g.crashSmoke);
+        ClearExplosion(g.explosion);
         ClearStreaks(g.streaks);
         ClearRain(world.rain);
         ClearSnow(world.snow);
@@ -113,11 +143,23 @@ void UpdateFrame(Game &g) {
         StopWindAudio(engineAudio);
     };
 
+#ifdef FLIGHT_DEBUG
+    if (g.crashTest.active && g.screen == Screen::Menu) menuAction = MenuAction::Play;
+#endif
     if (g.screen == Screen::Menu) {
         if (menuAction == MenuAction::Play) {
             resetRun();
             AdvanceWeather(world);
             g.screen = Screen::Playing;
+#ifdef FLIGHT_DEBUG
+            if (g.crashTest.active) {
+                plane.position.y = GetGroundHeight(world, 0.0f, 0.0f) + 60.0f;
+                plane.airborne = true;
+                plane.speed = g.crashTest.speed;
+                plane.pitch = -30.0f;
+                plane.enginePower = 0.5f;
+            }
+#endif
         } else if (menuAction == MenuAction::Exit) {
             g.quitRequested = true;
         }
@@ -138,6 +180,9 @@ void UpdateFrame(Game &g) {
                                 4.0f) * RAD2DEG;
         bool wasAirborne = plane.airborne;
         int passedBefore = CountPassed(level);
+#ifdef FLIGHT_DEBUG
+        if (g.crashTest.active) input.pitch = -0.01f;
+#endif
         UpdatePlaneControls(plane, g.planeParams, input, dt, groundHeight, slopeDeg);
         UpdateLevel(level, plane.position, dt);
         if (CountPassed(level) > passedBefore) PlayChimeSound(engineAudio);
@@ -151,9 +196,14 @@ void UpdateFrame(Game &g) {
         if (hit == ObstacleHit::Hard || plane.landing == LandingResult::Hard) {
             level.crashed = true;
             g.screen = Screen::Crashed;
-            PlayCrashSound(engineAudio);
+            float s = FuelFraction(plane, g.planeParams);
+            PlayCrashSound(engineAudio, s);
             Vector3 velocity = Vector3Add(Vector3Scale(GetPlaneForward(plane), plane.speed), {0.0f, -plane.fallSpeed, 0.0f});
-            ImpactInfo impact = {plane.position, velocity, Vector3Length(velocity), plane.landing == LandingResult::Hard};
+            ImpactInfo impact = {plane.position, velocity, Vector3Length(velocity), plane.landing == LandingResult::Hard, 1.0f + 0.5f * s};
+            Vector3 tank = FuelTankWorld(planeModel, plane);
+            bool high = g.gfx.preset == GraphicsPreset::High;
+            StartExplosion(g.explosion, tank, s, g.gfx.explosionFire ? (high ? 3 : 1) : 0, high);
+            StartExplosionSmoke(g.crashSmoke, tank, s, g.gfx.explosionSmoke);
             SpawnDebris(g.debris, planeModel, plane, impact, g.gfx.debrisPieces);
         } else if (IsRunFinished(level, plane.airborne, plane.speed)) {
             RecordFinish(level);
@@ -165,6 +215,8 @@ void UpdateFrame(Game &g) {
 #endif
 
     UpdateSmoke(g.smoke, plane.position, GetPlaneForward(plane), plane.damaged && g.screen == Screen::Playing, g.gfx.smokePuffs, dt);
+    UpdateExplosionSmoke(g.crashSmoke, dt);
+    UpdateExplosion(g.explosion, dt);
     UpdateDebris(g.debris, world, dt);
     UpdatePlaneAnimation(g.planeAnim, plane, input, level.crashed, g.gfx.pilotHead, g.planeParams.maxSpeed, dt);
     if (g.screen == Screen::Playing) {
@@ -197,12 +249,15 @@ void UpdateFrame(Game &g) {
     DrawPlaneObject(planeModel, g.planeAnim, plane.position, plane.yaw, plane.pitch, plane.roll, g.gfx.propBlur, DebrisDetachedParts(g.debris), DebrisDetachedGroups(g.debris), plane.damaged && g.gfx.damageVisuals);
     DrawDebris(g.debris, planeModel);
     if (g.gfx.smokePuffs > 0) DrawSmoke(g.smoke, camera);
+    DrawExplosion(g.explosion, camera);
+    DrawSmoke(g.crashSmoke, camera);
     if (g.gfx.speedStreaks > 0) DrawStreaks(g.streaks);
     if (g.gfx.characters) {
         DrawCharacterObject((Vector3){-3.0f, GetGroundHeight(world, -3.0f, 3.0f), 3.0f}, 20.0f, BLUE);
         DrawCharacterObject((Vector3){3.0f, GetGroundHeight(world, 3.0f, 3.0f), 3.0f}, -20.0f, ORANGE);
     }
     EndMode3D();
+    DrawExplosionFlash(g.explosion);
 
     if (g.volumeShownSeconds > 0.0f) {
         const char *volumeText = TextFormat("Volume: %d%%", (int)roundf(g.masterVolume * 100.0f));
@@ -238,6 +293,18 @@ void UpdateFrame(Game &g) {
     if (level.crashed) DrawCrashScreen(level, g.inputState.touchUsed);
     if (g.screen == Screen::Finished) DrawResultsScreen(level, plane.damaged, g.inputState.touchUsed);
     DrawTouchOverlay(g.inputState, level.crashed || g.screen == Screen::Finished);
+#ifdef FLIGHT_DEBUG
+    if (g.crashTest.active && g.screen == Screen::Crashed) {
+        g.crashTest.timer += dt;
+        if (g.crashTest.nextShot < (int)(sizeof(kCrashTestShots) / sizeof(kCrashTestShots[0])) &&
+            g.crashTest.timer >= kCrashTestShots[g.crashTest.nextShot]) {
+            Image shot = LoadImageFromScreen();
+            ExportImage(shot, TextFormat("%s-%.1f.png", g.crashTest.prefix, kCrashTestShots[g.crashTest.nextShot]));
+            UnloadImage(shot);
+            if (++g.crashTest.nextShot == (int)(sizeof(kCrashTestShots) / sizeof(kCrashTestShots[0]))) g.quitRequested = true;
+        }
+    }
+#endif
     EndDrawing();
 }
 
@@ -246,7 +313,9 @@ void UpdateFrameCallback(void *arg) {
 }
 }  // namespace
 
-#ifdef FLIGHT_IOS_SDL_MAIN
+#ifdef FLIGHT_DEBUG
+int main(int argc, char **argv) {
+#elif defined(FLIGHT_IOS_SDL_MAIN)
 int main(int, char **) {
 #else
 int main() {
@@ -274,9 +343,21 @@ int main() {
     InitMenu(game.menu);
     EnterMenu(game.menu);
     InitGraphicsSettings(game.gfx);
+#ifdef FLIGHT_DEBUG
+    if (const char *preset = getenv("FLIGHT_PRESET")) ApplyGraphicsPreset(game.gfx, static_cast<GraphicsPreset>(atoi(preset) % 3));
+#endif
     GenerateWorld(game.world, game.gfx);
 
     game.planeStart.position = (Vector3){0.0f, GetGroundHeight(game.world, 0.0f, 0.0f) + 0.3f, 0.0f};
+    game.planeStart.fuel = game.planeParams.fuelCapacity;
+#ifdef FLIGHT_DEBUG
+    if (const char *fuel = getenv("FLIGHT_FUEL")) game.planeStart.fuel = game.planeParams.fuelCapacity * (float)atof(fuel);
+    for (int i = 1; i < argc; i++) {
+        if (TextIsEqual(argv[i], "--crash-test")) game.crashTest.active = true;
+    }
+    if (const char *speed = getenv("FLIGHT_SPEED")) game.crashTest.speed = (float)atof(speed);
+    if (const char *prefix = getenv("FLIGHT_SHOT_PREFIX")) game.crashTest.prefix = prefix;
+#endif
     game.plane = game.planeStart;
 
     game.level.startPosition = game.planeStart.position;

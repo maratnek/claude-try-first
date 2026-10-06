@@ -36,6 +36,7 @@ struct PlaneParams {
     float landingMaxSpeed;      // m/s
     float landingMaxRoll;       // deg
     float landingMaxNoseDown;   // deg; nose-up limit is liftoffPitch so a landing can't re-lift
+    float fuelCapacity;         // units, about 1 l each
 };
 
 PlaneParams BiplaneParams();
@@ -52,6 +53,7 @@ struct PlaneState {
     float fallSpeed = 0.0f;    // m/s downward from lost lift, on top of motion along the nose
     bool airborne = false;
     bool damaged = false;
+    float fuel = 0.0f;  // units; nothing burns it yet, so it only sets the crash explosion size
     float airTime = 0.0f;  // seconds since liftoff
     LandingResult landing = LandingResult::None;
 };
@@ -75,6 +77,8 @@ struct PlaneState {
 // returns to ground-rolling) or Hard (caller should treat it as a crash); it
 // resets on the next liftoff.
 void UpdatePlaneControls(PlaneState &plane, const PlaneParams &params, const FlightInput &input, float dt, float groundHeight, float groundSlopeDeg);
+
+float FuelFraction(const PlaneState &plane, const PlaneParams &params);
 
 // Unit vector the plane's nose currently points along, in world space.
 Vector3 GetPlaneForward(const PlaneState &plane);

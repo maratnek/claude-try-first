@@ -345,3 +345,9 @@ void UnloadPlaneModel(PlaneModel &planeModel) {
         UnloadModel(planeModel.model);
     }
 }
+
+Vector3 PlaneToWorld(Vector3 v, const PlaneState &plane) {
+    v = Vector3RotateByAxisAngle(v, {0.0f, 0.0f, 1.0f}, -plane.roll * DEG2RAD);
+    v = Vector3RotateByAxisAngle(v, {1.0f, 0.0f, 0.0f}, -plane.pitch * DEG2RAD);
+    return Vector3RotateByAxisAngle(v, {0.0f, 1.0f, 0.0f}, plane.yaw * DEG2RAD);
+}

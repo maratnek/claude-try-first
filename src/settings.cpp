@@ -28,6 +28,8 @@ void ApplyGraphicsPreset(GraphicsSettings &settings, GraphicsPreset preset) {
     settings.cloudCount = low ? 0 : (high ? 30 : 12);
     settings.smokePuffs = low ? 0 : (high ? 64 : 24);
     settings.debrisPieces = low ? 4 : (high ? 12 : 6);
+    settings.explosionFire = !low;
+    settings.explosionSmoke = low ? 12 : (high ? 64 : 32);
     settings.speedStreaks = low ? 0 : (high ? 40 : 16);
     settings.rainDrops = low ? 0 : (high ? 200 : 80);
     settings.snowFlakes = high ? 200 : 0;
