@@ -16,3 +16,17 @@ file here instead of generating the asset itself.
 
 This keeps the review loop human-in-the-loop for the one step nothing here
 can do on its own: actually generating the mesh.
+
+## Break data (required for every model that can crash)
+
+Each model request must also include a **break data** section (or the model's
+sidecar `<name>.break.txt`): the break groups (which named nodes move as one
+unit, for example "left lower wing + its struts + wires + aileron"), each
+group's mass in kg and a strength rating (low = prop/gear/tail surfaces, mid =
+wings, high = engine), the joint position for each group (where it attaches to
+its parent, plane space), the **fuel tank position** (`fuel_tank <x> <y> <z>
+<radius>`, where the crash fireball and smoke column start, in the fuselage
+behind the engine), and the weakest-first failure order. Use node names
+exactly as they appear in the GLB. The file format is documented in
+`design-notes/breakup-v2.md`. If a node spans both sides (a one-piece wing),
+either split it in the model or mark it `@L`/`@R` in the sidecar.

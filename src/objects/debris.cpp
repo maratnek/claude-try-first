@@ -55,12 +55,6 @@ static_assert(sizeof(kSpawnOrder) / sizeof(kSpawnOrder[0]) == kMaxFixedDebrisPar
               "kMaxFixedDebrisParts must match kSpawnOrder");
 static_assert(SpawnOrderExcludesHead(), "pilot head must never be thrown as debris");
 
-Vector3 PlaneToWorld(Vector3 v, const PlaneState &plane) {
-    v = Vector3RotateByAxisAngle(v, {0.0f, 0.0f, 1.0f}, -plane.roll * DEG2RAD);
-    v = Vector3RotateByAxisAngle(v, {1.0f, 0.0f, 0.0f}, -plane.pitch * DEG2RAD);
-    return Vector3RotateByAxisAngle(v, {0.0f, 1.0f, 0.0f}, plane.yaw * DEG2RAD);
-}
-
 unsigned Hash(unsigned a, unsigned b) {
     a ^= b + 0x9e3779b9u + (a << 6) + (a >> 2);
     a *= 2654435761u;
@@ -272,10 +266,10 @@ void InitPiece(DebrisPiece &p, const PlaneModel &planeModel, const PlaneState &p
     BuildSupportPoints(p, planeModel, group, part);
 }
 
-void LaunchPiece(DebrisPiece &p, const PlaneState &plane, Vector3 planeVelocity, Vector3 awayDir, float excessEnergy, Vector3 jointFromCentre, unsigned seed, unsigned salt) {
+void LaunchPiece(DebrisPiece &p, const PlaneState &plane, Vector3 planeVelocity, Vector3 awayDir, float excessEnergy, Vector3 jointFromCentre, float boost, unsigned seed, unsigned salt) {
     awayDir = Vector3Normalize(Vector3Add(awayDir, {0.0f, kImpulseUp, 0.0f}));
     awayDir = Vector3Normalize(Vector3Add(awayDir, {Signed(seed, salt) * 0.25f, 0.0f, Signed(seed, salt + 1) * 0.25f}));
-    Vector3 impulse = Vector3Scale(awayDir, kImpulseScale * excessEnergy);
+    Vector3 impulse = Vector3Scale(awayDir, kImpulseScale * excessEnergy * boost);
     p.velocity = Vector3Add(Vector3Scale(planeVelocity, kPlaneMomentumKept), Vector3Scale(impulse, 1.0f / p.mass));
     float speed = Vector3Length(p.velocity);
     if (speed > kMaxDebrisSpeed) p.velocity = Vector3Scale(p.velocity, kMaxDebrisSpeed / speed);
@@ -456,7 +450,7 @@ void SpawnDebris(DebrisState &debris, const PlaneModel &planeModel, const PlaneS
             float excess = fmaxf(overload[group] - 1.0f, kMinExcess) * strength;
             Vector3 away = PlaneToWorld(Vector3Subtract(g.joint, hullCentre), plane);
             if (Vector3Length(away) < 0.01f) away = {0.0f, 1.0f, 0.0f};
-            LaunchPiece(p, plane, planeVelocity, Vector3Normalize(away), excess, Vector3Subtract(g.joint, g.centreOfMass), seed, (unsigned)group * 8u);
+            LaunchPiece(p, plane, planeVelocity, Vector3Normalize(away), excess, Vector3Subtract(g.joint, g.centreOfMass), impact.impulseBoost, seed, (unsigned)group * 8u);
         }
         return;
     }
@@ -468,7 +462,7 @@ void SpawnDebris(DebrisState &debris, const PlaneModel &planeModel, const PlaneS
         InitPiece(p, planeModel, plane, -1, part, planeModel.parts[part].pivot, kFixedPartMass);
         unsigned salt = (unsigned)i * 8u;
         Vector3 kick = {Signed(seed, salt) * kFixedKickSpeed, kFixedKickUp * (0.4f + 0.6f * fabsf(Signed(seed, salt + 1))), Signed(seed, salt + 2) * kFixedKickSpeed};
-        p.velocity = Vector3Add(Vector3Scale(planeVelocity, kPlaneMomentumKept), kick);
+        p.velocity = Vector3Add(Vector3Scale(planeVelocity, kPlaneMomentumKept), Vector3Scale(kick, impact.impulseBoost));
         p.angularVel = {Signed(seed, salt + 3) * kMaxSpin, Signed(seed, salt + 4) * kMaxSpin, Signed(seed, salt + 5) * kMaxSpin};
     }
 }

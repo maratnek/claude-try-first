@@ -1,6 +1,6 @@
 # Breakup v2: the model defines how it breaks, fuel drives the explosion
 
-Status: design, for code-reviewer review before any code. Feedback source: `PLAYER_FEEDBACK.md` is empty (no players yet), so this follows CLAUDE.md priority item 6 and the chill/arcade niche. A crash must be readable and a little funny, never gory, and must stay cheap on Web/iOS (Low preset).
+Status: iterations 1-4 implemented (iteration 4, fuel and explosion, see "Iteration 4 result" below). Originally: design, for code-reviewer review before any code. Feedback source: `PLAYER_FEEDBACK.md` is empty (no players yet), so this follows CLAUDE.md priority item 6 and the chill/arcade niche. A crash must be readable and a little funny, never gory, and must stay cheap on Web/iOS (Low preset).
 
 ## What exists today
 - `src/objects/debris.cpp` throws 7 hardcoded `PlanePart`s (`kSpawnOrder`: prop, 2 wheels, rudder, elevator, 2 ailerons). Each is a single rig node with a pivot. All spawn at once with random kick. Wings, struts, fuselage and tail never come apart. Debris is drawn via `DrawPlanePart`, which draws meshes by `meshPart` (a mesh belongs to the rig part found by walking ancestors).
@@ -107,7 +107,7 @@ Headless verification setup: add a `--crash-test` debug flag (no UI) that starts
 1. **Sidecar + groups, no physics change.** Add `src/objects/break_data.{h,cpp}` (parse `.break.txt`, validate, build `meshGroup[]` using ancestors, per-group COM and AABB). Commit `assets/models/biplane-1920.break.txt` with real pivot coordinates. Debris uses groups with the OLD spawn physics; `main.cpp` unchanged except type renames. Verify: build, launch, crash at 3 speeds (15, 25, 45 m/s); log lists all groups, mesh counts and no warnings; with the file deleted, today's 7-piece breakup still works. Screenshots: all groups flying off as units (wing with struts and wires attached).
 2. **Joint failure from impact.** `ImpactInfo`, the section 2 algorithm, seeded RNG, group cap from `debrisPieces`. Verify: screenshots head-on at 15/25/45 m/s, ground impact nose down, tail strike: 15 m/s drops prop/gear only, 25 m/s adds tail/ailerons, 45 m/s sheds wings; cap respected on Low (4) and High (12); same seed gives the same result.
 3. **Debris physics. DONE (iteration 3, see "Iteration 3 result" below).** Quaternion orientation, mass/inertia impulse, AABB ground contact, settle pose, nudge-apart. Verify: screenshots at 1, 3, 6 s; self-check for floating/sinking on flat ground and on a slope (hills beside the corridor); log settle times (<= 6 s each); frame time with 12 groups unchanged within noise.
-4. **Fuel, explosion, A1.** `fuel` fields, `FLIGHT_FUEL` hook, flash/fireball/smoke/sound scaling, A1 fields and Low behaviour, CLAUDE.md + `asset-requests/README.md` text. Verify: 3 fuel levels (0, 0.3, 1.0) x 2 speeds x Low/High = 12 screenshots at t = 0.3 s and 3 s; at fuel 0 no fire on any preset; Low is readable on its own (prop, wing, gear visible, orange ring, smoke); the crash sound at s = 1 is audibly bigger (log gain values); no CI regression, Web build compile check.
+4. **Fuel, explosion, A1. DONE (see "Iteration 4 result" below).** `fuel` fields, `FLIGHT_FUEL` hook, flash/fireball/smoke/sound scaling, A1 fields and Low behaviour, CLAUDE.md + `asset-requests/README.md` text. Verify: 3 fuel levels (0, 0.3, 1.0) x 2 speeds x Low/High = 12 screenshots at t = 0.3 s and 3 s; at fuel 0 no fire on any preset; Low is readable on its own (prop, wing, gear visible, orange ring, smoke); the crash sound at s = 1 is audibly bigger (log gain values); no CI regression, Web build compile check.
 
 Out of scope: fuel burn by engine power, fire spreading/burning wreck on the ground after settle, pilot ejection, debris hitting trees, hull tumbling, damage from soft obstacles (item 3 is separate).
 
@@ -129,11 +129,22 @@ Implemented in `src/objects/debris.cpp` as designed, with these deviations:
 
 Headless check (ASan/UBSan, Xvfb, raylib 5.5): 48 crash cases (3 speeds x cap 4/12 x 4 impact types x group/fallback path), 256 pieces: all settled within 5.4 s, true lowest vertex of every settled piece between 0.024 and 0.052 m above terrain, no NaN, no piece moving after settling.
 
+## Iteration 4 result (fuel and explosion)
+
+Implemented as designed (`explosion.{h,cpp}`, `StartExplosionSmoke` in `smoke.cpp`, `PlayCrashSound(audio, s)`, `fuelCapacity` / `fuel` / `FuelFraction`, `explosionFire` / `explosionSmoke` presets), with these choices:
+- The crash column is a separate `SmokeState` (`crashSmoke`), so the idle damage smoke and the column never share a ring buffer. Column puffs: High 64, Medium 32 (the design's "32"), Low 12 at s = 1; the live count is `max(4, budget * (0.3 + 0.7 s))`, duration `2 + 6 s` s, so 3 s at s = 0.15 and 8 s at s = 1. Below s = 0.05: about 4 dust puffs.
+- Fireball radius is `6 m * s` (minimum 0.8 m), High draws 3 translucent spheres, Medium 1, Low the orange ring for 0.3 s instead. Flash only on High.
+- Crash sound: the existing thud always plays at full volume; the boom is re-synthesised per crash (gain `0.25 + 0.75 s`, length `0.8 + 1.8 s` s, none below s = 0.05) because raylib sounds have a fixed length. Gains are logged as `AUDIO: crash s=... boom gain=...`.
+- Debris gets `impulseBoost = 1 + 0.5 s` on the joint impulse (and on the fallback kick); the 30 m/s debris speed cap still applies.
+- The tank position is read from the existing `fuel_tank` line in the sidecar (`BreakData::fuelTank`, was parsed since iteration 1); without a sidecar the plane position is used.
+- Nothing burns fuel yet: `fuel` is reset to capacity wherever the run is reset (`planeStart` copy). `FLIGHT_FUEL`, `FLIGHT_PRESET`, `FLIGHT_SPEED`, `FLIGHT_SHOT_PREFIX` and `--crash-test` exist only with `-DFLIGHT_DEBUG=ON`.
+- Known looks: puffs are camera-facing squares like the existing trail smoke, so the dark column reads blocky; the High fireball at s = 1 fills much of the chase-camera view for about a second.
+
 ## Open items found in review (resolve in the named iteration)
 
 - RESOLVED in iteration 1/2 (strengths rescaled in the sidecar, ailerons split into their own groups): the example strengths are far below the impact energy scale in section 2 (E = 0.5·speed² gives 112 / 312 / 1250 at 15 / 25 / 45 m/s; the engine strength is about 90, wings 30–48), so at 25 m/s nearly everything fails. Rescale strengths (roughly 3–10×) or the energy formula so the stated outcomes (15 m/s prop/gear only, 25 m/s adds tail/ailerons, 45 m/s sheds wings) hold; tune by the headless crash test.
 - RESOLVED in iteration 1: the hull record has strength `-`; special-case it in the loader validation (it never detaches).
 - RESOLVED in iteration 1: `axle` is one node spanning both wheels but sits in `gear_l`; put it in the hull or accept the right wheel losing its axle. Check aileron parentage (upper or lower wing) against real node transforms.
 - RESOLVED in iteration 2 (`keep` records in the sidecar, hull centre = hull mesh bounds centre, the E x 2 sentence removed): the cap keeps the highest-overload roots, which can drop the prop on Low; add a forced-include priority (prop, one wing, one gear) so the Low readability rule holds. Delete or clarify the "second test at E×2" sentence for surviving children of a detached parent, and define the hull centre used in the exposure formula.
-- Iteration 4: Medium smoke is stated as 24 idle puffs and 32 crash-column puffs; confirm the crash column is a separate field. With this model only 9 detachable groups exist, so the High cap of 12 is never reached.
+- RESOLVED in iteration 4: the crash column is a separate `SmokeState` (Medium 24 idle puffs, 32 column puffs). With this model only 11 detachable groups exist, so the High cap of 12 is never reached.
 - Known cosmetic limits: struts and wires may dangle if only one wing leaves; cabane stubs may remain if the upper wing leaves.

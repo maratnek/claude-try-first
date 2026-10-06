@@ -53,6 +53,7 @@ PlaneParams BiplaneParams() {
     p.landingMaxSpeed = 30.0f;
     p.landingMaxRoll = 15.0f;
     p.landingMaxNoseDown = 25.0f;
+    p.fuelCapacity = 100.0f;
     return p;
 }
 
@@ -154,6 +155,10 @@ void UpdatePlaneControls(PlaneState &plane, const PlaneParams &params, const Fli
             plane.position.y = minY;
         }
     }
+}
+
+float FuelFraction(const PlaneState &plane, const PlaneParams &params) {
+    return Clamp(plane.fuel / params.fuelCapacity, 0.0f, 1.0f);
 }
 
 Vector3 GetPlaneForward(const PlaneState &plane) {

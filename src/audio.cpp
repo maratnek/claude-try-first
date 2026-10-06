@@ -7,6 +7,7 @@ namespace {
 constexpr int kSampleRate = 44100;
 constexpr float kDurationSeconds = 1.0f;
 constexpr float kBaseFreq = 90.0f;
+constexpr float kNoBoomBelow = 0.05f;
 }  // namespace
 
 void LoadEngineAudio(EngineAudio &audio) {
@@ -157,8 +158,42 @@ void StopEngineAudio(EngineAudio &audio) {
     if (IsSoundPlaying(audio.engineSound)) StopSound(audio.engineSound);
 }
 
-void PlayCrashSound(EngineAudio &audio) {
+void PlayCrashSound(EngineAudio &audio, float s) {
     PlaySound(audio.crashSound);
+    UnloadSound(audio.boomSound);
+    audio.boomSound = Sound{};
+    s = Clamp(s, 0.0f, 1.0f);
+    if (s < kNoBoomBelow) return;
+
+    float seconds = 0.8f + 1.8f * s;
+    float gain = 0.25f + 0.75f * s;
+    int frames = (int)(kSampleRate * seconds);
+    std::vector<short> boom(frames);
+    unsigned int rng = 777u;
+    float lowpass = 0.0f;
+    float phase = 0.0f;
+    float decay = 4.0f / seconds;
+    for (int i = 0; i < frames; i++) {
+        float t = (float)i / (float)kSampleRate;
+        rng = rng * 1664525u + 1013904223u;
+        float noise = ((rng >> 8) & 0xFFFF) / 32768.0f - 1.0f;
+        lowpass += 0.04f * (noise - lowpass);
+        phase += 2.0f * PI * (28.0f + 40.0f * expf(-t * 6.0f)) / (float)kSampleRate;
+        float env = expf(-t * decay);
+        float attack = fminf(t / 0.01f, 1.0f);
+        float value = (0.7f * sinf(phase) + 2.5f * lowpass) * env * attack;
+        boom[i] = (short)(Clamp(value, -1.0f, 1.0f) * 30000.0f);
+    }
+    Wave wave{};
+    wave.frameCount = frames;
+    wave.sampleRate = kSampleRate;
+    wave.sampleSize = 16;
+    wave.channels = 1;
+    wave.data = boom.data();
+    audio.boomSound = LoadSoundFromWave(wave);
+    SetSoundVolume(audio.boomSound, gain);
+    PlaySound(audio.boomSound);
+    TraceLog(LOG_INFO, "AUDIO: crash s=%.2f boom gain=%.2f length=%.2fs", s, gain, seconds);
 }
 
 void PlayChimeSound(EngineAudio &audio) {
@@ -192,6 +227,7 @@ void StopOneShotSounds(EngineAudio &audio) {
     StopSound(audio.touchdownSound);
     StopSound(audio.crashSound);
     StopSound(audio.damageSound);
+    if (audio.boomSound.frameCount > 0) StopSound(audio.boomSound);
 }
 
 void UpdateWindAudio(EngineAudio &audio, float speedFraction, bool airborne) {
@@ -235,4 +271,5 @@ void UnloadEngineAudio(EngineAudio &audio) {
     UnloadSound(audio.touchdownSound);
     UnloadSound(audio.clickSound);
     UnloadSound(audio.damageSound);
+    UnloadSound(audio.boomSound);
 }

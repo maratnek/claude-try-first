@@ -30,6 +30,7 @@ struct ImpactInfo {
     Vector3 velocity;
     float speed;
     bool ground;
+    float impulseBoost = 1.0f;  // explosion adds an outward kick on top of the impact energy
 };
 
 constexpr int kMaxFixedDebrisParts = PART_PILOT_HEAD;
