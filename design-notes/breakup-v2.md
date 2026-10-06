@@ -106,7 +106,7 @@ Headless verification setup: add a `--crash-test` debug flag (no UI) that starts
 
 1. **Sidecar + groups, no physics change.** Add `src/objects/break_data.{h,cpp}` (parse `.break.txt`, validate, build `meshGroup[]` using ancestors, per-group COM and AABB). Commit `assets/models/biplane-1920.break.txt` with real pivot coordinates. Debris uses groups with the OLD spawn physics; `main.cpp` unchanged except type renames. Verify: build, launch, crash at 3 speeds (15, 25, 45 m/s); log lists all groups, mesh counts and no warnings; with the file deleted, today's 7-piece breakup still works. Screenshots: all groups flying off as units (wing with struts and wires attached).
 2. **Joint failure from impact.** `ImpactInfo`, the section 2 algorithm, seeded RNG, group cap from `debrisPieces`. Verify: screenshots head-on at 15/25/45 m/s, ground impact nose down, tail strike: 15 m/s drops prop/gear only, 25 m/s adds tail/ailerons, 45 m/s sheds wings; cap respected on Low (4) and High (12); same seed gives the same result.
-3. **Debris physics.** Quaternion orientation, mass/inertia impulse, AABB ground contact, settle pose, nudge-apart. Verify: screenshots at 1, 3, 6 s; self-check for floating/sinking on flat ground and on a slope (hills beside the corridor); log settle times (<= 6 s each); frame time with 12 groups unchanged within noise.
+3. **Debris physics. DONE (iteration 3, see "Iteration 3 result" below).** Quaternion orientation, mass/inertia impulse, AABB ground contact, settle pose, nudge-apart. Verify: screenshots at 1, 3, 6 s; self-check for floating/sinking on flat ground and on a slope (hills beside the corridor); log settle times (<= 6 s each); frame time with 12 groups unchanged within noise.
 4. **Fuel, explosion, A1.** `fuel` fields, `FLIGHT_FUEL` hook, flash/fireball/smoke/sound scaling, A1 fields and Low behaviour, CLAUDE.md + `asset-requests/README.md` text. Verify: 3 fuel levels (0, 0.3, 1.0) x 2 speeds x Low/High = 12 screenshots at t = 0.3 s and 3 s; at fuel 0 no fire on any preset; Low is readable on its own (prop, wing, gear visible, orange ring, smoke); the crash sound at s = 1 is audibly bigger (log gain values); no CI regression, Web build compile check.
 
 Out of scope: fuel burn by engine power, fire spreading/burning wreck on the ground after settle, pilot ejection, debris hitting trees, hull tumbling, damage from soft obstacles (item 3 is separate).
@@ -115,6 +115,19 @@ Out of scope: fuel burn by engine power, fire spreading/burning wreck on the gro
 - `wing_upper`/`wing_lower` as single nodes: iteration 1 uses whole-wing groups (one upper, one lower, both sides leave together) as the default. Optional later step, only if one-sided wing loss is wanted: splitting needs NEW raylib Mesh objects, because one Mesh exists per primitive with node transforms baked in and `meshPart` maps one Mesh to one part. The step copies each wing Mesh twice (triangle centroid X < 0 and X >= 0), `UploadMesh`es both, extends `meshPart`/`meshGroup`/`meshIsBlur`, frees the original, and enables the `@L`/`@R` sidecar suffix. The cut at X = 0 lies inside the fuselage/cabane, so it should be invisible.
 - Strength units are tuned by eye; iteration 2 should expose them only through the sidecar so tuning needs no rebuild.
 - Existing `PlanePart` rig (animation) is kept unchanged; groups are an overlay for debris only.
+
+## Iteration 3 result (debris physics)
+
+Implemented in `src/objects/debris.cpp` as designed, with these deviations:
+- Ground contact uses the group's real vertices, not the 8 AABB corners: 26 extreme vertices (cube directions) plus a voxel-thinned sample (up to 128) of the group's other vertices, plus the propeller blade cube. A long strut or leading edge can otherwise hide between two extremes when the terrain height steps under it (found in testing: a wing standing on its edge sank 0.14 m on a terrain step).
+- Contact is a single-point impulse on the deepest vertex with scalar inertia `m * R^2 * 0.4` (not a full contact manifold). Bounce 0.35 only above 2 m/s contact speed; per-step friction on `v.xz` and the spin.
+- Settle: when speed < 1.2 m/s and spin < 2 rad/s, or after 4.5 s, velocity is zeroed and the group slerps over 0.3 s to the nearest axis-aligned rest pose (the local face pointing roughly down with the lowest centre-of-mass height), is lowered to `kRestHeight = 0.05 m`, nudged apart once from already settled groups (AABB overlap along x or z), and then frozen (no further updates).
+- Hull overlap push-out and debris vs trees/obstacles are NOT done: an engine or other heavy group that drops almost in place can still overlap the hull.
+- The 7-part fallback uses the same physics (mass 5 kg, old-style random kick, seeded) so there is one code path.
+- Randomness is now seeded by the impact hash (same crash, same debris); `GetRandomValue` is no longer used.
+- `GetGroundHeight` is a nearest-sample heightmap (22 m cells) while the rendered terrain is interpolated, so on hills a piece can look slightly above or below the visible surface even though it rests exactly on the physics height. Not changed here.
+
+Headless check (ASan/UBSan, Xvfb, raylib 5.5): 48 crash cases (3 speeds x cap 4/12 x 4 impact types x group/fallback path), 256 pieces: all settled within 5.4 s, true lowest vertex of every settled piece between 0.024 and 0.052 m above terrain, no NaN, no piece moving after settling.
 
 ## Open items found in review (resolve in the named iteration)
 

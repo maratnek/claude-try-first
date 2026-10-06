@@ -3,18 +3,39 @@
 #include "rlgl.h"
 #include <cfloat>
 #include <cmath>
+#include <algorithm>
+#include <cstdint>
 #include <cstdio>
 #include <string>
+#include <vector>
 
 namespace {
 constexpr float kGravity = 9.81f;
-constexpr float kRestHeight = 0.15f;
-constexpr float kBounceKeep = 0.4f;
-constexpr float kGroundFriction = 0.6f;
+constexpr float kLinearDrag = 0.1f;
+constexpr float kAngularDrag = 0.1f;
+constexpr float kRestHeight = 0.05f;
+constexpr float kBounce = 0.35f;
+constexpr float kBounceMinSpeed = 2.0f;
+constexpr float kContactFriction = 0.92f;
+constexpr float kContactSpinFriction = 0.93f;
 constexpr float kSettleSpeed = 1.2f;
-constexpr float kKickSpeed = 7.0f;
-constexpr float kKickUp = 6.0f;
-constexpr float kMaxSpinRate = 540.0f;
+constexpr float kSettleSpin = 2.0f;
+constexpr float kSettleBlend = 0.3f;
+constexpr float kForceSettleAge = 4.5f;
+constexpr float kMaxSpin = 540.0f * DEG2RAD;
+constexpr float kMaxSpinStep = 1.6f * kMaxSpin;
+constexpr float kMaxDebrisSpeed = 30.0f;
+constexpr float kImpulseScale = 0.2f;
+constexpr float kMinExcess = 0.3f;
+constexpr float kImpulseUp = 0.4f;
+constexpr float kInertiaFactor = 0.4f;
+constexpr float kPlaneMomentumKept = 0.8f;
+constexpr float kFixedPartMass = 5.0f;
+constexpr float kFixedKickSpeed = 3.5f;
+constexpr float kFixedKickUp = 4.0f;
+constexpr float kMaxStep = 1.0f / 60.0f;
+constexpr float kNudgeGap = 0.02f;
+constexpr Vector3 kBladeHalf = {0.065f, 0.86f, 0.02f};
 constexpr unsigned kBreakSeed = 0x5eed1920u;
 constexpr float kStrengthJitter = 0.15f;
 constexpr float kGroundExposureBonus = 0.3f;
@@ -33,10 +54,6 @@ constexpr bool SpawnOrderExcludesHead() {
 static_assert(sizeof(kSpawnOrder) / sizeof(kSpawnOrder[0]) == kMaxFixedDebrisParts,
               "kMaxFixedDebrisParts must match kSpawnOrder");
 static_assert(SpawnOrderExcludesHead(), "pilot head must never be thrown as debris");
-
-float Random(float range) {
-    return GetRandomValue(-1000, 1000) / 1000.0f * range;
-}
 
 Vector3 PlaneToWorld(Vector3 v, const PlaneState &plane) {
     v = Vector3RotateByAxisAngle(v, {0.0f, 0.0f, 1.0f}, -plane.roll * DEG2RAD);
@@ -152,20 +169,265 @@ int SelectDetached(const BreakData &data, const PlaneState &plane, const ImpactI
     return count;
 }
 
-void InitDebrisMotion(DebrisPiece &p, const PlaneState &plane, Vector3 planeVelocity) {
-    p.position = Vector3Add(plane.position, PlaneToWorld(p.pivot, plane));
-    p.velocity = Vector3Add(planeVelocity, {Random(kKickSpeed), kKickUp * (0.4f + 0.6f * fabsf(Random(1.0f))), Random(kKickSpeed)});
-    p.spinAngle = {0.0f, 0.0f, 0.0f};
-    p.spinRate = {Random(kMaxSpinRate), Random(kMaxSpinRate), Random(kMaxSpinRate)};
-    p.yaw = plane.yaw;
-    p.pitch = plane.pitch;
-    p.roll = plane.roll;
+
+float Signed(unsigned seed, unsigned salt) {
+    return (Hash(seed, salt) & 0xffffu) / 32767.5f - 1.0f;
+}
+
+Quaternion PlanePose(const PlaneState &plane) {
+    Quaternion yaw = QuaternionFromAxisAngle({0.0f, 1.0f, 0.0f}, plane.yaw * DEG2RAD);
+    Quaternion pitch = QuaternionFromAxisAngle({1.0f, 0.0f, 0.0f}, -plane.pitch * DEG2RAD);
+    Quaternion roll = QuaternionFromAxisAngle({0.0f, 0.0f, 1.0f}, -plane.roll * DEG2RAD);
+    return QuaternionMultiply(yaw, QuaternionMultiply(pitch, roll));
+}
+
+Vector3 WorldPoint(const DebrisPiece &p, int i) {
+    return Vector3Add(p.position, Vector3RotateByQuaternion(p.points[i], p.orientation));
+}
+
+// The 26 extreme vertices along the cube directions give a tight convex stand-in for the mesh (a tumbling wing touches
+// the ground where its geometry does, not where an upright bounding box says). A voxel-thinned sample of the remaining
+// vertices keeps a long edge or strut from hiding between two extremes when the terrain steps under it.
+void BuildSupportPoints(DebrisPiece &p, const PlaneModel &planeModel, int group, int part) {
+    Vector3 dirs[26];
+    int dirCount = 0;
+    for (int x = -1; x <= 1; x++)
+        for (int y = -1; y <= 1; y++)
+            for (int z = -1; z <= 1; z++) {
+                if (x == 0 && y == 0 && z == 0) continue;
+                dirs[dirCount++] = Vector3Normalize({(float)x, (float)y, (float)z});
+            }
+
+    Vector3 best[26];
+    float bestDot[26];
+    for (int d = 0; d < dirCount; d++) bestDot[d] = -FLT_MAX;
+    std::vector<Vector3> vertices;
+    bool hasBlades = part == PART_PROPELLER;
+    for (int m = 0; m < planeModel.model.meshCount; m++) {
+        bool inPiece = group >= 0 ? planeModel.breakData.meshGroup[m] == group : planeModel.meshPart[m] == part;
+        if (!inPiece || planeModel.meshIsBlur[m]) continue;
+        if (planeModel.meshPart[m] == PART_PROPELLER) hasBlades = true;
+        const Mesh &mesh = planeModel.model.meshes[m];
+        for (int v = 0; v < mesh.vertexCount; v++) {
+            Vector3 point = {mesh.vertices[v * 3], mesh.vertices[v * 3 + 1], mesh.vertices[v * 3 + 2]};
+            vertices.push_back(Vector3Subtract(point, p.pivot));
+            for (int d = 0; d < dirCount; d++) {
+                float dot = Vector3DotProduct(point, dirs[d]);
+                if (dot > bestDot[d]) {
+                    bestDot[d] = dot;
+                    best[d] = point;
+                }
+            }
+        }
+    }
+
+    p.pointCount = 0;
+    if (!vertices.empty()) {
+        for (int d = 0; d < dirCount; d++) p.points[p.pointCount++] = Vector3Subtract(best[d], p.pivot);
+        const float cells[] = {0.5f, 0.75f, 1.0f, 1.5f, 2.5f, 5.0f};
+        std::vector<std::pair<uint64_t, int>> keyed(vertices.size());
+        for (float cell : cells) {
+            for (size_t v = 0; v < vertices.size(); v++) {
+                auto bucket = [&](float value) { return (uint64_t)(int64_t)(floorf(value / cell) + 4096.0f) & 0x1fffffu; };
+                keyed[v] = {bucket(vertices[v].x) << 42 | bucket(vertices[v].y) << 21 | bucket(vertices[v].z), (int)v};
+            }
+            std::sort(keyed.begin(), keyed.end());
+            int unique = 0;
+            for (size_t v = 0; v < keyed.size(); v++) unique += v == 0 || keyed[v].first != keyed[v - 1].first;
+            if (unique > kMaxSurfacePoints) continue;
+            for (size_t v = 0; v < keyed.size(); v++) {
+                if (v == 0 || keyed[v].first != keyed[v - 1].first) p.points[p.pointCount++] = vertices[keyed[v].second];
+            }
+            break;
+        }
+    }
+    if (hasBlades) {
+        Vector3 centre = Vector3Subtract(planeModel.parts[PART_PROPELLER].pivot, p.pivot);
+        for (int c = 0; c < 8; c++) {
+            Vector3 corner = {(c & 1 ? 1.0f : -1.0f) * kBladeHalf.x, (c & 2 ? 1.0f : -1.0f) * kBladeHalf.y, (c & 4 ? 1.0f : -1.0f) * kBladeHalf.z};
+            p.points[p.pointCount++] = Vector3Add(centre, corner);
+        }
+    }
+    if (p.pointCount == 0) p.points[p.pointCount++] = {0.0f, 0.0f, 0.0f};
+
+    p.radius = 0.0f;
+    for (int i = 0; i < p.pointCount; i++) p.radius = fmaxf(p.radius, Vector3Length(p.points[i]));
+}
+
+void ClampSpin(DebrisPiece &p, float limit) {
+    float length = Vector3Length(p.angularVel);
+    if (length > limit) p.angularVel = Vector3Scale(p.angularVel, limit / length);
+}
+
+void InitPiece(DebrisPiece &p, const PlaneModel &planeModel, const PlaneState &plane, int group, int part, Vector3 pivot, float mass) {
+    p.group = group;
+    p.part = group >= 0 ? PART_COUNT : (PlanePart)part;
+    p.pivot = pivot;
+    p.mass = mass;
+    p.position = Vector3Add(plane.position, PlaneToWorld(pivot, plane));
+    p.orientation = PlanePose(plane);
+    p.velocity = {0.0f, 0.0f, 0.0f};
+    p.angularVel = {0.0f, 0.0f, 0.0f};
+    p.age = 0.0f;
+    p.settleTime = 0.0f;
+    p.settling = false;
     p.settled = false;
+    BuildSupportPoints(p, planeModel, group, part);
+}
+
+void LaunchPiece(DebrisPiece &p, const PlaneState &plane, Vector3 planeVelocity, Vector3 awayDir, float excessEnergy, Vector3 jointFromCentre, unsigned seed, unsigned salt) {
+    awayDir = Vector3Normalize(Vector3Add(awayDir, {0.0f, kImpulseUp, 0.0f}));
+    awayDir = Vector3Normalize(Vector3Add(awayDir, {Signed(seed, salt) * 0.25f, 0.0f, Signed(seed, salt + 1) * 0.25f}));
+    Vector3 impulse = Vector3Scale(awayDir, kImpulseScale * excessEnergy);
+    p.velocity = Vector3Add(Vector3Scale(planeVelocity, kPlaneMomentumKept), Vector3Scale(impulse, 1.0f / p.mass));
+    float speed = Vector3Length(p.velocity);
+    if (speed > kMaxDebrisSpeed) p.velocity = Vector3Scale(p.velocity, kMaxDebrisSpeed / speed);
+
+    float inertia = p.mass * p.radius * p.radius * kInertiaFactor;
+    Vector3 arm = PlaneToWorld(jointFromCentre, plane);
+    p.angularVel = Vector3Scale(Vector3CrossProduct(arm, impulse), 1.0f / inertia);
+    p.angularVel = Vector3Add(p.angularVel, {Signed(seed, salt + 2) * 3.0f, Signed(seed, salt + 3) * 3.0f, Signed(seed, salt + 4) * 3.0f});
+    ClampSpin(p, kMaxSpin);
+}
+
+float LowestClearance(const DebrisPiece &p, const WorldState &world) {
+    float lowest = FLT_MAX;
+    for (int i = 0; i < p.pointCount; i++) {
+        Vector3 w = WorldPoint(p, i);
+        lowest = fminf(lowest, w.y - GetGroundHeight(world, w.x, w.z));
+    }
+    return lowest;
+}
+
+void RestOnGround(DebrisPiece &p, const WorldState &world) {
+    p.position.y += kRestHeight - LowestClearance(p, world);
+}
+
+void PieceBounds(const DebrisPiece &p, Vector3 &lo, Vector3 &hi) {
+    lo = {FLT_MAX, FLT_MAX, FLT_MAX};
+    hi = {-FLT_MAX, -FLT_MAX, -FLT_MAX};
+    for (int i = 0; i < p.pointCount; i++) {
+        Vector3 w = WorldPoint(p, i);
+        lo = Vector3Min(lo, w);
+        hi = Vector3Max(hi, w);
+    }
+}
+
+void NudgeApart(DebrisState &debris, int index, const WorldState &world) {
+    DebrisPiece &p = debris.pieces[index];
+    Vector3 lo, hi;
+    PieceBounds(p, lo, hi);
+    for (int j = 0; j < debris.count; j++) {
+        if (j == index || !debris.pieces[j].settled) continue;
+        Vector3 otherLo, otherHi;
+        PieceBounds(debris.pieces[j], otherLo, otherHi);
+        float ox = fminf(hi.x, otherHi.x) - fmaxf(lo.x, otherLo.x);
+        float oy = fminf(hi.y, otherHi.y) - fmaxf(lo.y, otherLo.y);
+        float oz = fminf(hi.z, otherHi.z) - fmaxf(lo.z, otherLo.z);
+        if (ox <= 0.0f || oy <= 0.0f || oz <= 0.0f) continue;
+        if (ox < oz) {
+            float dir = (lo.x + hi.x) < (otherLo.x + otherHi.x) ? -1.0f : 1.0f;
+            p.position.x += dir * (ox + kNudgeGap);
+        } else {
+            float dir = (lo.z + hi.z) < (otherLo.z + otherHi.z) ? -1.0f : 1.0f;
+            p.position.z += dir * (oz + kNudgeGap);
+        }
+        RestOnGround(p, world);
+        PieceBounds(p, lo, hi);
+    }
+}
+
+// Chooses the local face that rests lowest (smallest centre-of-mass height) among those already pointing roughly down,
+// so a wing lies flat and a wheel does not balance on its rim.
+Quaternion RestOrientation(const DebrisPiece &p) {
+    const Vector3 axes[6] = {{1, 0, 0}, {-1, 0, 0}, {0, 1, 0}, {0, -1, 0}, {0, 0, 1}, {0, 0, -1}};
+    int bestAxis = -1;
+    float bestExtent = FLT_MAX;
+    for (int a = 0; a < 6; a++) {
+        if (Vector3RotateByQuaternion(axes[a], p.orientation).y > -0.5f) continue;
+        float extent = -FLT_MAX;
+        for (int i = 0; i < p.pointCount; i++) extent = fmaxf(extent, Vector3DotProduct(p.points[i], axes[a]));
+        if (extent < bestExtent) {
+            bestExtent = extent;
+            bestAxis = a;
+        }
+    }
+    if (bestAxis < 0) return p.orientation;
+    Vector3 current = Vector3RotateByQuaternion(axes[bestAxis], p.orientation);
+    Quaternion correction = QuaternionFromVector3ToVector3(current, {0.0f, -1.0f, 0.0f});
+    return QuaternionNormalize(QuaternionMultiply(correction, p.orientation));
+}
+
+void BeginSettle(DebrisPiece &p) {
+    p.velocity = {0.0f, 0.0f, 0.0f};
+    p.angularVel = {0.0f, 0.0f, 0.0f};
+    p.settling = true;
+    p.settleTime = 0.0f;
+    p.settleFrom = p.orientation;
+    p.settleTo = RestOrientation(p);
+}
+
+bool StepPiece(DebrisPiece &p, const WorldState &world, float h) {
+    p.age += h;
+    if (p.settling) {
+        p.settleTime += h;
+        float t = fminf(p.settleTime / kSettleBlend, 1.0f);
+        p.orientation = QuaternionSlerp(p.settleFrom, p.settleTo, t);
+        RestOnGround(p, world);
+        return t >= 1.0f;
+    }
+
+    p.velocity.y -= kGravity * h;
+    p.velocity = Vector3Scale(p.velocity, 1.0f - kLinearDrag * h);
+    p.angularVel = Vector3Scale(p.angularVel, 1.0f - kAngularDrag * h);
+    p.position = Vector3Add(p.position, Vector3Scale(p.velocity, h));
+    Quaternion spin = {p.angularVel.x, p.angularVel.y, p.angularVel.z, 0.0f};
+    Quaternion delta = QuaternionMultiply(spin, p.orientation);
+    p.orientation = QuaternionNormalize({p.orientation.x + 0.5f * h * delta.x, p.orientation.y + 0.5f * h * delta.y,
+                                         p.orientation.z + 0.5f * h * delta.z, p.orientation.w + 0.5f * h * delta.w});
+
+    int deepest = -1;
+    float penetration = 0.0f;
+    for (int i = 0; i < p.pointCount; i++) {
+        Vector3 w = WorldPoint(p, i);
+        float depth = GetGroundHeight(world, w.x, w.z) - w.y;
+        if (depth > penetration) {
+            penetration = depth;
+            deepest = i;
+        }
+    }
+    if (deepest < 0) return false;
+
+    p.position.y += penetration;
+    Vector3 arm = Vector3Subtract(WorldPoint(p, deepest), p.position);
+    float contactSpeed = p.velocity.y + Vector3CrossProduct(p.angularVel, arm).y;
+    if (contactSpeed < 0.0f) {
+        float restitution = contactSpeed < -kBounceMinSpeed ? kBounce : 0.0f;
+        float invMass = 1.0f / p.mass;
+        float invInertia = 1.0f / (p.mass * p.radius * p.radius * kInertiaFactor);
+        Vector3 lever = Vector3CrossProduct(arm, {0.0f, 1.0f, 0.0f});
+        float j = -(1.0f + restitution) * contactSpeed / (invMass + invInertia * Vector3DotProduct(lever, lever));
+        p.velocity.y += j * invMass;
+        p.angularVel = Vector3Add(p.angularVel, Vector3Scale(Vector3CrossProduct(arm, {0.0f, j, 0.0f}), invInertia));
+    }
+    float steps = h / kMaxStep;
+    float friction = powf(kContactFriction, steps);
+    p.velocity.x *= friction;
+    p.velocity.z *= friction;
+    p.angularVel = Vector3Scale(p.angularVel, powf(kContactSpinFriction, steps));
+    ClampSpin(p, kMaxSpinStep);
+
+    if ((Vector3Length(p.velocity) < kSettleSpeed && Vector3Length(p.angularVel) < kSettleSpin) || p.age > kForceSettleAge) BeginSettle(p);
+    return false;
 }
 }  // namespace
 
 void ClearDebris(DebrisState &debris) {
     debris.count = 0;
+}
+
+float DebrisLowestClearance(const DebrisPiece &piece, const WorldState &world) {
+    return LowestClearance(piece, world);
 }
 
 void SpawnDebris(DebrisState &debris, const PlaneModel &planeModel, const PlaneState &plane, const ImpactInfo &impact, int pieceCount) {
@@ -174,6 +436,7 @@ void SpawnDebris(DebrisState &debris, const PlaneModel &planeModel, const PlaneS
     if (pieceCount < 1) pieceCount = 1;
     const BreakData &breakData = planeModel.breakData;
     Vector3 planeVelocity = impact.velocity;
+    unsigned seed = ImpactSeed(impact);
 
     if (breakData.valid) {
         bool detach[kMaxBreakGroups];
@@ -187,16 +450,17 @@ void SpawnDebris(DebrisState &debris, const PlaneModel &planeModel, const PlaneS
             log += entry;
         }
         TraceLog(LOG_INFO, "BREAK: impact %.1f m/s %s, cap %d, overload (+ = detached):%s", impact.speed, impact.ground ? "ground" : "obstacle", pieceCount, log.c_str());
+        Vector3 hullCentre = HullCentre(breakData);
         for (size_t group = 0; group < breakData.groups.size(); group++) {
             if (!detach[group]) continue;
             const BreakGroup &g = breakData.groups[group];
             DebrisPiece &p = debris.pieces[debris.count++];
-            p.group = (int)group;
-            p.part = PART_COUNT;
-            p.pivot = g.centreOfMass;
-            // Upright rest pose only; tumbling groups can still hover or sink until debris physics learns bounds.
-            p.restHeight = fmaxf(kRestHeight, g.centreOfMass.y - g.boundsMin.y);
-            InitDebrisMotion(p, plane, planeVelocity);
+            InitPiece(p, planeModel, plane, (int)group, -1, g.centreOfMass, g.mass);
+            float strength = g.strength * g.jointScale;
+            float excess = fmaxf(overload[group] - 1.0f, kMinExcess) * strength;
+            Vector3 away = PlaneToWorld(Vector3Subtract(g.joint, hullCentre), plane);
+            if (Vector3Length(away) < 0.01f) away = {0.0f, 1.0f, 0.0f};
+            LaunchPiece(p, plane, planeVelocity, Vector3Normalize(away), excess, Vector3Subtract(g.joint, g.centreOfMass), seed, (unsigned)group * 8u);
         }
         return;
     }
@@ -205,33 +469,23 @@ void SpawnDebris(DebrisState &debris, const PlaneModel &planeModel, const PlaneS
     for (int i = 0; i < pieceCount; i++) {
         PlanePart part = kSpawnOrder[i];
         DebrisPiece &p = debris.pieces[debris.count++];
-        p.group = -1;
-        p.part = part;
-        p.pivot = planeModel.parts[part].pivot;
-        p.restHeight = kRestHeight;
-        InitDebrisMotion(p, plane, planeVelocity);
+        InitPiece(p, planeModel, plane, -1, part, planeModel.parts[part].pivot, kFixedPartMass);
+        unsigned salt = (unsigned)i * 8u;
+        Vector3 kick = {Signed(seed, salt) * kFixedKickSpeed, kFixedKickUp * (0.4f + 0.6f * fabsf(Signed(seed, salt + 1))), Signed(seed, salt + 2) * kFixedKickSpeed};
+        p.velocity = Vector3Add(Vector3Scale(planeVelocity, kPlaneMomentumKept), kick);
+        p.angularVel = {Signed(seed, salt + 3) * kMaxSpin, Signed(seed, salt + 4) * kMaxSpin, Signed(seed, salt + 5) * kMaxSpin};
     }
 }
 
 void UpdateDebris(DebrisState &debris, const WorldState &world, float dt) {
+    int steps = (int)ceilf(dt / kMaxStep);
+    if (steps < 1) return;
+    float h = dt / steps;
     for (int i = 0; i < debris.count; i++) {
         DebrisPiece &p = debris.pieces[i];
-        if (p.settled) continue;
-
-        p.velocity.y -= kGravity * dt;
-        p.position = Vector3Add(p.position, Vector3Scale(p.velocity, dt));
-        p.spinAngle = Vector3Add(p.spinAngle, Vector3Scale(p.spinRate, dt));
-
-        float floor = GetGroundHeight(world, p.position.x, p.position.z) + p.restHeight;
-        if (p.position.y > floor) continue;
-        p.position.y = floor;
-        if (p.velocity.y < 0.0f) p.velocity.y = -p.velocity.y * kBounceKeep;
-        p.velocity.x *= kGroundFriction;
-        p.velocity.z *= kGroundFriction;
-        p.spinRate = Vector3Scale(p.spinRate, kGroundFriction);
-        if (Vector3Length(p.velocity) < kSettleSpeed) {
-            p.velocity = {0.0f, 0.0f, 0.0f};
-            p.spinRate = {0.0f, 0.0f, 0.0f};
+        for (int s = 0; s < steps && !p.settled; s++) {
+            if (!StepPiece(p, world, h)) continue;
+            NudgeApart(debris, i, world);
             p.settled = true;
         }
     }
@@ -258,12 +512,7 @@ void DrawDebris(const DebrisState &debris, const PlaneModel &planeModel) {
         const DebrisPiece &p = debris.pieces[i];
         rlPushMatrix();
         rlTranslatef(p.position.x, p.position.y, p.position.z);
-        rlRotatef(p.spinAngle.x, 1.0f, 0.0f, 0.0f);
-        rlRotatef(p.spinAngle.y, 0.0f, 1.0f, 0.0f);
-        rlRotatef(p.spinAngle.z, 0.0f, 0.0f, 1.0f);
-        rlRotatef(p.yaw, 0.0f, 1.0f, 0.0f);
-        rlRotatef(-p.pitch, 1.0f, 0.0f, 0.0f);
-        rlRotatef(-p.roll, 0.0f, 0.0f, 1.0f);
+        rlMultMatrixf(MatrixToFloat(QuaternionToMatrix(p.orientation)));
         rlTranslatef(-p.pivot.x, -p.pivot.y, -p.pivot.z);
         if (p.group >= 0) DrawPlaneGroup(planeModel, p.group);
         else DrawPlanePart(planeModel, p.part);
