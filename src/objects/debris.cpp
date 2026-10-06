@@ -169,7 +169,6 @@ int SelectDetached(const BreakData &data, const PlaneState &plane, const ImpactI
     return count;
 }
 
-
 float Signed(unsigned seed, unsigned salt) {
     return (Hash(seed, salt) & 0xffffu) / 32767.5f - 1.0f;
 }
@@ -185,9 +184,7 @@ Vector3 WorldPoint(const DebrisPiece &p, int i) {
     return Vector3Add(p.position, Vector3RotateByQuaternion(p.points[i], p.orientation));
 }
 
-// The 26 extreme vertices along the cube directions give a tight convex stand-in for the mesh (a tumbling wing touches
-// the ground where its geometry does, not where an upright bounding box says). A voxel-thinned sample of the remaining
-// vertices keeps a long edge or strut from hiding between two extremes when the terrain steps under it.
+// Extremes alone let a long edge or strut hide between them when the terrain steps under it, hence the voxel sample.
 void BuildSupportPoints(DebrisPiece &p, const PlaneModel &planeModel, int group, int part) {
     Vector3 dirs[26];
     int dirCount = 0;
@@ -337,8 +334,7 @@ void NudgeApart(DebrisState &debris, int index, const WorldState &world) {
     }
 }
 
-// Chooses the local face that rests lowest (smallest centre-of-mass height) among those already pointing roughly down,
-// so a wing lies flat and a wheel does not balance on its rim.
+// Lowest centre of mass among down-facing faces, so a wheel does not balance on its rim.
 Quaternion RestOrientation(const DebrisPiece &p) {
     const Vector3 axes[6] = {{1, 0, 0}, {-1, 0, 0}, {0, 1, 0}, {0, -1, 0}, {0, 0, 1}, {0, 0, -1}};
     int bestAxis = -1;
