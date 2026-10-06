@@ -12,7 +12,7 @@ Store-rule statements below come from memory, not from a fresh read of the curre
 - Per-vehicle `PlaneParams` exist, so a plane is data, but a skin needs a texture or material swap on the single `biplane-1920.glb`; a paint variant is cheaper than a new model. Not checked in code beyond that; the developer would confirm.
 - No accounts, no data collection today; the iOS privacy answers are trivial. Any option should keep that true (no ad SDK, no analytics).
 - Web (itch.io iframe) and iOS are different worlds: itch.io HTML5 has no in-app purchase API at all; iOS has StoreKit only.
-- CLAUDE.md: the owner approves anything that ships; the scheduled routine never pushes to production.
+- Project rules: the owner approves anything that ships; the scheduled routine never pushes to production.
 
 ## Rules to check (verify before relying)
 - Apple 3.1.1: unlocking features, content or digital goods inside an iOS app must use Apple's in-app purchase; a "buy me a coffee" link or external payment to unlock in-app content is not allowed in general. Region-specific exceptions for external links have changed over recent years; verify before relying.
@@ -45,7 +45,7 @@ Store-rule statements below come from memory, not from a fresh read of the curre
 - Pros: the best fit for a chill game: players show off, nobody is blocked; reuses Loop C's hangar and rank; the same skins make good store screenshots.
 - Cons: needs persistence and a hangar screen first; needs a skin pipeline (material colour swap, or texture variants from the asset flow); on iOS needs StoreKit (non-consumable IAP), "restore purchases" button (required by Apple; verify before relying) and receipt handling; on Web there is nothing to charge with, so skins would be earned-only there, so the two builds differ.
 - Fit with progression: only makes sense after Loop A storage and Loop C hangar. Free-earned skins first, paid later.
-- Cost estimate (not measured): paint swap on the existing model 1-2 runs, hangar screen is already in Loop C (3 runs), storage 2 runs (shared), StoreKit IAP integration in the SDL/raylib iOS build with restore flow 3-5 runs (high uncertainty: the device build has never run, `rollout-plan.md`), plus a human step in App Store Connect to create products.
+- Cost estimate (not measured): paint swap on the existing model 1-2 runs, hangar screen is part of Loop C (3 runs covers plane swap plus hangar together), storage 2 runs (shared), StoreKit IAP integration in the SDL/raylib iOS build with restore flow 3-5 runs (high uncertainty: the device build has never run, `rollout-plan.md`), plus a human step in App Store Connect to create products.
 
 ### 4. One-time "supporter" unlock (non-gating)
 - What: a single non-consumable purchase: removes nothing from the game, adds a "Supporter" badge, a couple of exclusive paints and a thank-you credit. Everything in the game stays free.
