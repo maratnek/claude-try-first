@@ -3,22 +3,11 @@
 
 #if defined(__EMSCRIPTEN__)
 #include <emscripten.h>
-#include <cstdlib>
 
 ProgressData LoadProgress() {
-    char *text = static_cast<char *>(EM_ASM_PTR({
-        var s = null;
-        try { s = window.localStorage.getItem('flightgame.progress'); } catch (e) {}
-        if (s === null) return 0;
-        var n = lengthBytesUTF8(s) + 1;
-        var p = _malloc(n);
-        stringToUTF8(s, p, n);
-        return p;
-    }));
-    if (!text) return ProgressData{};
-    ProgressData data = ParseProgress(text);
-    free(text);
-    return data;
+    const char *text = emscripten_run_script_string(
+        "(function(){try{return window.localStorage.getItem('flightgame.progress')||'';}catch(e){return '';}})()");
+    return text ? ParseProgress(text) : ProgressData{};
 }
 
 void SaveProgress(const ProgressData &data) {

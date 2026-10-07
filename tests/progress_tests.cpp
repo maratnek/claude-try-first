@@ -58,6 +58,10 @@ int main() {
     Expect("bad time and stars clamped", messy.levels[1].id == "c" && messy.levels[1].bestTime < 0.0f && messy.levels[1].stars == 3);
     Expect("only enabled unlocks kept", messy.unlocks.size() == 1 && messy.unlocks[0] == "x");
 
+    ProgressData nonFinite = ParseProgress("version=1\nvolume=nan\nlevel.a=inf,1\n");
+    Expect("nan volume ignored", Near(nonFinite.volume, 1.0f));
+    Expect("inf time dropped", nonFinite.levels.size() == 1 && nonFinite.levels[0].bestTime < 0.0f);
+
     if (g_failures == 0) printf("ProgressTests: all passed\n");
     return g_failures == 0 ? 0 : 1;
 }
