@@ -166,6 +166,33 @@ Lower priority — only after 1–6, and never ahead of a bug:
   App Store rules (e.g. free + optional cosmetic plane skins, a one-time
   "supporter" unlock, no ads at first), with pros/cons. Nothing is built.
 
+## Next up (owner-requested 2026-10-07, takes precedence over the backlog)
+
+**Effects polish: from squares to a reasonable look, at small cost.** The
+owner flew the build: crash/breakup behaviour is fine, but smoke, snow and
+other effects are drawn as plain squares, which reads as unfinished.
+Physics stays as is; this is visuals only. Cheap means: one or two small
+textures generated in code at startup (soft round radial-gradient puff,
+small round flake/drop), drawn as camera-facing billboards with alpha
+fade-in/out, size and rotation variation, and colour/opacity changing over
+the particle's life — no new asset files, no shader framework, similar
+draw counts. Cover, one effect group per run if needed:
+- smoke (`smoke.cpp`) and the crash fireball/smoke column (`explosion.cpp`)
+  — soft growing puffs that fade; fireball warm core fading to dark smoke;
+- snow (`snow.cpp`) — small round flakes with slight drift; rain
+  (`rain.cpp`) — thin streaks, not boxes;
+- anything else still drawn as hard squares/cubes for decoration
+  (speed streaks, debris dust, clouds if they read as blocks).
+Keep every effect within its A1 preset and toggle; Low must stay cheap.
+Verify with before/after screenshots from a headless run attached to the
+PR. Update docs/ARCHITECTURE.md.
+
+**Standing rule (owner):** placeholder art is fine in a prototype, but any
+feature that lands with crude visuals (flat quads, untextured boxes,
+hard-edged particles) gets a follow-up polish item queued in the same PR —
+under "Autonomous backlog" — so it is not forgotten; once its behaviour is
+confirmed, schedule that polish as a real task.
+
 ## Autonomous backlog — when everything above waits on the owner
 
 The owner does not want idle runs. If every item in the priority list
