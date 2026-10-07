@@ -152,11 +152,24 @@
   var loadingEl = document.getElementById('loading');
   var loadingFill = document.getElementById('loading-fill');
 
-  var hideLoading = function () { loadingEl.hidden = true; };
+  var loadingText = document.getElementById('loading-text');
+  var loadingFailed = false;
+
+  var failLoading = function () {
+    loadingFailed = true;
+    loadingText.textContent = 'Failed to load, see console';
+    loadingFill.classList.remove('indeterminate');
+    loadingFill.style.width = '0';
+  };
 
   var setLoadingStatus = function (text) {
+    if (loadingFailed) return;
     if (!text) {
-      hideLoading();
+      loadingEl.hidden = true;
+      return;
+    }
+    if (text.indexOf('Exception') === 0) {
+      failLoading();
       return;
     }
     var match = /\((\d+(?:\.\d+)?)\/(\d+)\)/.exec(text);
@@ -173,7 +186,7 @@
   var Module = {
     canvas: canvas,
     setStatus: setLoadingStatus,
-    onRuntimeInitialized: hideLoading,
+    onAbort: failLoading,
     print: function (text) { console.log(text); },
     printErr: function (text) { console.error(text); }
   };
