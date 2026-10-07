@@ -12,6 +12,13 @@ owner can skim what happened without digging through git log. Format:
 - PR: <link or branch, if one was opened>
 ```
 
+## 2026-10-07 17:07 UTC — night run (51)
+- Did: Backlog 2, second iteration (branch agents/2026-10-07-1707-flight-tests-2): `tests/flight_tests.cpp` now also pins sink-only hard landing (7.5 Hard / 5.0 Safe), nose-down and bank landings separately (positive and negative roll), the maxTurnRate clamp (75 deg bank at 20 m/s, radius 20.9 m), stall speed (just above: no fall; just below: 1.35 m in 1 s), full-power speed after 3 s (44.1 m/s), level speed (26.2 m/s), and non-vacuous standstill checks with control cases. `src/flight.cpp` untouched. ARCHITECTURE.md, DEVELOPMENT_HISTORY.md, CLAUDE.md backlog marker updated. Not release-relevant.
+- Why: P0 effects polish is still claimed by an interactive session (no `session/effects-polish` branch on origin), blockers done, owner items wait on him; this closes survivors from the previous run's mutation test.
+- Verified: code-reviewer read the real diff, built it (g++ -std=c++23 against raylib 5.5 headers, all pass) and mutated a copy of flight.cpp: caught clamp removal, sink limit 6->7, stallSpeed 14->13, ground roll-levelling removal. Survivors (documented): landing pitch term in sink rate (no nose-up landing case), accel +-8%, maxTurnRate 55->60, maxRoll, landingMaxRoll/NoseDown by 1 deg. I added the negative-roll landing case after review. Real CMake/Conan/ctest not run locally; CI status: see PR.
+- Open: Backlog 2 remaining: level gate time vs gold medal, breakup no-piece-below-ground, nose-up landing case, maxRoll clamp. Owner items unchanged (progression pick, world improvements, monetization, name/itch.io).
+- PR: PR into dev from agents/2026-10-07-1707-flight-tests-2
+
 ## 2026-10-07 16:07 UTC — day run (50)
 - Did: Backlog 2, first iteration (branch agents/2026-10-07-1607-flight-tests): new headless `FlightTests` executable (`tests/flight_tests.cpp` + `src/flight.cpp`, raylib headers only, no window or GL), registered with ctest for desktop builds only; the macOS `build` job now runs `ctest` after the build. 16 checks: liftoff (2.08 s, 18.5 m), glide ratio 9.0, turn radius at 45 deg bank (42 / 128 / 262 m at 20 / 35 / 50 m/s), altitude loss 5.1 m in 4 s at 45 deg bank, no yaw at standstill, stall drop 11.8 m in 2 s, soft landing Safe, steep dive Hard, banked landing Hard. Bounds are about +-17-25% around the measured values. README and ARCHITECTURE.md updated. Not release-relevant.
 - Why: P0 effects polish is claimed by an interactive session (branch `session/effects-polish` does not exist on origin yet), blockers are done, owner items wait on him; Backlog 1 needs a build to check, Backlog 2 needs none and protects every later physics change.
