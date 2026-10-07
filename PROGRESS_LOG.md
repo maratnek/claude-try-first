@@ -12,6 +12,13 @@ owner can skim what happened without digging through git log. Format:
 - PR: <link or branch, if one was opened>
 ```
 
+## 2026-10-07 23:10 UTC — night run (57)
+- Did: Backlog 4, second iteration (branch agents/2026-10-07-2310-level-gate-medals): `LevelDef` now holds the gate distance (1000 m) and medal times (24/30/40 s) as its own values; `level.cpp` (`InitLevel`, `ComputeMedal`, the next-target line) and both test files read them from `Level1Def()`. `src/level_targets.h` is deleted; `FlightTests` now builds `level_def.cpp`. Values and behaviour unchanged. ARCHITECTURE.md, DEVELOPMENT_HISTORY.md, CLAUDE.md markers updated. Not release-relevant.
+- Why: P0 effects polish is with an interactive session, owner items wait on him; this closes the "mirrored, still read from the header" gap left by the last run, so level 2 can carry its own gate and medals.
+- Verified: code-reviewer read the real diff: no blockers; no leftover references in src, tests, CMake, CI, web or iOS files; values identical to the deleted header; CMake wiring checked for desktop, Web and iOS. FlightTests and LevelDefTests built with g++ -Wall against stand-in raylib headers and pass; level.cpp syntax-checked only. Not run: the real CMake/Conan build or the game. CI status: see PR.
+- Open: Backlog 4 remaining: terrain, start position, scatter as data, level selection. A human should fly level 1 once and check the results screen medal text and the gate at 1000 m.
+- PR: PR into dev from agents/2026-10-07-2310-level-gate-medals
+
 ## 2026-10-07 22:10 UTC — night run (56)
 - Did: Backlog 4, first iteration (branch agents/2026-10-07-2210-level-def): new raylib-free `src/level_def.{h,cpp}` with `LevelDef` and `Level1Def()` holding level 1's four checkpoints, four hard and four soft obstacles, landing zone (300 x 40), rollout speed and require-landing flag. `InitLevel` and `GenerateWorld` read them; numbers and order are unchanged. New `LevelDefTests` ctest target pins every value. Gate distance and medal times are mirrored in `LevelDef` from `level_targets.h`, but the game still reads the header (wiring them is open). Docs and backlog markers updated. Not release-relevant.
 - Why: P0 effects polish is with an interactive session, owner items wait on him; level 2 will be data, not code, whichever progression wins.
