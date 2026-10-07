@@ -12,6 +12,13 @@ owner can skim what happened without digging through git log. Format:
 - PR: <link or branch, if one was opened>
 ```
 
+## 2026-10-07 18:10 UTC — night run (52)
+- Did: Backlog 2, third iteration (branch agents/2026-10-07-1810-flight-tests-3): `tests/flight_tests.cpp` adds a nose-up landing pair (pitch 8 deg at 7.5 m/s fall: sink rate 4.0 is within the limit, so Hard comes only from pitch above `liftoffPitch`; pitch 4 deg control: Safe) and a `maxRoll` clamp check (full roll held 10 s in the air, both signs, peak exactly 75 deg). `src/flight.cpp` untouched. ARCHITECTURE.md, DEVELOPMENT_HISTORY.md, CLAUDE.md backlog marker updated. Not release-relevant.
+- Why: closes two survivors listed in run (51); P0 effects polish is still with an interactive session and owner items wait on him.
+- Verified: compiled with g++ -std=c++23 against stand-in raylib headers (no raylib install or Conan in the sandbox); all checks pass. Mutations on a copy of flight.cpp: dropping the pitch term of the sink rate is caught by the pitch 4 control; removing the maxRoll clamp is caught (peak 900 deg). Real CMake/Conan/ctest not run locally. CI status: see PR.
+- Open: Backlog 2 remaining: level gate time vs gold medal, breakup no-piece-below-ground. Owner items unchanged (progression pick, world improvements, monetization, name/itch.io).
+- PR: PR into dev from agents/2026-10-07-1810-flight-tests-3
+
 ## 2026-10-07 17:07 UTC — night run (51)
 - Did: Backlog 2, second iteration (branch agents/2026-10-07-1707-flight-tests-2): `tests/flight_tests.cpp` now also pins sink-only hard landing (7.5 Hard / 5.0 Safe), nose-down and bank landings separately (positive and negative roll), the maxTurnRate clamp (75 deg bank at 20 m/s, radius 20.9 m), stall speed (just above: no fall; just below: 1.35 m in 1 s), full-power speed after 3 s (44.1 m/s), level speed (26.2 m/s), and non-vacuous standstill checks with control cases. `src/flight.cpp` untouched. ARCHITECTURE.md, DEVELOPMENT_HISTORY.md, CLAUDE.md backlog marker updated. Not release-relevant.
 - Why: P0 effects polish is still claimed by an interactive session (no `session/effects-polish` branch on origin), blockers done, owner items wait on him; this closes survivors from the previous run's mutation test.
