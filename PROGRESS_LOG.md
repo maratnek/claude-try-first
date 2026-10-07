@@ -12,6 +12,13 @@ owner can skim what happened without digging through git log. Format:
 - PR: <link or branch, if one was opened>
 ```
 
+## 2026-10-07 21:10 UTC — night run (55)
+- Did: Backlog 2, fourth iteration (branch agents/2026-10-07-2110-gate-time-test): `tests/flight_tests.cpp` adds a scripted straight run of level 1 (full throttle, pitch up at `liftoffSpeed`, flat ground) and checks the time to 1000 m is within [17 s, gold]. New raylib-free `src/level_targets.h` holds `kLevel1GateDistance` and `kMedalGold/Silver/Bronze` so the test and `level.cpp`/`level.h` share one value (moved, not changed). `src/flight.cpp` untouched. ARCHITECTURE.md, DEVELOPMENT_HISTORY.md, CLAUDE.md backlog marker updated. Not release-relevant.
+- Why: the earlier logs only claimed "gate in about 21 s, gold is 24 s" from one-off sims; a physics retune that makes gold unreachable (as happened once already) now turns ctest red.
+- Verified: g++ -std=c++23 -Wall -Wextra build of FlightTests against stand-in raylib headers (outside the repo): all checks pass, gate time 20.483 s, margin to gold 3.52 s. Mutation checks on scratch copies of flight.cpp: accel x0.9 gives 21.58 s (still passes, as it should), accel x0.7 gives 24.58 s (gate test FAILS), dragQuad 0.0040 gives 22.23 s (gate passes, other checks fail), dragQuad 0.0050 gives 24.08 s (gate test FAILS), maxSpeed 30 gives 34.98 s (FAILS). `level.cpp` was not compiled locally (needs real raylib); the edit there only removes three constants now provided by the new header. CI status: see PR.
+- Open: Backlog 2 remaining: breakup sanity. Owner items unchanged.
+- PR: PR into dev from agents/2026-10-07-2110-gate-time-test
+
 ## 2026-10-07 20:10 UTC — night run (54)
 - Did: Backlog 1, web loading indicator (branch agents/2026-10-07-2010-web-loading): `web/shell.html` shows a centered "Loading…" with a thin progress bar from page start, driven by `Module.setStatus` (determinate for "(n/m)" statuses, indeterminate otherwise), hidden when Emscripten reports `setStatus('')`. An "Exception…" status or `Module.onAbort` switches it to a sticky "Failed to load, see console" instead of an endless bar. Pointer events pass through; it sits under the Fullscreen button and the rotate hint. No C++ changes. ARCHITECTURE.md, DEVELOPMENT_HISTORY.md, CLAUDE.md backlog marker updated. Not release-relevant (release has no loading indicator either; the release-manager can pick it up if the owner wants it in v0.1).
 - Why: P0 effects polish is still with an interactive session (no `session/effects-polish` branch on origin), owner items wait on him; of the remaining Backlog 1 items this is the only one verifiable without a raylib/Conan build.

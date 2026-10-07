@@ -1,4 +1,5 @@
 #include "flight.h"
+#include "level_targets.h"
 #include <cmath>
 #include <cstdio>
 
@@ -104,6 +105,25 @@ LandingResult TouchDown(const PlaneParams &p, float speed, float pitch, float ro
         UpdatePlaneControls(s, p, in, kDt, 0.0f, 0.0f);
     }
     return s.landing;
+}
+
+float MeasureGateTime(const PlaneParams &p) {
+    PlaneState s;
+    s.position.y = p.wheelHeight;
+    FlightInput in;
+    in.throttle = 1.0f;
+    float t = 0.0f;
+    while (s.position.z < kLevel1GateDistance && t < 120.0f) {
+        in.pitch = !s.airborne && s.speed >= p.liftoffSpeed ? 1.0f : 0.0f;
+        UpdatePlaneControls(s, p, in, kDt, 0.0f, 0.0f);
+        t += kDt;
+    }
+    return s.position.z >= kLevel1GateDistance ? t : -1.0f;
+}
+
+void TestGateTime(const PlaneParams &p) {
+    constexpr float kMinPlausibleGateTime = 17.0f;
+    Report("straight run gate time s", MeasureGateTime(p), kMinPlausibleGateTime, kMedalGold);
 }
 
 void TestLiftoff(const PlaneParams &p) {
@@ -238,6 +258,7 @@ int main(int argc, char **argv) {
     g_verbose = argc > 1;
     PlaneParams p = BiplaneParams();
     TestLiftoff(p);
+    TestGateTime(p);
     TestGlide(p);
     TestBank(p);
     TestStandstill(p);

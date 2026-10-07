@@ -48,6 +48,7 @@ flowchart TD
 | `src/main.cpp` | Цикл кадра, переключение экранов, камера, порядок отрисовки, загрузка ассетов. При краше считает масштаб взрыва `s = FuelFraction` и запускает взрыв, дым-столб, звук и обломки. Под `#ifdef FLIGHT_DEBUG` (опция CMake `FLIGHT_DEBUG`, по умолчанию выкл., не включать для Web, iOS и релизного CI): переменные `FLIGHT_FUEL` (0..1), `FLIGHT_PRESET` (0..2), `FLIGHT_SPEED`, `FLIGHT_SHOT_PREFIX` и флаг `--crash-test` (пикирование в землю с 60 м, PNG через 0.1 / 0.3 / 1 / 3 с после удара, выход) | `Game`, `Screen`, `UpdateFrame`, `AssetPath`, `FuelTankWorld` |
 | `src/input.cpp` | Ввод с клавиатуры и тача в единую структуру; экранный стик и кнопки | `FlightInput`, `ReadFlightInput`, `DrawTouchOverlay` |
 | `src/flight.cpp` | Физика: управляемость зависит от скорости, сопротивление, сваливание, разбег, взлёт, посадка | `PlaneParams`, `BiplaneParams`, `PlaneState`, `UpdatePlaneControls`, `FuelFraction` |
+| `src/level_targets.h` | Константы без raylib: дистанция ворот уровня 1 (`kLevel1GateDistance`) и пороги медалей; их читают `level.cpp` и тесты | `kLevel1GateDistance`, `kMedalGold/Silver/Bronze` |
 | `src/level.cpp` | Цель уровня (1 км), чекпоинты-кольца, финишные ворота, HUD, экраны краха и результатов | `LevelState`, `UpdateLevel`, `DrawLevelHUD`, `DrawCrashScreen`, `DrawResultsScreen` |
 | `src/objects/world.cpp` | Heightmap-рельеф с ровным коридором, цвета вершин рельефа (трава/земля/камень по высоте и уклону плюс запечённая тень от фиксированного света; плоская трава совпадает с фоном), жёсткие и мягкие препятствия, высота земли | `WorldState`, `GetGroundHeight`, `ApplyTerrainColors`, `CheckObstacleHit` |
 | `src/objects/scatter.cpp` | Декоративные низкополигональные деревья и камни на холмах вне лётного коридора: детерминированная расстановка (фиксированный seed) по высоте земли, не ближе `flatHalfWidth + 20` м к оси и не ближе 12 м к препятствиям; без коллизий. Список хранится в случайном порядке, плотность выбирает его префикс; рисуется одним потоком треугольников rlgl с отсечением по дальности 450 м | `ScatterState`, `GenerateScatter`, `DrawScatter` |
@@ -92,8 +93,8 @@ stateDiagram-v2
 чеклист «Finished / All rings / Clean» (невыполненный пункт приглушён
 оранжевым), строка со следующей целью и 1–3 звезды (3 = без повреждений и все
 чекпоинты, 2 = одно из двух, 1 = просто финиш). Медаль по времени у ворот
-(`ComputeMedal`, пороги `kMedalGold/Silver/Bronze` = 24/30/40 с в начале
-`level.cpp`). Раскладка экрана масштабируется от высоты окна; лучшее время
+(`ComputeMedal`, пороги `kMedalGold/Silver/Bronze` = 24/30/40 с в
+`src/level_targets.h`). Раскладка экрана масштабируется от высоты окна; лучшее время
 хранится только в памяти на время сессии.
 
 ## Кадр
@@ -157,7 +158,7 @@ stateDiagram-v2
 | --- | --- | --- |
 | macOS desktop | `cmake -S . -B build -DCMAKE_BUILD_TYPE=Release && cmake --build build` | raylib из Conan через cmake-conan provider (ставится автоматически) |
 | Web | `emcmake cmake -S . -B build-web -DCMAKE_BUILD_TYPE=Release && cmake --build build-web` | raylib 5.5 через CMake FetchContent; Conan при Emscripten отключён |
-| Тесты физики (desktop) | `ctest --test-dir build --output-on-failure` после обычной сборки; цель `FlightTests` (`tests/flight_tests.cpp` + `src/flight.cpp`), без окна и GL, не входит в Web и iOS | Только заголовки raylib; пороги взяты из замеров текущего кода (взлёт, глиссада, радиус виража включая зажим maxTurnRate при крене 75° на 20 м/с, сваливание и порог stallSpeed, разгон и скорость горизонтального полёта, посадка по темпу снижения / наклону носа вниз и вверх / крену отдельно, зажим maxRoll при удержании крена, неподвижность на земле с контрольными случаями) |
+| Тесты физики (desktop) | `ctest --test-dir build --output-on-failure` после обычной сборки; цель `FlightTests` (`tests/flight_tests.cpp` + `src/flight.cpp`), без окна и GL, не входит в Web и iOS | Только заголовки raylib; пороги взяты из замеров текущего кода (взлёт, глиссада, радиус виража включая зажим maxTurnRate при крене 75° на 20 м/с, сваливание и порог stallSpeed, разгон и скорость горизонтального полёта, посадка по темпу снижения / наклону носа вниз и вверх / крену отдельно, зажим maxRoll при удержании крена, время до ворот при прямом пролёте на полном газу (взлёт, затем 1000 м; допуск от 17 с до порога золота, замер 20,48 с), неподвижность на земле с контрольными случаями) |
 | Тесты прогресса (desktop) | цель `ProgressTests` (`tests/progress_tests.cpp` + `src/progress.cpp`), входит в `ctest`, без raylib | Круговой обход сериализации, лучшее время и звёзды, зажим значений, неизвестная версия, битые строки |
 | iOS Simulator (спайк) | CI-job `ios-sim`: `cmake -G Xcode -DCMAKE_SYSTEM_NAME=iOS -DCMAKE_OSX_SYSROOT=iphonesimulator`, без подписи; ветка `iOS` в `CMakeLists.txt` | raylib 5.5 (бэкенд SDL, OpenGL ES 2.0) и SDL2 через FetchContent; Conan отключён |
 
