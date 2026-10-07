@@ -1,4 +1,5 @@
 #include "level.h"
+#include "level_def.h"
 #include "level_targets.h"
 #include "raymath.h"
 #include "safe_area.h"
@@ -6,11 +7,6 @@
 #include <cmath>
 
 namespace {
-constexpr bool kRequireLandingAfterGate = true;
-constexpr float kRolloutSpeed = 8.0f;
-constexpr float kLandingZoneLength = 300.0f;
-constexpr float kLandingZoneWidth = 40.0f;
-
 constexpr int kStarsFinished = 1;
 constexpr int kStarsCleanOrAllCheckpoints = 2;
 constexpr int kStarsPerfect = 3;
@@ -69,12 +65,10 @@ int CountPassed(const LevelState &level) {
 
 void InitLevel(LevelState &level) {
     Vector3 s = level.startPosition;
-    level.checkpoints = {
-        {(Vector3){s.x + 10.0f, s.y + 15.0f, s.z + 150.0f}, 6.0f},
-        {(Vector3){s.x - 10.0f, s.y + 25.0f, s.z + 350.0f}, 6.0f},
-        {(Vector3){s.x + 8.0f, s.y + 12.0f, s.z + 550.0f}, 6.0f},
-        {(Vector3){s.x - 8.0f, s.y + 20.0f, s.z + 750.0f}, 6.0f},
-    };
+    level.checkpoints.clear();
+    for (const CheckpointDef &c : Level1Def().checkpoints) {
+        level.checkpoints.push_back({(Vector3){s.x + c.x, s.y + c.y, s.z + c.z}, c.radius});
+    }
 
     Mesh ringMesh = GenMeshTorus(0.5f, 5.5f, 12, 24);
     level.checkpointModel = LoadModelFromMesh(ringMesh);
@@ -101,8 +95,8 @@ void UpdateLevel(LevelState &level, Vector3 planePosition, float dt) {
 
 bool IsRunFinished(const LevelState &level, bool airborne, float speed) {
     if (!level.gateCrossed) return false;
-    if (!kRequireLandingAfterGate) return true;
-    return !airborne && speed <= kRolloutSpeed;
+    if (!Level1Def().requireLanding) return true;
+    return !airborne && speed <= Level1Def().rolloutSpeed;
 }
 
 int ComputeStars(const LevelState &level, bool damaged) {
@@ -135,9 +129,9 @@ void DrawFinishGate(const LevelState &level) {
     DrawCylinder((Vector3){gatePos.x + 4.0f, 0.0f, gatePos.z}, 0.3f, 0.3f, 8.0f, 10, GOLD);
     DrawCube((Vector3){gatePos.x, 8.0f, gatePos.z}, 8.6f, 0.4f, 0.4f, GOLD);
 
-    if (kRequireLandingAfterGate) {
-        DrawCube((Vector3){gatePos.x, 0.05f, gatePos.z + kLandingZoneLength / 2.0f},
-                 kLandingZoneWidth, 0.1f, kLandingZoneLength, (Color){80, 200, 100, 255});
+    if (Level1Def().requireLanding) {
+        DrawCube((Vector3){gatePos.x, 0.05f, gatePos.z + Level1Def().landingZoneLength / 2.0f},
+                 Level1Def().landingZoneWidth, 0.1f, Level1Def().landingZoneLength, (Color){80, 200, 100, 255});
     }
 }
 
@@ -164,7 +158,7 @@ void DrawLevelHUD(const LevelState &level, bool damaged) {
 
     DrawText(damaged ? "Plane: DAMAGED" : "Plane: OK", 10 + (int)sa.left, 180 + (int)sa.top, 20, damaged ? MAROON : DARKGREEN);
 
-    if (level.gateCrossed && kRequireLandingAfterGate) {
+    if (level.gateCrossed && Level1Def().requireLanding) {
         const char *banner = "GATE! Land to finish";
         DrawText(banner, (GetScreenWidth() - MeasureText(banner, 40)) / 2, 110 + (int)sa.top, 40, GOLD);
     }

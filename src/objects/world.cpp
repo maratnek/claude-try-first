@@ -1,4 +1,5 @@
 #include "world.h"
+#include "level_def.h"
 #include "raymath.h"
 #include "rlgl.h"
 #include <cmath>
@@ -116,14 +117,8 @@ void GenerateWorld(WorldState &world, const GraphicsSettings &gfx) {
     world.terrainModel.materials[0].maps[MATERIAL_MAP_DIFFUSE].color = WHITE;
 
     world.obstacles.clear();
-    float obstacleZs[] = {300.0f, 500.0f, 700.0f, 850.0f};
-    float obstacleXs[] = {-8.0f, 10.0f, -6.0f, 9.0f};
-    for (int i = 0; i < 4; i++) AddHardObstacle(world, obstacleXs[i], obstacleZs[i], 6.0f, 3.0f);
-
-    AddSoftObstacle(world, 9.0f, 120.0f, 0.8f, 1.6f);
-    AddSoftObstacle(world, -4.0f, 220.0f, 9.0f, 2.5f);
-    AddSoftObstacle(world, 6.0f, 420.0f, 14.0f, 2.5f);
-    AddSoftObstacle(world, -5.0f, 620.0f, 10.0f, 2.5f);
+    for (const ObstacleDef &o : Level1Def().hardObstacles) AddHardObstacle(world, o.x, o.z, o.height, o.radius);
+    for (const ObstacleDef &o : Level1Def().softObstacles) AddSoftObstacle(world, o.x, o.z, o.height, o.radius);
 
     GenerateScatter(world.scatter, world);
     GenerateClouds(world.clouds);

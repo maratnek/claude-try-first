@@ -12,6 +12,7 @@ flowchart TD
     main["main.cpp<br/>игровой цикл, экраны, камера"]
     input["input.cpp<br/>клавиатура + тач → FlightInput"]
     flight["flight.cpp<br/>физика полёта, PlaneParams"]
+    leveldef["level_def.cpp<br/>данные уровня"]
     level["level.cpp<br/>чекпоинты, финиш, HUD, экраны краха и результатов"]
     world["objects/world.cpp<br/>рельеф, препятствия"]
     plane["objects/plane.cpp<br/>модель и анимация самолёта"]
@@ -28,6 +29,8 @@ flowchart TD
     main --> flight
     main --> level
     main --> world
+    level --> leveldef
+    world --> leveldef
     main --> plane
     main --> audio
     main --> menu
@@ -49,6 +52,7 @@ flowchart TD
 | `src/input.cpp` | Ввод с клавиатуры и тача в единую структуру; экранный стик и кнопки | `FlightInput`, `ReadFlightInput`, `DrawTouchOverlay` |
 | `src/flight.cpp` | Физика: управляемость зависит от скорости, сопротивление, сваливание, разбег, взлёт, посадка | `PlaneParams`, `BiplaneParams`, `PlaneState`, `UpdatePlaneControls`, `FuelFraction` |
 | `src/level_targets.h` | Константы без raylib: дистанция ворот уровня 1 (`kLevel1GateDistance`) и пороги медалей; их читают `level.cpp` и тесты | `kLevel1GateDistance`, `kMedalGold/Silver/Bronze` |
+| `src/level_def.h`, `src/level_def.cpp` | Данные уровня без raylib (`LevelDef`): дистанция ворот, пороги медалей (из `level_targets.h`), зона посадки и скорость наката, чекпоинты (смещения от старта и радиус), жёсткие и мягкие препятствия (x, z, высота, радиус); `Level1Def()` возвращает уровень 1. `InitLevel` и `GenerateWorld` читают их, порядок и числа те же, что раньше были в коде; уровень 2 будет новыми данными | `LevelDef`, `CheckpointDef`, `ObstacleDef`, `Level1Def` |
 | `src/level.cpp` | Цель уровня (1 км), чекпоинты-кольца, финишные ворота, HUD, экраны краха и результатов | `LevelState`, `UpdateLevel`, `DrawLevelHUD`, `DrawCrashScreen`, `DrawResultsScreen` |
 | `src/objects/world.cpp` | Heightmap-рельеф с ровным коридором, цвета вершин рельефа (трава/земля/камень по высоте и уклону плюс запечённая тень от фиксированного света; плоская трава совпадает с фоном), жёсткие и мягкие препятствия, высота земли | `WorldState`, `GetGroundHeight`, `ApplyTerrainColors`, `CheckObstacleHit` |
 | `src/objects/scatter.cpp` | Декоративные низкополигональные деревья и камни на холмах вне лётного коридора: детерминированная расстановка (фиксированный seed) по высоте земли, не ближе `flatHalfWidth + 20` м к оси и не ближе 12 м к препятствиям; без коллизий. Список хранится в случайном порядке, плотность выбирает его префикс; рисуется одним потоком треугольников rlgl с отсечением по дальности 450 м | `ScatterState`, `GenerateScatter`, `DrawScatter` |
@@ -87,7 +91,7 @@ stateDiagram-v2
 один раз звучит удар. После ворот время останавливается, самолёт остаётся управляемым, на HUD баннер
 «GATE! Land to finish», за воротами зона посадки; жёсткая посадка или удар
 после ворот ведёт в `Crashed` со строкой «Gate reached in X.XX s».
-`kRequireLandingAfterGate = false` в `level.cpp` возвращает мгновенный финиш
+`requireLanding = false` в `Level1Def()` (`level_def.cpp`) возвращает мгновенный финиш
 на воротах. На экране `Finished` физика заморожена, показываются
 время, медаль, разница с лучшим временем («+0.84 s» или «NEW BEST»),
 чеклист «Finished / All rings / Clean» (невыполненный пункт приглушён
@@ -159,6 +163,7 @@ stateDiagram-v2
 | macOS desktop | `cmake -S . -B build -DCMAKE_BUILD_TYPE=Release && cmake --build build` | raylib из Conan через cmake-conan provider (ставится автоматически) |
 | Web | `emcmake cmake -S . -B build-web -DCMAKE_BUILD_TYPE=Release && cmake --build build-web` | raylib 5.5 через CMake FetchContent; Conan при Emscripten отключён |
 | Тесты физики (desktop) | `ctest --test-dir build --output-on-failure` после обычной сборки; цель `FlightTests` (`tests/flight_tests.cpp` + `src/flight.cpp`), без окна и GL, не входит в Web и iOS | Только заголовки raylib; пороги взяты из замеров текущего кода (взлёт, глиссада, радиус виража включая зажим maxTurnRate при крене 75° на 20 м/с, сваливание и порог stallSpeed, разгон и скорость горизонтального полёта, посадка по темпу снижения / наклону носа вниз и вверх / крену отдельно, зажим maxRoll при удержании крена, время до ворот при прямом пролёте на полном газу (взлёт, затем 1000 м; допуск от 17 с до порога золота, замер 20,48 с), неподвижность на земле с контрольными случаями) |
+| Тесты определения уровня (desktop) | цель `LevelDefTests` (`tests/level_def_tests.cpp` + `src/level_def.cpp`), входит в `ctest`, без raylib | Все числа уровня 1 (количество и значения чекпоинтов, препятствий, зоны посадки, медалей); чекпоинты по возрастанию z и внутри дистанции ворот; препятствия внутри дистанции; золото < серебро < бронза |
 | Тесты прогресса (desktop) | цель `ProgressTests` (`tests/progress_tests.cpp` + `src/progress.cpp`), входит в `ctest`, без raylib | Круговой обход сериализации, лучшее время и звёзды, зажим значений, неизвестная версия, битые строки |
 | iOS Simulator (спайк) | CI-job `ios-sim`: `cmake -G Xcode -DCMAKE_SYSTEM_NAME=iOS -DCMAKE_OSX_SYSROOT=iphonesimulator`, без подписи; ветка `iOS` в `CMakeLists.txt` | raylib 5.5 (бэкенд SDL, OpenGL ES 2.0) и SDL2 через FetchContent; Conan отключён |
 

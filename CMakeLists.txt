@@ -55,6 +55,7 @@ add_executable(FlightGame
     src/flight.cpp
     src/input.cpp
     src/level.cpp
+    src/level_def.cpp
     src/menu.cpp
     src/progress.cpp
     src/progress_store.cpp
@@ -137,4 +138,8 @@ if(NOT EMSCRIPTEN AND NOT CMAKE_SYSTEM_NAME STREQUAL "iOS")
     add_executable(ProgressTests tests/progress_tests.cpp src/progress.cpp)
     target_include_directories(ProgressTests PRIVATE src)
     add_test(NAME ProgressTests COMMAND ProgressTests)
+
+    add_executable(LevelDefTests tests/level_def_tests.cpp src/level_def.cpp)
+    target_include_directories(LevelDefTests PRIVATE src)
+    add_test(NAME LevelDefTests COMMAND LevelDefTests)
 endif()
