@@ -75,6 +75,34 @@ so the game runs regardless of the launcher's working directory.
     controls/drag/stall/ground handling, A3 soft obstacles + damage +
     crash screen, A3b main menu (Play/Exit) + procedural crash sound.
 
+## Task board (read this first — work strictly top-down by priority)
+
+Owner's rule: every task carries an explicit priority, and work goes
+top-down. **P0** = blocks the release or is the owner's current request;
+**P1** = needed for the milestone; **P2** = later / nice to have. Any new
+task added anywhere in this file must also get a line here with its
+priority. Skip items marked "owner" (waiting on his decision) or
+"in progress" (someone else is on it), take the next one.
+
+| Pri | Task | Status | Details |
+| --- | --- | --- | --- |
+| P0 | Effects polish: squares → soft sprites (smoke, fireball, snow, rain, streaks) | in progress — interactive session, branch `session/effects-polish` | "Next up" below |
+| P0 | Release blockers 1–3 (throttle/gravity, turns, visible damage) | done, in `release` | "Current priority" |
+| P1 | Known small bugs and polish (window title, menu title, loading indicator, touch settings, rollout, dead code) | open | Backlog 1 |
+| P1 | Headless physics regression tests in CI | open | Backlog 2 |
+| P1 | Save/progress persistence layer | open | Backlog 3 |
+| P1 | Data-driven level definition | open | Backlog 4 |
+| P1 | Progression choice (A/B/C) → then level 2 | owner | `design-notes/progression.md` |
+| P1 | Game name + itch.io page, going public | owner | rollout plan |
+| P2 | Fuel consumption behind a flag | open | Backlog 5 |
+| P2 | Low-preset performance pass | open | Backlog 6 |
+| P2 | Aerobatics detection prototype | open | Backlog 7 |
+| P2 | iOS simulator readiness | open | Backlog 8 |
+| P2 | World improvements pick | owner | `design-notes/world-improvements.md` |
+| P2 | Monetization direction | owner | `design-notes/monetization.md` |
+| P2 | Apple Developer enrolment, App Store | owner, later | rollout plan |
+| later | Track D modes (parachute, helicopter, docking) | after first revenue | Track D |
+
 ## Current priority: v0.1 release blockers, then level 2 (overrides everything below)
 
 `release` was cut from `dev` on 2026-10-05 (commit 9543bba). The owner
