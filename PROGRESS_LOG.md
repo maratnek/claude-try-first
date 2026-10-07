@@ -12,6 +12,13 @@ owner can skim what happened without digging through git log. Format:
 - PR: <link or branch, if one was opened>
 ```
 
+## 2026-10-07 22:10 UTC — night run (56)
+- Did: Backlog 4, first iteration (branch agents/2026-10-07-2210-level-def): new raylib-free `src/level_def.{h,cpp}` with `LevelDef` and `Level1Def()` holding level 1's four checkpoints, four hard and four soft obstacles, landing zone (300 x 40), rollout speed and require-landing flag. `InitLevel` and `GenerateWorld` read them; numbers and order are unchanged. New `LevelDefTests` ctest target pins every value. Gate distance and medal times are mirrored in `LevelDef` from `level_targets.h`, but the game still reads the header (wiring them is open). Docs and backlog markers updated. Not release-relevant.
+- Why: P0 effects polish is with an interactive session, owner items wait on him; level 2 will be data, not code, whichever progression wins.
+- Verified: code-reviewer compared every number and the order against origin/dev, checked the CMake wiring (level_def.cpp is in the FlightGame source list, so Web and iOS get it) and found no blockers; a scratch mutation (soft obstacle height 10 to 10.5) makes the test fail. Built and ran LevelDefTests with g++ -std=c++23 -Wall -Wextra; level.cpp and world.cpp only syntax-checked against stand-in raylib headers. Not run: the real game, a real CMake/Conan build. CI status: see PR.
+- Open: Backlog 4 remaining: terrain, start position, scatter as data, level selection, wiring gate and medals through the definition. A human should fly level 1 once to confirm rings, obstacles and the landing strip look as before.
+- PR: PR into dev from agents/2026-10-07-2210-level-def
+
 ## 2026-10-07 21:10 UTC — night run (55)
 - Did: Backlog 2, fourth iteration (branch agents/2026-10-07-2110-gate-time-test): `tests/flight_tests.cpp` adds a scripted straight run of level 1 (full throttle, pitch up at `liftoffSpeed`, flat ground) and checks the time to 1000 m is within [17 s, gold]. New raylib-free `src/level_targets.h` holds `kLevel1GateDistance` and `kMedalGold/Silver/Bronze` so the test and `level.cpp`/`level.h` share one value (moved, not changed). `src/flight.cpp` untouched. ARCHITECTURE.md, DEVELOPMENT_HISTORY.md, CLAUDE.md backlog marker updated. Not release-relevant.
 - Why: the earlier logs only claimed "gate in about 21 s, gold is 24 s" from one-off sims; a physics retune that makes gold unreachable (as happened once already) now turns ctest red.
