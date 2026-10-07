@@ -11,6 +11,7 @@ Desktop (нужны CMake и Conan, raylib подтягивается автом
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build
 ./build/FlightGame
+ctest --test-dir build --output-on-failure   # физика полёта без окна
 ```
 
 Web (нужен Emscripten):

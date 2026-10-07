@@ -24,6 +24,9 @@ jobs:
       - name: Build
         run: cmake --build build
 
+      - name: Test
+        run: ctest --test-dir build --output-on-failure
+
   web:
     runs-on: ubuntu-latest
     steps:
