@@ -1,4 +1,5 @@
 #include "progress.h"
+#include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <sstream>
@@ -81,7 +82,7 @@ ProgressData ParseProgress(const std::string &text) {
             continue;
         } else if (key == "volume") {
             float v = static_cast<float>(atof(value.c_str()));
-            data.volume = v < 0.0f ? 0.0f : (v > 1.0f ? 1.0f : v);
+            if (std::isfinite(v)) data.volume = v < 0.0f ? 0.0f : (v > 1.0f ? 1.0f : v);
         } else if (key == "preset") {
             int p = atoi(value.c_str());
             data.preset = (p >= 0 && p <= 2) ? p : -1;
@@ -91,7 +92,7 @@ ProgressData ParseProgress(const std::string &text) {
             if (!ValidId(id) || comma == std::string::npos || FindLevelRecord(data, id)) continue;
             float time = static_cast<float>(atof(value.substr(0, comma).c_str()));
             int stars = atoi(value.substr(comma + 1).c_str());
-            data.levels.push_back({id, time > 0.0f ? time : -1.0f, stars < 0 ? 0 : (stars > 3 ? 3 : stars)});
+            data.levels.push_back({id, (std::isfinite(time) && time > 0.0f) ? time : -1.0f, stars < 0 ? 0 : (stars > 3 ? 3 : stars)});
         } else if (key.rfind("unlock.", 0) == 0 && value == "1") {
             AddUnlock(data, key.substr(7));
         }
