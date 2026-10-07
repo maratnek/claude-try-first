@@ -43,6 +43,43 @@
     border-radius: 6px;
     cursor: pointer;
   }
+  #loading {
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 12px;
+    pointer-events: none;
+    color: #fff;
+    font: 18px sans-serif;
+  }
+  #loading[hidden] { display: none; }
+  #loading-bar {
+    position: relative;
+    width: min(240px, 60vw);
+    height: 3px;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.25);
+  }
+  #loading-fill {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 0;
+    background: #fff;
+  }
+  #loading-fill.indeterminate {
+    width: 40%;
+    animation: loading-slide 1.2s ease-in-out infinite;
+  }
+  @keyframes loading-slide {
+    from { left: -40%; }
+    to { left: 100%; }
+  }
   #rotate-hint {
     display: none;
     position: fixed;
@@ -73,6 +110,10 @@
 <body>
 <canvas id="canvas" tabindex="-1" oncontextmenu="event.preventDefault()"></canvas>
 <button id="fullscreen" type="button" hidden>Fullscreen</button>
+<div id="loading">
+  <div id="loading-text">Loading…</div>
+  <div id="loading-bar"><div id="loading-fill" class="indeterminate"></div></div>
+</div>
 <div id="rotate-hint" class="active">
   <div>Rotate your phone to landscape to play</div>
   <button id="rotate-dismiss" type="button">Play anyway</button>
@@ -108,8 +149,31 @@
     document.addEventListener('webkitfullscreenchange', syncFs);
   }
 
+  var loadingEl = document.getElementById('loading');
+  var loadingFill = document.getElementById('loading-fill');
+
+  var hideLoading = function () { loadingEl.hidden = true; };
+
+  var setLoadingStatus = function (text) {
+    if (!text) {
+      hideLoading();
+      return;
+    }
+    var match = /\((\d+(?:\.\d+)?)\/(\d+)\)/.exec(text);
+    if (match && Number(match[2]) > 0) {
+      var fraction = Math.min(1, Number(match[1]) / Number(match[2]));
+      loadingFill.classList.remove('indeterminate');
+      loadingFill.style.width = (fraction * 100) + '%';
+    } else {
+      loadingFill.classList.add('indeterminate');
+      loadingFill.style.width = '';
+    }
+  };
+
   var Module = {
     canvas: canvas,
+    setStatus: setLoadingStatus,
+    onRuntimeInitialized: hideLoading,
     print: function (text) { console.log(text); },
     printErr: function (text) { console.error(text); }
   };
