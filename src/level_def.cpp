@@ -1,14 +1,13 @@
 #include "level_def.h"
-#include "level_targets.h"
 
 namespace {
 
 LevelDef MakeLevel1() {
     LevelDef d;
-    d.gateDistance = kLevel1GateDistance;
-    d.medalGold = kMedalGold;
-    d.medalSilver = kMedalSilver;
-    d.medalBronze = kMedalBronze;
+    d.gateDistance = 1000.0f;
+    d.medalGold = 24.0f;
+    d.medalSilver = 30.0f;
+    d.medalBronze = 40.0f;
     d.requireLanding = true;
     d.landingZoneLength = 300.0f;
     d.landingZoneWidth = 40.0f;

@@ -1,6 +1,5 @@
 #include "level.h"
 #include "level_def.h"
-#include "level_targets.h"
 #include "raymath.h"
 #include "safe_area.h"
 #include "settings.h"
@@ -48,9 +47,9 @@ Color MedalColor(Medal medal) {
 const char *NextTargetLine(Medal medal, int stars) {
     switch (medal) {
         case Medal::Gold: return stars == 3 ? "Gold - perfect run!" : "Gold - perfect run needs 3 stars";
-        case Medal::Silver: return TextFormat("Silver! Gold at %.1f s", kMedalGold);
-        case Medal::Bronze: return TextFormat("Bronze! Silver at %.1f s", kMedalSilver);
-        default: return TextFormat("Bronze at %.1f s", kMedalBronze);
+        case Medal::Silver: return TextFormat("Silver! Gold at %.1f s", Level1Def().medalGold);
+        case Medal::Bronze: return TextFormat("Bronze! Silver at %.1f s", Level1Def().medalSilver);
+        default: return TextFormat("Bronze at %.1f s", Level1Def().medalBronze);
     }
 }
 }  // namespace
@@ -64,6 +63,7 @@ int CountPassed(const LevelState &level) {
 }
 
 void InitLevel(LevelState &level) {
+    level.targetDistance = Level1Def().gateDistance;
     Vector3 s = level.startPosition;
     level.checkpoints.clear();
     for (const CheckpointDef &c : Level1Def().checkpoints) {
@@ -107,9 +107,9 @@ int ComputeStars(const LevelState &level, bool damaged) {
 }
 
 Medal ComputeMedal(float elapsed) {
-    if (elapsed <= kMedalGold) return Medal::Gold;
-    if (elapsed <= kMedalSilver) return Medal::Silver;
-    if (elapsed <= kMedalBronze) return Medal::Bronze;
+    if (elapsed <= Level1Def().medalGold) return Medal::Gold;
+    if (elapsed <= Level1Def().medalSilver) return Medal::Silver;
+    if (elapsed <= Level1Def().medalBronze) return Medal::Bronze;
     return Medal::None;
 }
 

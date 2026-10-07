@@ -51,8 +51,7 @@ flowchart TD
 | `src/main.cpp` | Цикл кадра, переключение экранов, камера, порядок отрисовки, загрузка ассетов. При краше считает масштаб взрыва `s = FuelFraction` и запускает взрыв, дым-столб, звук и обломки. Под `#ifdef FLIGHT_DEBUG` (опция CMake `FLIGHT_DEBUG`, по умолчанию выкл., не включать для Web, iOS и релизного CI): переменные `FLIGHT_FUEL` (0..1), `FLIGHT_PRESET` (0..2), `FLIGHT_SPEED`, `FLIGHT_SHOT_PREFIX` и флаг `--crash-test` (пикирование в землю с 60 м, PNG через 0.1 / 0.3 / 1 / 3 с после удара, выход) | `Game`, `Screen`, `UpdateFrame`, `AssetPath`, `FuelTankWorld` |
 | `src/input.cpp` | Ввод с клавиатуры и тача в единую структуру; экранный стик и кнопки | `FlightInput`, `ReadFlightInput`, `DrawTouchOverlay` |
 | `src/flight.cpp` | Физика: управляемость зависит от скорости, сопротивление, сваливание, разбег, взлёт, посадка | `PlaneParams`, `BiplaneParams`, `PlaneState`, `UpdatePlaneControls`, `FuelFraction` |
-| `src/level_targets.h` | Константы без raylib: дистанция ворот уровня 1 (`kLevel1GateDistance`) и пороги медалей; их читают `level.cpp` и тесты | `kLevel1GateDistance`, `kMedalGold/Silver/Bronze` |
-| `src/level_def.h`, `src/level_def.cpp` | Данные уровня без raylib (`LevelDef`): дистанция ворот, пороги медалей (из `level_targets.h`), зона посадки и скорость наката, чекпоинты (смещения от старта и радиус), жёсткие и мягкие препятствия (x, z, высота, радиус); `Level1Def()` возвращает уровень 1. `InitLevel` и `GenerateWorld` читают чекпоинты, препятствия, зону посадки и накат; дистанция ворот и медали пока читаются из `level_targets.h` (в `LevelDef` только зеркало, его сверяет тест). Порядок и числа те же, что раньше были в коде; уровень 2 будет новыми данными | `LevelDef`, `CheckpointDef`, `ObstacleDef`, `Level1Def` |
+| `src/level_def.h`, `src/level_def.cpp` | Данные уровня без raylib (`LevelDef`): дистанция ворот, пороги медалей, зона посадки и скорость наката, чекпоинты (смещения от старта и радиус), жёсткие и мягкие препятствия (x, z, высота, радиус); `Level1Def()` возвращает уровень 1. `InitLevel` и `GenerateWorld` читают чекпоинты, препятствия, зону посадки и накат; дистанция ворот и пороги медалей тоже читаются из `LevelDef` (`LevelState::targetDistance`, `ComputeMedal`, подсказка следующей медали); литералы 1000 м и 24/30/40 с лежат только в `level_def.cpp`. Порядок и числа те же, что раньше были в коде; уровень 2 будет новыми данными | `LevelDef`, `CheckpointDef`, `ObstacleDef`, `Level1Def` |
 | `src/level.cpp` | Цель уровня (1 км), чекпоинты-кольца, финишные ворота, HUD, экраны краха и результатов | `LevelState`, `UpdateLevel`, `DrawLevelHUD`, `DrawCrashScreen`, `DrawResultsScreen` |
 | `src/objects/world.cpp` | Heightmap-рельеф с ровным коридором, цвета вершин рельефа (трава/земля/камень по высоте и уклону плюс запечённая тень от фиксированного света; плоская трава совпадает с фоном), жёсткие и мягкие препятствия, высота земли | `WorldState`, `GetGroundHeight`, `ApplyTerrainColors`, `CheckObstacleHit` |
 | `src/objects/scatter.cpp` | Декоративные низкополигональные деревья и камни на холмах вне лётного коридора: детерминированная расстановка (фиксированный seed) по высоте земли, не ближе `flatHalfWidth + 20` м к оси и не ближе 12 м к препятствиям; без коллизий. Список хранится в случайном порядке, плотность выбирает его префикс; рисуется одним потоком треугольников rlgl с отсечением по дальности 450 м | `ScatterState`, `GenerateScatter`, `DrawScatter` |
@@ -97,8 +96,8 @@ stateDiagram-v2
 чеклист «Finished / All rings / Clean» (невыполненный пункт приглушён
 оранжевым), строка со следующей целью и 1–3 звезды (3 = без повреждений и все
 чекпоинты, 2 = одно из двух, 1 = просто финиш). Медаль по времени у ворот
-(`ComputeMedal`, пороги `kMedalGold/Silver/Bronze` = 24/30/40 с в
-`src/level_targets.h`). Раскладка экрана масштабируется от высоты окна; лучшее время
+(`ComputeMedal`, пороги `medalGold/Silver/Bronze` = 24/30/40 с в
+`LevelDef`, `src/level_def.cpp`). Раскладка экрана масштабируется от высоты окна; лучшее время
 хранится только в памяти на время сессии.
 
 ## Кадр

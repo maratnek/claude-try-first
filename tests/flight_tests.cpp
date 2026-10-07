@@ -1,5 +1,5 @@
 #include "flight.h"
-#include "level_targets.h"
+#include "level_def.h"
 #include <cmath>
 #include <cstdio>
 
@@ -113,17 +113,17 @@ float MeasureGateTime(const PlaneParams &p) {
     FlightInput in;
     in.throttle = 1.0f;
     float t = 0.0f;
-    while (s.position.z < kLevel1GateDistance && t < 120.0f) {
+    while (s.position.z < Level1Def().gateDistance && t < 120.0f) {
         in.pitch = !s.airborne && s.speed >= p.liftoffSpeed ? 1.0f : 0.0f;
         UpdatePlaneControls(s, p, in, kDt, 0.0f, 0.0f);
         t += kDt;
     }
-    return s.position.z >= kLevel1GateDistance ? t : -1.0f;
+    return s.position.z >= Level1Def().gateDistance ? t : -1.0f;
 }
 
 void TestGateTime(const PlaneParams &p) {
     constexpr float kMinPlausibleGateTime = 17.0f;
-    Report("straight run gate time s", MeasureGateTime(p), kMinPlausibleGateTime, kMedalGold);
+    Report("straight run gate time s", MeasureGateTime(p), kMinPlausibleGateTime, Level1Def().medalGold);
 }
 
 void TestLiftoff(const PlaneParams &p) {

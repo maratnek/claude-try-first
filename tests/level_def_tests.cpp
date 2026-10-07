@@ -1,5 +1,4 @@
 #include "level_def.h"
-#include "level_targets.h"
 #include <cmath>
 #include <cstdio>
 
@@ -29,10 +28,8 @@ bool Matches(const ObstacleDef &o, float x, float z, float h, float r) {
 int main() {
     const LevelDef &d = Level1Def();
 
-    Expect("gate distance", Near(d.gateDistance, 1000.0f) && Near(d.gateDistance, kLevel1GateDistance));
+    Expect("gate distance", Near(d.gateDistance, 1000.0f));
     Expect("medal times", Near(d.medalGold, 24.0f) && Near(d.medalSilver, 30.0f) && Near(d.medalBronze, 40.0f));
-    Expect("medal times match level_targets.h",
-           Near(d.medalGold, kMedalGold) && Near(d.medalSilver, kMedalSilver) && Near(d.medalBronze, kMedalBronze));
     Expect("landing rules", d.requireLanding && Near(d.landingZoneLength, 300.0f) &&
                                 Near(d.landingZoneWidth, 40.0f) && Near(d.rolloutSpeed, 8.0f));
 
