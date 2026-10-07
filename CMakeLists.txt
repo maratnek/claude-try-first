@@ -123,3 +123,12 @@ else()
             "${CMAKE_SOURCE_DIR}/assets" "$<TARGET_FILE_DIR:FlightGame>/assets"
     )
 endif()
+
+# Headless flight-physics tests: need only raylib.h/raymath.h headers, no window or GL.
+if(NOT EMSCRIPTEN AND NOT CMAKE_SYSTEM_NAME STREQUAL "iOS")
+    enable_testing()
+    add_executable(FlightTests tests/flight_tests.cpp src/flight.cpp)
+    target_include_directories(FlightTests PRIVATE src)
+    target_link_libraries(FlightTests PRIVATE raylib)
+    add_test(NAME FlightTests COMMAND FlightTests)
+endif()
