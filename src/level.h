@@ -1,5 +1,5 @@
 #pragma once
-#include "level_targets.h"
+#include "level_def.h"
 #include "raylib.h"
 #include <vector>
 
@@ -11,7 +11,7 @@ struct Checkpoint {
 
 struct LevelState {
     Vector3 startPosition = {0.0f, 0.0f, 0.0f};
-    float targetDistance = kLevel1GateDistance;
+    float targetDistance = Level1Def().gateDistance;
     float distanceFlown = 0.0f;
     bool gateCrossed = false;
     bool crashed = false;
