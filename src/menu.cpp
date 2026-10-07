@@ -7,11 +7,14 @@ namespace {
 constexpr float kEntryWidth = 320.0f;
 constexpr float kEntryHeight = 70.0f;
 constexpr float kEntrySpacing = 20.0f;
+constexpr int kEntrySlots = 2;
+constexpr float kHintReserve = 90.0f;
+constexpr int kTitleSize = 80;
 
 Rectangle EntryRect(int index) {
     Rectangle safe = GetSafeRect();
     return {safe.x + (safe.width - kEntryWidth) * 0.5f,
-            safe.y + safe.height * 0.5f + index * (kEntryHeight + kEntrySpacing), kEntryWidth, kEntryHeight};
+            safe.y + safe.height - kHintReserve - kEntrySlots * (kEntryHeight + kEntrySpacing) + kEntrySpacing + index * (kEntryHeight + kEntrySpacing), kEntryWidth, kEntryHeight};
 }
 }  // namespace
 
@@ -63,9 +66,12 @@ MenuAction UpdateMenu(MenuState &menu) {
 void DrawMenu(const MenuState &menu) {
     DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), (Color){0, 0, 0, 120});
     Rectangle safe = GetSafeRect();
-    int cx = (int)(safe.x + safe.width * 0.5f), cy = (int)(safe.y + safe.height * 0.5f);
+    int cx = (int)(safe.x + safe.width * 0.5f);
     const char *title = "FLIGHT GAME";
-    DrawText(title, cx - MeasureText(title, 80) / 2, cy - 200, 80, WHITE);
+    int titleWidth = MeasureText(title, kTitleSize);
+    int titleSize = kTitleSize;
+    if (titleWidth > safe.width * 0.9f) titleSize = (int)(kTitleSize * safe.width * 0.9f / titleWidth);
+    DrawText(title, cx - MeasureText(title, titleSize) / 2, (int)(safe.y + safe.height * 0.08f), titleSize, WHITE);
     for (int i = 0; i < (int)menu.entries.size(); i++) {
         Rectangle r = EntryRect(i);
         bool selected = i == menu.selected;
