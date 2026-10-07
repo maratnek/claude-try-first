@@ -233,7 +233,7 @@ in the same PR. Never build anything that pre-empts an open owner choice
 (no level 2 content, no store/IAP code, no world-improvement features) —
 those stay proposals until he decides.
 
-1. **Known small bugs and polish** from PROGRESS_LOG "Open" lines: window
+1. **Known small bugs and polish** [partly done: window title, menu layout (branch agents/2026-10-07-0915-small-polish)] from PROGRESS_LOG "Open" lines: window
    title still says "Step 5: Engine Audio"; menu title overlaps the plane
    and clips in portrait; HUD row close to the web Fullscreen button; no
    loading indicator on web (black page while assets download); no touch

@@ -12,6 +12,13 @@ owner can skim what happened without digging through git log. Format:
 - PR: <link or branch, if one was opened>
 ```
 
+## 2026-10-07 09:15 UTC — day run (49)
+- Did: Backlog 1, first group of small polish (branch agents/2026-10-07-0915-small-polish): window title is now "Flight Game" (was "Step 5: Engine Audio"); the main menu title no longer sits at the screen centre over the plane. It is drawn near the top of the safe rect, shrinks to fit the width (portrait clipping), and the entries are anchored to the bottom above the hint line. Dead code: nothing removed; no unused `k*` constant exists, and `landingMaxSinkRate` is a live `PlaneParams` field (read in flight.cpp), so I left it rather than touch physics unverified. Not release-relevant.
+- Why: P0 effects polish is taken by an interactive session, blockers are done, so the next open item is P1 Backlog 1.
+- Verified: code-reviewer read the real diff: no blockers; hit targets and drawn buttons share one `EntryRect`. Nits left as is: `kEntrySlots = 2` leaves a ~120 px gap on Web/mobile (one entry); on a very short landscape (844x390) the title and first button are about 10 px apart. Nothing was compiled or run locally (Conan and raylib unreachable in the sandbox; no raylib.h on the machine), so there are no screenshots. CI status: see PR.
+- Open: Owner should look at the menu at landscape and portrait. Still open in Backlog 1: HUD row near the web Fullscreen button, web loading indicator, touch way to change preset or volume, rollout past the landing zone.
+- PR: PR into dev from agents/2026-10-07-0915-small-polish
+
 ## 2026-10-06 night run (48)
 - Did: Monetization options note (last lower-priority item, design only): `design-notes/monetization.md` with six options (free baseline, itch.io tip text, earned or paid cosmetic paints, one-time non-gating supporter unlock, premium upfront, ads), pros and cons, Web vs iOS table, fit with progression loops and the 60% criterion, cost in runs, recommended order, six open questions for the owner. Docs history row added. No code changed.
 - Why: Blockers 1-6 are done or waiting on the owner, and the world-improvements note is done, so this is the next listed item. Not release-relevant.
