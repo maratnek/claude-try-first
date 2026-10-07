@@ -12,6 +12,13 @@ owner can skim what happened without digging through git log. Format:
 - PR: <link or branch, if one was opened>
 ```
 
+## 2026-10-07 19:10 UTC — night run (53)
+- Did: Backlog 3, data layer (branch agents/2026-10-07-1907-progress-store): `src/progress.{h,cpp}` (pure, no raylib: `ProgressData` with per-level best time and stars, unlock flags, volume, preset; `RecordLevelResult` keeps the better result; text `key=value` format with `version=1`, tolerant parser that clamps values and skips unknown or malformed lines) and `src/progress_store.cpp` (desktop `progress.cfg` next to the executable, Web `localStorage` key `flightgame.progress`, iOS no-op stub). New `ProgressTests` ctest target (round trip, clamping, unknown version, messy input). Not wired into the game, no UI, no new levels. ARCHITECTURE.md, DEVELOPMENT_HISTORY.md, CLAUDE.md backlog and task board updated. Not release-relevant.
+- Why: P0 effects polish is still with an interactive session (no `session/effects-polish` branch on origin), owner items wait on him; every progression option needs this layer, and its core is testable without a window.
+- Verified: see below and PR. Local: g++ -std=c++23 -Wall -Wextra build and run of ProgressTests passes; progress_store.cpp desktop path syntax-checked against a stand-in raylib.h; the Emscripten branch (EM_ASM) was not compiled locally, CI web job covers it. CI status: see PR.
+- Open: wiring best time into `level.cpp` and volume/preset into settings (needs the progression pick, so left alone); iOS persistence is a stub; Backlog 2 remaining: gate time vs gold, breakup sanity. Owner items unchanged.
+- PR: PR into dev from agents/2026-10-07-1907-progress-store
+
 ## 2026-10-07 18:10 UTC — night run (52)
 - Did: Backlog 2, third iteration (branch agents/2026-10-07-1810-flight-tests-3): `tests/flight_tests.cpp` adds a nose-up landing pair (pitch 8 deg at 7.5 m/s fall: sink rate 4.0 is within the limit, so Hard comes only from pitch above `liftoffPitch`; pitch 4 deg control: Safe) and a `maxRoll` clamp check (full roll held 10 s in the air, both signs, peak exactly 75 deg). `src/flight.cpp` untouched. ARCHITECTURE.md, DEVELOPMENT_HISTORY.md, CLAUDE.md backlog marker updated. Not release-relevant.
 - Why: closes two survivors listed in run (51); P0 effects polish is still with an interactive session and owner items wait on him.

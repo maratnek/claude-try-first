@@ -90,7 +90,7 @@ priority. Skip items marked "owner" (waiting on his decision) or
 | P0 | Release blockers 1–3 (throttle/gravity, turns, visible damage) | done, in `release` | "Current priority" |
 | P1 | Known small bugs and polish (window title, menu title, loading indicator, touch settings, rollout, dead code) | open | Backlog 1 |
 | P1 | Headless physics regression tests in CI | open | Backlog 2 |
-| P1 | Save/progress persistence layer | open | Backlog 3 |
+| P1 | Save/progress persistence layer | data layer done (branch agents/2026-10-07-1907-progress-store), not wired into the game | Backlog 3 |
 | P1 | Data-driven level definition | open | Backlog 4 |
 | P1 | Progression choice (A/B/C) → then level 2 | owner | `design-notes/progression.md` |
 | P1 | Game name + itch.io page, going public | owner | rollout plan |
@@ -247,7 +247,7 @@ those stay proposals until he decides.
    soft vs hard landing; plus breakup sanity (no piece below ground after
    settling). Wire it into `.github/workflows/build.yml` so physics
    regressions turn CI red.
-3. **Save/progress persistence layer** every progression option needs:
+3. **Save/progress persistence layer** [data layer done: `src/progress.*`, branch agents/2026-10-07-1907-progress-store; still open: wire best time into level.cpp and the volume/preset into settings once a progression is picked] every progression option needs:
    best times, medals, unlock flags, settings — a file on desktop,
    `localStorage` on web, a stub for iOS. Data only; no new levels or UI.
 4. **Data-driven level definition:** move level 1's checkpoints, obstacles,

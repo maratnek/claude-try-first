@@ -56,6 +56,8 @@ add_executable(FlightGame
     src/input.cpp
     src/level.cpp
     src/menu.cpp
+    src/progress.cpp
+    src/progress_store.cpp
     src/safe_area.cpp
     src/settings.cpp
     src/objects/glb_nodes.cpp
@@ -131,4 +133,8 @@ if(NOT EMSCRIPTEN AND NOT CMAKE_SYSTEM_NAME STREQUAL "iOS")
     target_include_directories(FlightTests PRIVATE src)
     target_link_libraries(FlightTests PRIVATE raylib)
     add_test(NAME FlightTests COMMAND FlightTests)
+
+    add_executable(ProgressTests tests/progress_tests.cpp src/progress.cpp)
+    target_include_directories(ProgressTests PRIVATE src)
+    add_test(NAME ProgressTests COMMAND ProgressTests)
 endif()
