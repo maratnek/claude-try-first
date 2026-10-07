@@ -327,7 +327,7 @@ int main() {
     // raylib only tracks the browser window size (canvas fills the page) when resizable
     SetConfigFlags(FLAG_WINDOW_RESIZABLE);
 #endif
-    InitWindow(screenWidth, screenHeight, "Flight Game - Step 5: Engine Audio");
+    InitWindow(screenWidth, screenHeight, "Flight Game");
     rlSetClipPlanes(0.1, 20000.0);
 
     InitAudioDevice();
