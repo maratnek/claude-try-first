@@ -166,6 +166,55 @@ Lower priority — only after 1–6, and never ahead of a bug:
   App Store rules (e.g. free + optional cosmetic plane skins, a one-time
   "supporter" unlock, no ads at first), with pros/cons. Nothing is built.
 
+## Autonomous backlog — when everything above waits on the owner
+
+The owner does not want idle runs. If every item in the priority list
+above is done or blocked on an owner decision, do NOT exit with "nothing
+to do": take the first unfinished item below. These need no owner
+decision and fit every progression/monetization/world option the owner
+might pick. One item (or one iteration of it) per run, same branch, PR,
+verifier and rebase rules as always. Mark done items here (`[done PR #n]`)
+in the same PR. Never build anything that pre-empts an open owner choice
+(no level 2 content, no store/IAP code, no world-improvement features) —
+those stay proposals until he decides.
+
+1. **Known small bugs and polish** from PROGRESS_LOG "Open" lines: window
+   title still says "Step 5: Engine Audio"; menu title overlaps the plane
+   and clips in portrait; HUD row close to the web Fullscreen button; no
+   loading indicator on web (black page while assets download); no touch
+   way to change the graphics preset or volume; rollout after landing can
+   run past the 300 m landing zone / world edge; dead `kLandingMaxSinkRate`
+   and similar dead code. One coherent group per run.
+2. **Headless regression tests in CI.** A small test executable (no window)
+   that runs `flight.cpp` and asserts the numbers already reported by
+   hand: liftoff time/distance, level-1 gate time vs the gold medal, glide
+   ratio, turn radius at 20/35/50 m/s, no yaw at standstill, stall fall,
+   soft vs hard landing; plus breakup sanity (no piece below ground after
+   settling). Wire it into `.github/workflows/build.yml` so physics
+   regressions turn CI red.
+3. **Save/progress persistence layer** every progression option needs:
+   best times, medals, unlock flags, settings — a file on desktop,
+   `localStorage` on web, a stub for iOS. Data only; no new levels or UI.
+4. **Data-driven level definition:** move level 1's checkpoints, obstacles,
+   gate, landing zone and medal times out of code into a level data file,
+   so level 2 (whichever progression wins) is content, not code. Level 1
+   must play identically (the regression test from item 2 proves it).
+5. **Fuel consumption tied to engine power**, with an empty tank cutting
+   the engine (glide home). Keep it off by default behind a `PlaneParams`
+   flag until the owner has flown it; report the numbers.
+6. **Performance pass on the Low preset:** measure frame time in a headless
+   run, find the top costs (terrain draw, particles), cut them without
+   changing the look on High. Target: iPhone 11-class headroom.
+7. **Aerobatics detection prototype:** recognise loop, barrel roll,
+   Immelmann from the flight state, unit-tested, not wired into rewards or
+   UI yet (that is a progression decision).
+8. **iOS simulator readiness:** whatever the iOS build still lacks that
+   needs no Apple account (touch on simulator, audio session, safe-area
+   checks, CI artifact of the .app).
+
+If this list is also exhausted, write a short note in PROGRESS_LOG.md and
+propose the next autonomous items here in the same PR for the owner.
+
 ## Release success criteria
 
 - **Web (itch.io), free:** the first test is about fun, not money. Goal:
