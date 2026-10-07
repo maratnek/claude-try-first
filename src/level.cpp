@@ -1,14 +1,11 @@
 #include "level.h"
+#include "level_targets.h"
 #include "raymath.h"
 #include "safe_area.h"
 #include "settings.h"
 #include <cmath>
 
 namespace {
-constexpr float kMedalGold = 24.0f;
-constexpr float kMedalSilver = 30.0f;
-constexpr float kMedalBronze = 40.0f;
-
 constexpr bool kRequireLandingAfterGate = true;
 constexpr float kRolloutSpeed = 8.0f;
 constexpr float kLandingZoneLength = 300.0f;

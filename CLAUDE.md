@@ -240,7 +240,7 @@ those stay proposals until he decides.
    way to change the graphics preset or volume; rollout after landing can
    run past the 300 m landing zone / world edge; dead `kLandingMaxSinkRate`
    and similar dead code. One coherent group per run.
-2. **Headless regression tests in CI.** [partly done: flight physics checks via ctest (branches agents/2026-10-07-1607-flight-tests, agents/2026-10-07-1707-flight-tests-2: sink-only landing, turn clamp, stall speed, accel; agents/2026-10-07-1810-flight-tests-3: nose-up landing, maxRoll clamp); still open: level gate time vs gold, breakup sanity] A small test executable (no window)
+2. **Headless regression tests in CI.** [partly done: flight physics checks via ctest (branches agents/2026-10-07-1607-flight-tests, agents/2026-10-07-1707-flight-tests-2: sink-only landing, turn clamp, stall speed, accel; agents/2026-10-07-1810-flight-tests-3: nose-up landing, maxRoll clamp; agents/2026-10-07-2110-gate-time-test: level-1 gate time vs gold); still open: breakup sanity] A small test executable (no window)
    that runs `flight.cpp` and asserts the numbers already reported by
    hand: liftoff time/distance, level-1 gate time vs the gold medal, glide
    ratio, turn radius at 20/35/50 m/s, no yaw at standstill, stall fall,
