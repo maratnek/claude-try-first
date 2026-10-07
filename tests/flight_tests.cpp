@@ -201,6 +201,8 @@ void TestLanding(const PlaneParams &p) {
     Expect("sink only 5.0 m/s", TouchDown(p, 25.0f, 0.0f, 0.0f, 5.0f) == LandingResult::Safe);
     Expect("nose-down 30 low sink", TouchDown(p, 14.5f, -30.0f, 0.0f, -2.0f) == LandingResult::Hard);
     Expect("nose-down 20 low sink", TouchDown(p, 14.5f, -20.0f, 0.0f, -2.0f) == LandingResult::Safe);
+    Expect("nose-up 8 low sink", TouchDown(p, 25.0f, 8.0f, 0.0f, 7.5f) == LandingResult::Hard);
+    Expect("nose-up 4 low sink", TouchDown(p, 25.0f, 4.0f, 0.0f, 7.5f) == LandingResult::Safe);
     Expect("bank 20 low sink", TouchDown(p, 25.0f, 0.0f, 20.0f, 1.0f) == LandingResult::Hard);
     Expect("bank 12 low sink", TouchDown(p, 25.0f, 0.0f, 12.0f, 1.0f) == LandingResult::Safe);
     Expect("bank -20 low sink", TouchDown(p, 25.0f, 0.0f, -20.0f, 1.0f) == LandingResult::Hard);
@@ -212,6 +214,22 @@ void TestLanding(const PlaneParams &p) {
         in.pitch = 0.0f;
     }
     Expect("landing banked 40deg is Hard", rolled.landing == LandingResult::Hard);
+}
+
+void TestRollClamp(const PlaneParams &p) {
+    const float dirs[2] = {1.0f, -1.0f};
+    for (float dir : dirs) {
+        PlaneState s = Airborne(30.0f, 5000.0f, p.levelPower);
+        FlightInput in;
+        in.roll = dir;
+        float extreme = 0.0f;
+        for (int i = 0; i < 60 * 10; i++) {
+            s.speed = 30.0f;
+            UpdatePlaneControls(s, p, in, kDt, 0.0f, 0.0f);
+            if (fabsf(s.roll) > fabsf(extreme)) extreme = s.roll;
+        }
+        Report(dir > 0.0f ? "held roll right peak" : "held roll left peak", extreme * dir, p.maxRoll - 0.01f, p.maxRoll + 0.01f);
+    }
 }
 
 }  // namespace
@@ -227,6 +245,7 @@ int main(int argc, char **argv) {
     TestStallSpeed(p);
     TestSpeed(p);
     TestLanding(p);
+    TestRollClamp(p);
     if (g_failures) printf("%d check(s) failed\n", g_failures);
     else printf("all flight checks passed\n");
     return g_failures ? 1 : 0;
