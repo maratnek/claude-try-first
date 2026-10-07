@@ -183,6 +183,9 @@
     }
   };
 
+  window.addEventListener('error', failLoading);
+  window.addEventListener('unhandledrejection', failLoading);
+
   var Module = {
     canvas: canvas,
     setStatus: setLoadingStatus,
