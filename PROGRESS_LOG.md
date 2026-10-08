@@ -12,6 +12,13 @@ owner can skim what happened without digging through git log. Format:
 - PR: <link or branch, if one was opened>
 ```
 
+## 2026-10-08 03:10 UTC — night run (61)
+- Did: Backlog 1, HUD row near the web Fullscreen button (branch agents/2026-10-08-0310-hud-fullscreen): the two top HUD lines (controls, speed/altitude/power) are drawn with a font size that shrinks (20 down to 12) until the text fits left of a 150 px reserve on web (10 px elsewhere), so they no longer run under the button. `FitFontSize` in `src/main.cpp`. Not release-relevant.
+- Why: P0 effects polish is with an interactive session, owner items wait on him; this was the next open item in Backlog 1.
+- Verified: see PR for reviewer and CI. Not run: the game (no raylib in this sandbox).
+- Open: Backlog 1 remaining: dead code sweep. A human should check the HUD on a narrow web window.
+- PR: PR into dev from agents/2026-10-08-0310-hud-fullscreen
+
 ## 2026-10-08 02:06 UTC — night run (60)
 - Did: Backlog 1, touch way to change graphics preset and volume (branch agents/2026-10-08-0206-touch-settings): three small top-right buttons ("Gfx: <preset>", "Vol -", "Vol +") appear once touch has been used, during Playing/Crashed/Finished, below the web Fullscreen button and above the volume readout. They run the same actions as F1 and -/=. A touch on a button is excluded from the stick. Layout and hit test are raylib-free in `src/touch_layout.*` with a new `TouchLayoutTests` ctest target. Docs and backlog marker updated. Not release-relevant.
 - Why: P0 effects polish is with an interactive session, owner items wait on him; this was the next open item in Backlog 1.

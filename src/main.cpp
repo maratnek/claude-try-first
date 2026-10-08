@@ -76,6 +76,11 @@ struct Game {
 #endif
 };
 
+int FitFontSize(const char *text, int size, int maxWidth) {
+    while (size > 12 && MeasureText(text, size) > maxWidth) size--;
+    return size;
+}
+
 bool HasLandedSafely(const PlaneState &plane) {
     return plane.landing == LandingResult::Safe && !plane.airborne;
 }
@@ -276,12 +281,18 @@ void UpdateFrame(Game &g) {
 
     const SafeArea sa = GetSafeArea();
     const int ox = 10 + (int)sa.left, oy = (int)sa.top;
-    DrawText(g.inputState.touchUsed ? "Left stick: pitch/roll  +/-: engine power"
-                                    : "Arrows = pitch/roll, A/D = rudder, W/S = engine power",
-             ox, 10 + oy, 20, DARKGRAY);
-    DrawText(TextFormat("Speed: %.1f m/s   Altitude: %.1f m   Power: %d%%   %s",
-                         plane.speed, plane.position.y, (int)roundf(plane.enginePower * 100.0f), plane.airborne ? "AIRBORNE" : "ON GROUND - raise power (W), pull up to take off; brake: power 0, then S"),
-             ox, 35 + oy, 20, DARKGRAY);
+#ifdef __EMSCRIPTEN__
+    const int hudRight = 150;
+#else
+    const int hudRight = 10;
+#endif
+    const int hudWidth = GetScreenWidth() - (int)sa.right - hudRight - ox;
+    const char *controlsText = g.inputState.touchUsed ? "Left stick: pitch/roll  +/-: engine power"
+                                                      : "Arrows = pitch/roll, A/D = rudder, W/S = engine power";
+    DrawText(controlsText, ox, 10 + oy, FitFontSize(controlsText, 20, hudWidth), DARKGRAY);
+    const char *statusText = TextFormat("Speed: %.1f m/s   Altitude: %.1f m   Power: %d%%   %s",
+                         plane.speed, plane.position.y, (int)roundf(plane.enginePower * 100.0f), plane.airborne ? "AIRBORNE" : "ON GROUND - raise power (W), pull up to take off; brake: power 0, then S");
+    DrawText(statusText, ox, 35 + oy, FitFontSize(statusText, 20, hudWidth), DARKGRAY);
     DrawLevelHUD(level, plane.damaged);
     if (plane.landing == LandingResult::Hard) {
         DrawText("Hard landing!", ox, 150 + oy, 30, MAROON);
