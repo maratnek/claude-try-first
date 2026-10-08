@@ -237,7 +237,7 @@ those stay proposals until he decides.
    title still says "Step 5: Engine Audio"; menu title overlaps the plane
    and clips in portrait; HUD row close to the web Fullscreen button [done: the two top HUD lines shrink to fit left of it on web, branch agents/2026-10-08-0310-hud-fullscreen]; no
    loading indicator on web (black page while assets download); rollout after landing [checked: 188 m max from 30 m/s, inside the 300 m zone, now pinned by a test]; dead `kLandingMaxSinkRate`
-   and similar dead code. One coherent group per run.
+   and similar dead code [done: sweep of src/ and tests/ found nothing further with zero references; `kLandingMaxSinkRate` was the only dead symbol]. One coherent group per run.
 2. **Headless regression tests in CI.** [partly done: flight physics checks via ctest (branches agents/2026-10-07-1607-flight-tests, agents/2026-10-07-1707-flight-tests-2: sink-only landing, turn clamp, stall speed, accel; agents/2026-10-07-1810-flight-tests-3: nose-up landing, maxRoll clamp; agents/2026-10-07-2110-gate-time-test: level-1 gate time vs gold; agents/2026-10-08-0010-rollout-test: rollout distance vs the 300 m landing zone; agents/2026-10-08-0110-breakup-test: `BreakupTests`, final settled pose only: no piece below ground after settling, mid-fall collision is not checked) — item done apart from that] A small test executable (no window)
    that runs `flight.cpp` and asserts the numbers already reported by
    hand: liftoff time/distance, level-1 gate time vs the gold medal, glide
