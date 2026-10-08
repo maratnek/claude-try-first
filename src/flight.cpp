@@ -37,7 +37,8 @@ PlaneParams BiplaneParams() {
     p.controlSpeed = 25.0f;
     p.pitchRate = 60.0f;
     p.rollRate = 90.0f;
-    p.yawRate = 8.0f;
+    p.yawRate = 22.0f;
+    p.rudderBank = 25.0f;
     p.taxiTurnRadius = 15.0f;
     p.taxiMaxTurnRate = 35.0f;
     p.stallDropRate = 70.0f;
@@ -88,6 +89,8 @@ void UpdatePlaneControls(PlaneState &plane, const PlaneParams &params, const Fli
     if (plane.airborne) {
         if (rollInput != 0.0f) {
             plane.roll += rollInput * params.rollRate * authority * dt;
+        } else if (yawInput != 0.0f) {
+            plane.roll = MoveToward(plane.roll, yawInput * params.rudderBank, params.rollRate * authority * dt);
         } else {
             plane.roll = MoveToward(plane.roll, 0.0f, params.levelRate * dt);
         }
