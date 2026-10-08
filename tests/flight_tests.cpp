@@ -291,6 +291,10 @@ void TestAglBeep() {
     Report("beep: amber interval capped", ComputeAglBeepInterval(true, 9.0f, 3.0f), 0.399f, 0.401f);
     Report("beep: red interval", ComputeAglBeepInterval(true, 5.0f, 10.0f), 0.19f, 0.21f);
     Report("beep: interval floor", ComputeAglBeepInterval(true, 0.0f, 10.0f), 0.149f, 0.151f);
+    Expect("beep: liftoff bump silent", ComputeAglBeepInterval(true, 0.3f, 0.3f) == 0.0f);
+    Expect("beep: just below min descent silent", ComputeAglBeepInterval(true, 1.0f, 1.99f) == 0.0f);
+    Expect("beep: at min descent beeps", ComputeAglBeepInterval(true, 5.0f, 2.0f) > 0.0f);
+    Expect("beep: exactly 10 m silent", ComputeAglBeepInterval(true, 10.0f, 10.0f) == 0.0f);
     Expect("beep: faster nearer impact",
            ComputeAglBeepInterval(true, 3.0f, 10.0f) < ComputeAglBeepInterval(true, 9.0f, 4.0f));
 }

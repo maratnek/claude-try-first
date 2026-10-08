@@ -4,6 +4,7 @@
 
 constexpr float kAglWarnHeight = 30.0f;
 constexpr float kAglBeepHeight = 10.0f;
+constexpr float kAglBeepMinDescent = 2.0f;
 constexpr float kAglAmberSeconds = 4.0f;
 constexpr float kAglRedSeconds = 2.0f;
 
@@ -95,7 +96,7 @@ struct AglWarning {
 AglWarning ComputeAglWarning(bool airborne, float agl, float descentRate);
 
 // Seconds between warning beeps, or 0 for no beep. Beeps only while the AGL
-// warning is amber/red and below kAglBeepHeight; shorter as impact nears.
+// warning is amber/red, below kAglBeepHeight and sinking at least kAglBeepMinDescent m/s; shorter as impact nears.
 float ComputeAglBeepInterval(bool airborne, float agl, float descentRate);
 
 float FuelFraction(const PlaneState &plane, const PlaneParams &params);
