@@ -188,6 +188,7 @@ void DrawBlobShadow(const WorldState &world, Vector3 planePosition, float yawDeg
     const float kHalfAlong = 2.2f, kHalfAcross = 3.0f;
     const float kLift = 0.15f;
     const int kSegments = 20;
+    const float kGroundAlpha = 170.0f;
 
     float yaw = yawDegrees * DEG2RAD;
     Vector2 fwd = {sinf(yaw), cosf(yaw)};
@@ -204,12 +205,13 @@ void DrawBlobShadow(const WorldState &world, Vector3 planePosition, float yawDeg
     if (altitude >= kMaxAltitude) return;
     float t = Clamp(altitude / kMaxAltitude, 0.0f, 1.0f);
     float scale = 1.0f + t * 1.5f;
-    unsigned char alpha = (unsigned char)(110.0f * (1.0f - t));
+    float centerAlpha = kGroundAlpha * (1.0f - t);
+    unsigned char alphaCenter = (unsigned char)centerAlpha;
+    unsigned char alphaRim = (unsigned char)(centerAlpha * (1.0f - t));
     float y = groundY + kLift;
 
     rlDisableDepthMask();
     rlBegin(RL_TRIANGLES);
-    rlColor4ub(0, 0, 0, alpha);
     for (int i = 0; i < kSegments; i++) {
         float a0 = 2.0f * PI * i / kSegments, a1 = 2.0f * PI * (i + 1) / kSegments;
         float p0a = cosf(a0) * kHalfAlong * scale, p0b = sinf(a0) * kHalfAcross * scale;
@@ -217,8 +219,10 @@ void DrawBlobShadow(const WorldState &world, Vector3 planePosition, float yawDeg
         Vector3 c = {planePosition.x, y, planePosition.z};
         Vector3 v0 = {c.x + fwd.x * p0a + right.x * p0b, y, c.z + fwd.y * p0a + right.y * p0b};
         Vector3 v1 = {c.x + fwd.x * p1a + right.x * p1b, y, c.z + fwd.y * p1a + right.y * p1b};
-        rlVertex3f(c.x, c.y, c.z); rlVertex3f(v0.x, v0.y, v0.z); rlVertex3f(v1.x, v1.y, v1.z);
-        rlVertex3f(c.x, c.y, c.z); rlVertex3f(v1.x, v1.y, v1.z); rlVertex3f(v0.x, v0.y, v0.z);
+        rlColor4ub(0, 0, 0, alphaCenter); rlVertex3f(c.x, c.y, c.z);
+        rlColor4ub(0, 0, 0, alphaRim); rlVertex3f(v0.x, v0.y, v0.z); rlVertex3f(v1.x, v1.y, v1.z);
+        rlColor4ub(0, 0, 0, alphaCenter); rlVertex3f(c.x, c.y, c.z);
+        rlColor4ub(0, 0, 0, alphaRim); rlVertex3f(v1.x, v1.y, v1.z); rlVertex3f(v0.x, v0.y, v0.z);
     }
     rlEnd();
     rlDrawRenderBatchActive();
