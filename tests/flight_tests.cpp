@@ -251,7 +251,7 @@ float MeasureRollout(const PlaneParams &p, float touchdownSpeed, float throttle)
 void TestRollout(const PlaneParams &p) {
     float zone = Level1Def().landingZoneLength;
     Report("rollout from max landing speed", MeasureRollout(p, p.landingMaxSpeed, 0.0f), 150.0f, zone);
-    Report("rollout from 20 m/s", MeasureRollout(p, 20.0f, 0.0f), 50.0f, zone);
+    Report("rollout from 20 m/s", MeasureRollout(p, 20.0f, 0.0f), 80.0f, 140.0f);
     Report("braked rollout from max speed", MeasureRollout(p, p.landingMaxSpeed, -1.0f), 10.0f, 80.0f);
 }
 
