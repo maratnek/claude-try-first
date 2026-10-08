@@ -21,6 +21,7 @@
 #endif
 
 #ifdef FLIGHT_DEBUG
+#include "autoplay.h"
 #include <cstdlib>
 #endif
 
@@ -73,6 +74,7 @@ struct Game {
     float volumeShownSeconds = 0.0f;
 #ifdef FLIGHT_DEBUG
     CrashTest crashTest;
+    AutoplayState autoplay;
 #endif
 };
 
@@ -99,6 +101,23 @@ const char *AssetPath(const char *relative) {
 #endif
 }
 
+#ifdef FLIGHT_DEBUG
+void DebugEndOfFrame(Game &g, float dt) {
+    if (g.crashTest.active && g.screen == Screen::Crashed) {
+        g.crashTest.timer += dt;
+        if (g.crashTest.nextShot < (int)(sizeof(kCrashTestShots) / sizeof(kCrashTestShots[0])) &&
+            g.crashTest.timer >= kCrashTestShots[g.crashTest.nextShot]) {
+            SaveScreenshot(TextFormat("%s-%.1f.png", g.crashTest.prefix, kCrashTestShots[g.crashTest.nextShot]));
+            if (++g.crashTest.nextShot == (int)(sizeof(kCrashTestShots) / sizeof(kCrashTestShots[0]))) g.quitRequested = true;
+        }
+    }
+    if (g.autoplay.active) {
+        if (const char *shot = AutoplayAdvance(g.autoplay, g.plane, g.screen == Screen::Crashed)) SaveScreenshot(shot);
+        if (g.autoplay.finished) g.quitRequested = true;
+    }
+}
+#endif
+
 void UpdateFrame(Game &g) {
     PlaneState &plane = g.plane;
     LevelState &level = g.level;
@@ -109,9 +128,15 @@ void UpdateFrame(Game &g) {
     const PlaneState &planeStart = g.planeStart;
 
     float dt = GetFrameTime();
+#ifdef FLIGHT_DEBUG
+    if (g.autoplay.active) dt = kAutoplayDt;
+#endif
 
     bool inRun = g.screen != Screen::Menu;
     FlightInput input = ReadFlightInput(g.inputState, level.crashed || g.screen == Screen::Finished, inRun);
+#ifdef FLIGHT_DEBUG
+    AutoplayInput(g.autoplay, input);
+#endif
 
     if (IsKeyPressed(KEY_F1) || input.cycleGraphics) {
         CycleGraphicsPreset(g.gfx);
@@ -153,6 +178,7 @@ void UpdateFrame(Game &g) {
 
 #ifdef FLIGHT_DEBUG
     if (g.crashTest.active && g.screen == Screen::Menu) menuAction = MenuAction::Play;
+    if (AutoplayWantsPlay(g.autoplay) && g.screen == Screen::Menu) menuAction = MenuAction::Play;
 #endif
     if (g.screen == Screen::Menu) {
         if (menuAction == MenuAction::Play) {
@@ -275,6 +301,9 @@ void UpdateFrame(Game &g) {
 
     if (g.screen == Screen::Menu) {
         DrawMenu(g.menu);
+#ifdef FLIGHT_DEBUG
+        DebugEndOfFrame(g, dt);
+#endif
         EndDrawing();
         return;
     }
@@ -308,16 +337,7 @@ void UpdateFrame(Game &g) {
     if (g.screen == Screen::Finished) DrawResultsScreen(level, plane.damaged, g.inputState.touchUsed);
     DrawTouchOverlay(g.inputState, level.crashed || g.screen == Screen::Finished, true, TextFormat("Gfx: %s", GraphicsPresetName(g.gfx)));
 #ifdef FLIGHT_DEBUG
-    if (g.crashTest.active && g.screen == Screen::Crashed) {
-        g.crashTest.timer += dt;
-        if (g.crashTest.nextShot < (int)(sizeof(kCrashTestShots) / sizeof(kCrashTestShots[0])) &&
-            g.crashTest.timer >= kCrashTestShots[g.crashTest.nextShot]) {
-            Image shot = LoadImageFromScreen();
-            ExportImage(shot, TextFormat("%s-%.1f.png", g.crashTest.prefix, kCrashTestShots[g.crashTest.nextShot]));
-            UnloadImage(shot);
-            if (++g.crashTest.nextShot == (int)(sizeof(kCrashTestShots) / sizeof(kCrashTestShots[0]))) g.quitRequested = true;
-        }
-    }
+    DebugEndOfFrame(g, dt);
 #endif
     EndDrawing();
 }
@@ -369,6 +389,11 @@ int main() {
     if (const char *fuel = getenv("FLIGHT_FUEL")) game.planeStart.fuel = game.planeParams.fuelCapacity * (float)atof(fuel);
     for (int i = 1; i < argc; i++) {
         if (TextIsEqual(argv[i], "--crash-test")) game.crashTest.active = true;
+        if (TextIsEqual(argv[i], "--autoplay")) {
+            const char *dir = getenv("FLIGHT_AUTOPLAY_DIR");
+            const char *autoPrefix = getenv("FLIGHT_SHOT_PREFIX");
+            StartAutoplay(game.autoplay, dir ? dir : ".", autoPrefix ? autoPrefix : "autoplay");
+        }
     }
     if (const char *speed = getenv("FLIGHT_SPEED")) game.crashTest.speed = (float)atof(speed);
     if (const char *prefix = getenv("FLIGHT_SHOT_PREFIX")) game.crashTest.prefix = prefix;
