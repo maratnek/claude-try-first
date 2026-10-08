@@ -12,6 +12,13 @@ owner can skim what happened without digging through git log. Format:
 - PR: <link or branch, if one was opened>
 ```
 
+## 2026-10-08 01:10 UTC — night run (59)
+- Did: Backlog 2, breakup sanity (branch agents/2026-10-08-0110-breakup-test): new `BreakupTests` ctest target (`tests/breakup_tests.cpp`, desktop only) with a hand-built `PlaneModel` and `BreakData` (no GL, no model load). 6 crashes (12 to 70 m/s, varied angles, ground and obstacle hits, piece caps 4/6/12) on flat, sloped and stepped terrain, for the grouped and the fixed-part model; every piece must settle within 12 s with clearance >= -0.01 m. `src/` untouched. Docs and backlog marker updated. Not release-relevant.
+- Why: P0 effects polish is with an interactive session, owner items wait on him; this was the last unfinished piece of Backlog 2.
+- Verified: code-reviewer read the real diff: no blockers. Built with g++ -std=c++23 -Wall -Wextra against real raylib 5.5 headers and stubbed raylib calls: 36 checks pass. Mutations: wrong rest height in RestOnGround fails 36 checks. Mutations that still pass (reviewer): halved push-out, offset ground sampling in the contact loop, centre-sampled clearance. Limits: only the final settled pose is checked, not mid-fall collision, and the check reuses DebrisLowestClearance; geometry is synthetic boxes, not the real GLB. Not run: real CMake/Conan build (first real link happens in CI). CI status: see PR.
+- Open: Backlog 1 remaining: HUD row near the Fullscreen button, touch way to change preset or volume. An independent per-point ground check in the test would be stronger.
+- PR: PR into dev from agents/2026-10-08-0110-breakup-test
+
 ## 2026-10-08 00:10 UTC — night run (58)
 - Did: Backlog 1 item "rollout after landing can run past the 300 m landing zone" (branch agents/2026-10-08-0010-rollout-test): measured it with a scripted ground roll. From the 30 m/s maximum safe landing speed the unbraked plane slows to the 8 m/s finish speed in 188 m (11.3 s); from 20 m/s in 105 m; with the wheel brake 49 m from 30 m/s. All inside the 300 m zone for Safe landings on flat ground at up to 30 m/s, so the reported problem does not occur at current numbers. `tests/flight_tests.cpp` gains `TestRollout` pinning these (unbraked from max speed in [150, 300] m, from 20 m/s in [80, 140] m, braked in [10, 80] m). `src/flight.cpp` untouched. CLAUDE.md backlog markers and DEVELOPMENT_HISTORY.md updated. The "dead `kLandingMaxSinkRate`" item is already gone from src (no match); nothing to do. Not release-relevant.
 - Why: P0 effects polish is with an interactive session (no `session/effects-polish` branch on origin), owner items wait on him; this turns an unverified "open" line into a measured fact plus a regression guard.
