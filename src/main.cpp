@@ -72,6 +72,7 @@ struct Game {
     float masterVolume = 1.0f;
     float volumeShownSeconds = 0.0f;
     float descentRate = 0.0f;
+    float aglBeepTimer = 0.0f;
 #ifdef FLIGHT_DEBUG
     CrashTest crashTest;
 #endif
@@ -238,7 +239,19 @@ void UpdateFrame(Game &g) {
     if (g.screen == Screen::Playing) {
         UpdateEngineAudio(engineAudio, plane.enginePower, plane.speed / g.planeParams.maxSpeed);
         UpdateWindAudio(engineAudio, plane.speed / g.planeParams.maxSpeed, plane.airborne);
+        float agl = plane.position.y - GetGroundHeight(world, plane.position.x, plane.position.z);
+        float beepInterval = ComputeAglBeepInterval(plane.airborne, agl, g.descentRate);
+        if (beepInterval <= 0.0f) {
+            g.aglBeepTimer = 0.0f;
+        } else {
+            g.aglBeepTimer -= dt;
+            if (g.aglBeepTimer <= 0.0f) {
+                PlayAglBeepSound(engineAudio);
+                g.aglBeepTimer = beepInterval;
+            }
+        }
     } else {
+        g.aglBeepTimer = 0.0f;
         StopEngineAudio(engineAudio);
         StopWindAudio(engineAudio);
     }

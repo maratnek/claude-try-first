@@ -283,6 +283,18 @@ void TestAglWarning() {
     Report("agl: time to impact", ComputeAglWarning(true, 15.0f, 5.0f).timeToImpact, 2.99f, 3.01f);
 }
 
+void TestAglBeep() {
+    Expect("beep: grounded silent", ComputeAglBeepInterval(false, 5.0f, 10.0f) == 0.0f);
+    Expect("beep: above 10 m silent", ComputeAglBeepInterval(true, 12.0f, 8.0f) == 0.0f);
+    Expect("beep: climbing silent", ComputeAglBeepInterval(true, 5.0f, -2.0f) == 0.0f);
+    Expect("beep: slow sink silent", ComputeAglBeepInterval(true, 8.0f, 1.0f) == 0.0f);
+    Report("beep: amber interval capped", ComputeAglBeepInterval(true, 9.0f, 3.0f), 0.399f, 0.401f);
+    Report("beep: red interval", ComputeAglBeepInterval(true, 5.0f, 10.0f), 0.19f, 0.21f);
+    Report("beep: interval floor", ComputeAglBeepInterval(true, 0.0f, 10.0f), 0.149f, 0.151f);
+    Expect("beep: faster nearer impact",
+           ComputeAglBeepInterval(true, 3.0f, 10.0f) < ComputeAglBeepInterval(true, 9.0f, 4.0f));
+}
+
 }  // namespace
 
 int main(int argc, char **argv) {
@@ -300,6 +312,7 @@ int main(int argc, char **argv) {
     TestRollClamp(p);
     TestRollout(p);
     TestAglWarning();
+    TestAglBeep();
     if (g_failures) printf("%d check(s) failed\n", g_failures);
     else printf("all flight checks passed\n");
     return g_failures ? 1 : 0;

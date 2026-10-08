@@ -167,6 +167,13 @@ AglWarning ComputeAglWarning(bool airborne, float agl, float descentRate) {
     return w;
 }
 
+float ComputeAglBeepInterval(bool airborne, float agl, float descentRate) {
+    if (agl >= kAglBeepHeight) return 0.0f;
+    AglWarning w = ComputeAglWarning(airborne, agl, descentRate);
+    if (w.level == AglLevel::None) return 0.0f;
+    return Clamp(0.15f + 0.1f * w.timeToImpact, 0.15f, 0.4f);
+}
+
 float FuelFraction(const PlaneState &plane, const PlaneParams &params) {
     return Clamp(plane.fuel / params.fuelCapacity, 0.0f, 1.0f);
 }

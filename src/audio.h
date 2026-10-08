@@ -9,6 +9,7 @@ struct EngineAudio {
     Sound touchdownSound{};
     Sound clickSound{};
     Sound damageSound{};
+    Sound beepSound{};
     Sound boomSound{};  // rebuilt per crash, its length depends on the explosion scale
 };
 
@@ -39,6 +40,8 @@ void PlayClickSound(EngineAudio &audio);
 
 void PlayDamageSound(EngineAudio &audio);
 
+void PlayAglBeepSound(EngineAudio &audio);
+
 float SetMasterVolumeClamped(float volume);
 
 // Looped wind noise; volume and pitch rise with 0..1 speed fraction, much
@@ -48,7 +51,7 @@ void UpdateWindAudio(EngineAudio &audio, float speedFraction, bool airborne);
 // Silences the wind loop (menu, crash, finish).
 void StopWindAudio(EngineAudio &audio);
 
-// Cuts the one-shots (chime, touchdown, crash, damage) so a restart starts quiet.
+// Cuts the one-shots (chime, touchdown, crash, damage, ground-proximity beep) so a restart starts quiet.
 void StopOneShotSounds(EngineAudio &audio);
 
 void UnloadEngineAudio(EngineAudio &audio);
