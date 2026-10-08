@@ -1,3 +1,17 @@
+# Local build output of any kind (build, build-debug, build-web, build-ios, ...)
+build*/
+# Tooling and editor leftovers
+node_modules/
+.cache/
+compile_commands.json
+.vscode/
+.idea/
+*.swp
+*.log
+.claude/settings.local.json
+# Runtime files the game writes next to itself
+progress.cfg
+
 build/
 CMakeUserPresets.json
 *.o
