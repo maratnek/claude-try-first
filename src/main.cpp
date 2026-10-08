@@ -384,6 +384,19 @@ int main() {
     const int screenWidth = 1280;
     const int screenHeight = 720;
 
+#ifdef FLIGHT_DEBUG
+    static Game game;
+    for (int i = 1; i < argc; i++) {
+        if (TextIsEqual(argv[i], "--autoplay")) {
+            const char *dir = getenv("FLIGHT_AUTOPLAY_DIR");
+            const char *autoPrefix = getenv("FLIGHT_SHOT_PREFIX");
+            if (!StartAutoplay(game.autoplay, dir ? dir : ".", autoPrefix ? autoPrefix : "autoplay")) return 1;
+        }
+    }
+#else
+    static Game game;
+#endif
+
 #ifdef __EMSCRIPTEN__
     // raylib only tracks the browser window size (canvas fills the page) when resizable
     SetConfigFlags(FLAG_WINDOW_RESIZABLE);
@@ -392,7 +405,6 @@ int main() {
     rlSetClipPlanes(0.1, 20000.0);
 
     InitAudioDevice();
-    static Game game;
     LoadEngineAudio(game.engineAudio);
 
     game.camera.up = (Vector3){0.0f, 1.0f, 0.0f};
@@ -417,9 +429,7 @@ int main() {
     for (int i = 1; i < argc; i++) {
         if (TextIsEqual(argv[i], "--crash-test")) game.crashTest.active = true;
         if (TextIsEqual(argv[i], "--autoplay")) {
-            const char *dir = getenv("FLIGHT_AUTOPLAY_DIR");
-            const char *autoPrefix = getenv("FLIGHT_SHOT_PREFIX");
-            StartAutoplay(game.autoplay, dir ? dir : ".", autoPrefix ? autoPrefix : "autoplay");
+            game.autoplay.expectedStart = (Vector3){levelDef.startX, game.planeStart.position.y, levelDef.startZ};
         }
     }
     if (const char *speed = getenv("FLIGHT_SPEED")) game.crashTest.speed = (float)atof(speed);
@@ -448,5 +458,9 @@ int main() {
     UnloadSprites();
     CloseWindow();
 #endif
+#ifdef FLIGHT_DEBUG
+    return AutoplayExitCode(game.autoplay);
+#else
     return 0;
+#endif
 }
