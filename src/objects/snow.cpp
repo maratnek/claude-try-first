@@ -1,6 +1,6 @@
 #include "snow.h"
+#include "sprites.h"
 #include <cmath>
-#include "rlgl.h"
 
 namespace {
 const float kHalfWidth = 30.0f;
@@ -8,7 +8,7 @@ const float kBelow = 15.0f;
 const float kAbove = 30.0f;
 const float kFallSpeed = 2.5f;
 const float kDriftSpeed = 1.2f;
-const float kFlakeHalf = 0.25f;
+const float kFlakeHalf = 0.32f;
 
 float Wrap(float value, float center, float size, float below) {
     float lo = center - below;
@@ -64,28 +64,11 @@ void DrawSnow(const SnowState &snow, int flakeCount) {
     if (flakeCount <= 0 || !snow.seeded) return;
     if (flakeCount > kMaxSnowFlakes) flakeCount = kMaxSnowFlakes;
 
-    rlDrawRenderBatchActive();
-    rlDisableDepthMask();
-    rlCheckRenderBatchLimit(6 * flakeCount);
-    Matrix view = rlGetMatrixModelview();
-    Vector3 right = {view.m0 * kFlakeHalf, view.m4 * kFlakeHalf, view.m8 * kFlakeHalf};
-    Vector3 up = {view.m1 * kFlakeHalf, view.m5 * kFlakeHalf, view.m9 * kFlakeHalf};
-    rlBegin(RL_TRIANGLES);
-    rlColor4ub(255, 255, 255, 255);
+    BillboardAxes axes = CurrentBillboardAxes();
+    BeginSprites(SpriteKind::Flake, false);
     for (int i = 0; i < flakeCount; i++) {
-        const Vector3 &c = snow.positions[i];
-        Vector3 bl = {c.x - right.x - up.x, c.y - right.y - up.y, c.z - right.z - up.z};
-        Vector3 br = {c.x + right.x - up.x, c.y + right.y - up.y, c.z + right.z - up.z};
-        Vector3 tr = {c.x + right.x + up.x, c.y + right.y + up.y, c.z + right.z + up.z};
-        Vector3 tl = {c.x - right.x + up.x, c.y - right.y + up.y, c.z - right.z + up.z};
-        rlVertex3f(bl.x, bl.y, bl.z);
-        rlVertex3f(br.x, br.y, br.z);
-        rlVertex3f(tr.x, tr.y, tr.z);
-        rlVertex3f(bl.x, bl.y, bl.z);
-        rlVertex3f(tr.x, tr.y, tr.z);
-        rlVertex3f(tl.x, tl.y, tl.z);
+        float size = kFlakeHalf * (0.7f + 0.6f * (0.5f + 0.5f * sinf(snow.phases[i] * 5.0f)));
+        DrawSprite(axes, snow.positions[i], size, 0.0f, {255, 255, 255, 230});
     }
-    rlEnd();
-    rlDrawRenderBatchActive();
-    rlEnableDepthMask();
+    EndSprites();
 }
