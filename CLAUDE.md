@@ -47,6 +47,12 @@ so the game runs regardless of the launcher's working directory.
   ask.
 - Verify changes by actually building and launching the game (background
   process, check the log, kill it) — not just by reading the diff.
+- **Small PRs and small commits (owner's rule)** so any single change can
+  be reverted on its own: one PR = one behaviour change; one commit = one
+  logical step (new module, then each call site, then docs). Never mix a
+  feel/physics change with refactoring or visuals in one PR. Tuning values
+  that change how the plane feels go in their own PR, with before/after
+  numbers in the body. If a task is big, split it into a chain of PRs.
 
 ## Current state (roughly newest last)
 
