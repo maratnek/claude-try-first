@@ -12,6 +12,13 @@ owner can skim what happened without digging through git log. Format:
 - PR: <link or branch, if one was opened>
 ```
 
+## 2026-10-08 22:15 UTC — night run
+- Did: P0 altitude awareness 2c (branch agents/2026-10-08-2215-shadow-altitude): the blob shadow is darker and sharper-edged the lower the plane is. Centre alpha 170*(1-t), rim alpha centre*(1-t), t = altitude/60 m (before: uniform 110*(1-t)). Size growth and the 60 m cutoff unchanged; only `DrawBlobShadow` plus a doc line. Not release-relevant.
+- Why: board P0 "Altitude awareness"; 2a (AGL HUD) and 2b (beep) are already open PRs, 2d belongs to the world-art track. Rudder P0 is with an interactive session.
+- Verified: real run. raylib 5.5 built from source, game and 5 ctest targets built and pass; launched under Xvfb with real key input and screenshots: shadow dark and crisp at 2.7 m, slightly softer rim at 8.8 m. Not seen: the faint soft shadow around 30 m (the chase camera never shows it that high); no before/after screenshot against the old shadow. code-reviewer read the real diff: no blockers. CI status: see PR.
+- Open: owner to look at the shadow while flying low; `kGroundAlpha` 170 may be too heavy on dark terrain.
+- PR: PR into dev from agents/2026-10-08-2215-shadow-altitude, awaiting owner review
+
 ## 2026-10-08 05:10 UTC — night run (63)
 - Did: Backlog 4, third iteration (branch agents/2026-10-08-0510-level-start-terrain): plane start position (x, z, height above ground) and the level-specific terrain shape (grid size, world size, max hill height, flat corridor half width, edge fade) now live in `LevelDef` (`TerrainDef`), read by `main.cpp` and `GenerateWorld`. Level 1 numbers are identical (the 0.12 edge fade was a literal in `ComputeRawHeight`). `LevelDefTests` pins the new values and checks that checkpoints and obstacles lie inside the flat corridor. Hill sine formula, scatter, clouds, distance markers and level selection stay in code. Not release-relevant.
 - Why: P0 effects polish is with an interactive session, owner items wait on him; this is the next open P1 piece (Backlog 4) and brings level 2 closer to being content, not code.

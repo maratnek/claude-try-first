@@ -43,7 +43,7 @@ void ApplyTerrainColors(WorldState &world, const GraphicsSettings &gfx);
 // Draws terrain, distance-marker pillars, obstacles, decorative trees/rocks and clouds near viewPosition (density from gfx.scatterDensity), and the run's weather: rain (gfx.rainDrops) or snow (gfx.snowFlakes), never both.
 void DrawWorldObject(const WorldState &world, const GraphicsSettings &gfx, Vector3 viewPosition);
 
-// Flat translucent plane-shaped shadow on the terrain below the plane; hidden above a max altitude.
+// Flat translucent plane-shaped shadow on the terrain below the plane; darker and sharper-edged when low, lighter and softer-edged when high; hidden above a max altitude.
 void DrawBlobShadow(const WorldState &world, Vector3 planePosition, float yawDegrees);
 
 // Ground height (meters) at the given world X/Z, bilinear-free nearest sample.
