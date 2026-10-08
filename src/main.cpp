@@ -10,6 +10,9 @@
 #include "settings.h"
 #include "objects/plane.h"
 #include "objects/world.h"
+#include "render/ground_look.h"
+#include "render/sky.h"
+#include "render/world_draw.h"
 #include "objects/smoke.h"
 #include "objects/explosion.h"
 #include "objects/streaks.h"
@@ -247,7 +250,7 @@ void UpdateFrame(Game &g) {
     UpdateSnow(world.snow, camera.position, ActiveSnowFlakes(world, g.gfx), dt);
 
     BeginDrawing();
-    ClearBackground(SKYBLUE);
+    DrawSky();
 
     BeginMode3D(camera);
     DrawWorldObject(world, g.gfx, plane.position);
