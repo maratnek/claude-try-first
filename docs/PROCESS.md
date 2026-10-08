@@ -25,7 +25,7 @@ flowchart LR
     builder --> verifier["Verifier-команда<br/>проверяет"]
     verifier -- "блокер" --> builder
     verifier -- "ок" --> pr["PR agents/задача → dev<br/>(rebase)"]
-    pr --> ci["CI: desktop + web"]
+    pr --> ci["CI: desktop + web + autoplay"]
     ci --> log["PROGRESS_LOG.md<br/>отчёт"]
     log --> owner["Владелец<br/>смотрит и играет"]
     owner --> roadmap
