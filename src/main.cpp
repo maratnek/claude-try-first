@@ -250,7 +250,7 @@ void UpdateFrame(Game &g) {
     UpdateSnow(world.snow, camera.position, ActiveSnowFlakes(world, g.gfx), dt);
 
     BeginDrawing();
-    DrawSky();
+    DrawSky(camera, g.gfx);
 
     BeginMode3D(camera);
     DrawWorldObject(world, g.gfx, plane.position);
