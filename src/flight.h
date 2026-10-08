@@ -2,6 +2,10 @@
 #include "raylib.h"
 #include "input.h"
 
+constexpr float kAglWarnHeight = 30.0f;
+constexpr float kAglAmberSeconds = 4.0f;
+constexpr float kAglRedSeconds = 2.0f;
+
 struct PlaneParams {
     float maxSpeed;
     float accel;         // m/s^2 thrust at full engine power
@@ -77,6 +81,17 @@ struct PlaneState {
 // returns to ground-rolling) or Hard (caller should treat it as a crash); it
 // resets on the next liftoff.
 void UpdatePlaneControls(PlaneState &plane, const PlaneParams &params, const FlightInput &input, float dt, float groundHeight, float groundSlopeDeg);
+
+enum class AglLevel { None, Amber, Red };
+
+struct AglWarning {
+    AglLevel level = AglLevel::None;
+    float timeToImpact = 0.0f;  // seconds; only meaningful when level != None
+};
+
+// descentRate is m/s, positive while losing height. Warns only while
+// airborne, below kAglWarnHeight and descending.
+AglWarning ComputeAglWarning(bool airborne, float agl, float descentRate);
 
 float FuelFraction(const PlaneState &plane, const PlaneParams &params);
 

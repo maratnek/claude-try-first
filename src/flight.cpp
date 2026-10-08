@@ -157,6 +157,16 @@ void UpdatePlaneControls(PlaneState &plane, const PlaneParams &params, const Fli
     }
 }
 
+AglWarning ComputeAglWarning(bool airborne, float agl, float descentRate) {
+    AglWarning w;
+    if (!airborne || agl >= kAglWarnHeight || descentRate <= 0.01f) return w;
+    w.timeToImpact = fmaxf(agl, 0.0f) / descentRate;
+    if (w.timeToImpact < kAglRedSeconds) w.level = AglLevel::Red;
+    else if (w.timeToImpact < kAglAmberSeconds) w.level = AglLevel::Amber;
+    else w.level = AglLevel::None;
+    return w;
+}
+
 float FuelFraction(const PlaneState &plane, const PlaneParams &params) {
     return Clamp(plane.fuel / params.fuelCapacity, 0.0f, 1.0f);
 }

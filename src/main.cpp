@@ -71,6 +71,7 @@ struct Game {
     bool quitRequested = false;
     float masterVolume = 1.0f;
     float volumeShownSeconds = 0.0f;
+    float descentRate = 0.0f;
 #ifdef FLIGHT_DEBUG
     CrashTest crashTest;
 #endif
@@ -159,6 +160,7 @@ void UpdateFrame(Game &g) {
             resetRun();
             AdvanceWeather(world);
             g.screen = Screen::Playing;
+            g.descentRate = 0.0f;
 #ifdef FLIGHT_DEBUG
             if (g.crashTest.active) {
                 plane.position.y = GetGroundHeight(world, 0.0f, 0.0f) + 60.0f;
@@ -179,6 +181,7 @@ void UpdateFrame(Game &g) {
         resetRun();
         AdvanceWeather(world);
         g.screen = Screen::Playing;
+        g.descentRate = 0.0f;
     } else if (g.screen == Screen::Playing) {
         float groundHeight = GetGroundHeight(world, plane.position.x, plane.position.z);
         float slopeYaw = plane.yaw * DEG2RAD;
@@ -191,7 +194,12 @@ void UpdateFrame(Game &g) {
 #ifdef FLIGHT_DEBUG
         if (g.crashTest.active) input.pitch = -0.01f;
 #endif
+        float yBefore = plane.position.y;
         UpdatePlaneControls(plane, g.planeParams, input, dt, groundHeight, slopeDeg);
+        if (dt > 0.0f) {
+            float instant = (yBefore - plane.position.y) / dt;
+            g.descentRate += (instant - g.descentRate) * fminf(dt * 8.0f, 1.0f);
+        }
         UpdateLevel(level, plane.position, dt);
         if (CountPassed(level) > passedBefore) PlayChimeSound(engineAudio);
         if (wasAirborne && !plane.airborne && plane.landing == LandingResult::Safe) PlayTouchdownSound(engineAudio);
@@ -294,6 +302,17 @@ void UpdateFrame(Game &g) {
                          plane.speed, plane.position.y, (int)roundf(plane.enginePower * 100.0f), plane.airborne ? "AIRBORNE" : "ON GROUND - raise power (W), pull up to take off; brake: power 0, then S");
     DrawText(statusText, ox, 35 + oy, FitFontSize(statusText, 20, hudWidth), DARKGRAY);
     DrawLevelHUD(level, plane.damaged);
+    if (g.screen == Screen::Playing) {
+        float agl = plane.position.y - GetGroundHeight(world, plane.position.x, plane.position.z);
+        AglWarning warn = ComputeAglWarning(plane.airborne, agl, g.descentRate);
+        if (warn.level != AglLevel::None) {
+            const char *aglText = TextFormat("%d m", (int)fmaxf(agl, 0.0f));
+            const int aglSize = 72;
+            const int aglY = GetScreenHeight() - (int)sa.bottom - 200;
+            DrawText(aglText, (GetScreenWidth() + (int)sa.left - (int)sa.right - MeasureText(aglText, aglSize)) / 2, aglY, aglSize,
+                     warn.level == AglLevel::Red ? RED : ORANGE);
+        }
+    }
     if (plane.landing == LandingResult::Hard) {
         DrawText("Hard landing!", ox, 150 + oy, 30, MAROON);
     } else if (HasLandedSafely(plane)) {

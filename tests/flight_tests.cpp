@@ -271,6 +271,18 @@ void TestRollClamp(const PlaneParams &p) {
     }
 }
 
+void TestAglWarning() {
+    Expect("agl: grounded never warns", ComputeAglWarning(false, 5.0f, 10.0f).level == AglLevel::None);
+    Expect("agl: above warn height silent", ComputeAglWarning(true, 40.0f, 30.0f).level == AglLevel::None);
+    Expect("agl: climbing silent", ComputeAglWarning(true, 10.0f, -3.0f).level == AglLevel::None);
+    Expect("agl: level silent", ComputeAglWarning(true, 10.0f, 0.0f).level == AglLevel::None);
+    Expect("agl: slow descent silent (10 s)", ComputeAglWarning(true, 20.0f, 2.0f).level == AglLevel::None);
+    Expect("agl: amber at 3 s", ComputeAglWarning(true, 15.0f, 5.0f).level == AglLevel::Amber);
+    Expect("agl: red at 1 s", ComputeAglWarning(true, 10.0f, 10.0f).level == AglLevel::Red);
+    Expect("agl: red below ground clamps", ComputeAglWarning(true, -1.0f, 5.0f).level == AglLevel::Red);
+    Report("agl: time to impact", ComputeAglWarning(true, 15.0f, 5.0f).timeToImpact, 2.99f, 3.01f);
+}
+
 }  // namespace
 
 int main(int argc, char **argv) {
@@ -287,6 +299,7 @@ int main(int argc, char **argv) {
     TestLanding(p);
     TestRollClamp(p);
     TestRollout(p);
+    TestAglWarning();
     if (g_failures) printf("%d check(s) failed\n", g_failures);
     else printf("all flight checks passed\n");
     return g_failures ? 1 : 0;
