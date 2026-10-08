@@ -641,8 +641,17 @@ or not — if not, start the body with **NOT RUN IN GAME**.
 
 **Open PRs are waiting for the owner, not stuck.** Never merge, close or
 rebase someone else's open PR. Pick a task that no open PR already covers,
-preferably one that touches different files. If 4 or more task PRs are
+preferably one that touches different files. If 10 or more task PRs are
 already open, the owner's review queue is full: exit with a one-line note.
+Until then keep going — all work happens on agent branches, and the goal
+is to get the game to production (itch.io first) as fast as possible, so
+prefer the board items that shorten the road to release.
+
+**Every PR is prioritised** so the owner can review top-down: the title
+starts with the task board priority, e.g. `[P0] Rudder: clear A/D turn at
+cruise speed`, and the body's first line says which board item it serves.
+When one PR builds on another, say so ("stacked on #NN, merge that first").
+The status report lists open PRs sorted by priority, then age.
 
 **Overlap guard for scheduled runs:** another run is in progress if an
 `agents/*` branch got a commit in the last 50 minutes. Then exit.
