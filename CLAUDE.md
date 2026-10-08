@@ -500,13 +500,14 @@ every run and weigh real entries over invented ideas once any exist.
 
 Flow: `agents/<task>` or `session/<topic>` → `dev` → `release` → `main`.
 
-**Owner's rule: nothing lands on `dev` (or `release`) directly.** Every
-change — by an agent run or an interactive session — is committed on its
-own intermediate branch first, and that branch is kept on GitHub after it
-is integrated, so each task's history can be reviewed later. Integrate
-with **rebase, not merge**: rebase the branch onto the latest target and
-fast-forward the target (for PRs: `gh pr merge --rebase`). No merge
-commits, no deleting task branches after integration.
+**Owner's rule: only the owner merges into `dev`, `release` and `main`**
+(or someone else with his explicit, current consent for that specific
+change). Every change — by an agent run or an interactive session — is
+committed on its own intermediate branch, pushed, and offered as a PR; it
+then waits for the owner's review. Branches are kept on GitHub after they
+are integrated, so each task's history can be reviewed later. When the
+owner integrates, it is **rebase, not merge** (`gh pr merge --rebase`):
+no merge commits, no deleting task branches.
 
 - **main** — production: exactly what has shipped. Only the project owner
   promotes `release` into `main`, after testing the candidate, and tags
@@ -517,13 +518,14 @@ commits, no deleting task branches after integration.
   made from it. Bugs are fixed on `dev` first; the **release-manager**
   agent then brings the merged, CI-green, release-relevant fixes into
   `release` via its own branch `release-fix/<slug>` cut from `release`
-  (cherry-pick there, PR into `release`, rebase-merge; never force-push).
+  (cherry-pick there, PR into `release`; the owner merges it; never
+  force-push).
   Cutting a whole new candidate from `dev` needs the owner's ask.
 - **dev** — integration branch for ongoing work.
 - **agents/<YYYY-MM-DD-HHMM>-<slug>** — one fresh branch per agent task,
   cut from the latest `origin/dev`, e.g. `agents/2026-10-05-1400-flat-turns`.
-  The run commits there, opens a PR into `dev`, and rebase-merges it
-  itself. The branch is never deleted, never reused for another task, and
+  The run commits there, opens a PR into `dev`, and stops: the owner
+  reviews and merges it. The branch is never deleted, never reused for another task, and
   never force-pushed after the PR is opened. Agents must never touch
   `main`, and only the release-manager role writes to `release` (as
   above). If a bug looks release-relevant, fix it on `dev` as usual and
@@ -531,8 +533,8 @@ commits, no deleting task branches after integration.
   release-manager picks it up. (The old shared `agents` branch is retired;
   leave it as-is.)
 - **session/<topic>** — interactive sessions with the owner use the same
-  pattern: commit on `session/<topic>`, push, rebase onto `dev`,
-  fast-forward `dev`, keep the branch.
+  pattern: commit on `session/<topic>`, push, open a PR (or give the
+  owner the compare link) and merge into `dev` only on his explicit OK.
 - **Going public is the owner's call:** making the itch.io page public,
   promoting `release` into `main`, tagging a version, and any App Store /
   external TestFlight submission happen only on the owner's explicit go.
@@ -542,19 +544,13 @@ commits, no deleting task branches after integration.
 
 ## Autonomy policy for the scheduled product-manager routine
 
-The scheduled/cloud routine that drives ongoing work on this game has the
-project owner's explicit, standing permission to `git commit`, `push`, and
-rebase-merge its `agents/<task>` branch into `dev` on its own, without waiting for
-approval first — the owner reviews the result asynchronously rather than
-approving each action in advance. It must never push to or merge into
-`main`; it writes to `release` only through release-manager cherry-picks
-(see Branches), and going public / promoting to production is the
-owner's call alone. The one non-negotiable
-condition on everything it does: every run must end with a full, clear,
-specific write-up of what was done and why (in the final summary and in
-commit messages), since that explanation is what the owner's review relies
-on. This elevated autonomy applies to this scheduled routine specifically,
-not to the default behavior of interactive sessions with the owner.
+The scheduled/cloud routines may commit and push their own `agents/<task>`
+branches and open PRs without asking first. They may **not** merge into
+`dev`, `release` or `main` — the owner revoked self-merging on 2026-10-08
+after a night of unreviewed, never-run-in-game changes landed in `dev`.
+The owner reviews each PR and merges it himself. Every run must end with
+a full, clear, specific write-up of what was done and why (in the PR body
+and the final summary), since that is what the owner's review relies on.
 
 Scope per run should be moderate, not maximal — pick one or two
 well-verified tasks rather than racing through the whole roadmap in one
@@ -562,36 +558,26 @@ pass, even on a run that fires more frequently (e.g. a nighttime run).
 Extra throughput should come from running more often, not from inflating
 the size of any single run.
 
-## Integrating: one branch + one PR per task, rebase-merged
+## Integrating: one branch + one PR per task, merged by the owner
 
 Push the task branch and open a pull request into `dev`
-(`gh pr create --base dev --head agents/<task> --title "..." --body-file ...`),
-then rebase-merge it yourself (`gh pr merge --rebase`, never `--merge`,
-never `--delete-branch`) — you still have full autonomy to do this without
-waiting for a human approval. The point of the PR is a visible, diffable
-record on GitHub, not a gate. Write the PR body as the same clear
-explanation described above.
+(`gh pr create --base dev --head agents/<task> --title "..." --body-file ...`).
+Stay in the run until its CI finishes (poll every minute or two, up to
+~30 minutes) and write the CI result into the PR body. Then stop — never
+merge it yourself. Never end the run planning to "come back later"
+(scheduled self-resumes have been seen not to fire).
 
-**Finish the PR in the same run.** After opening a PR, stay in the run
-and wait for its CI checks to finish (poll the check runs every minute or
-two, up to ~30 minutes), then integrate it. Never end the run planning
-to "come back later" — scheduled self-resumes (`send_later` and similar)
-have been seen not to fire, which left PR #43 open and blocked every
-following run for hours. If CI is still not done after ~30 minutes,
-leave the PR open and say so in the write-up.
+The PR body must say plainly whether the change was run in the real game
+(built, launched, the changed feature driven with real input, screenshots)
+or not — if not, start the body with **NOT RUN IN GAME**.
 
-**Overlap guard for scheduled runs:** another run is in progress if there
-is an open PR from any `agents/*` branch into `dev` that is **less than 1
-hour old**, or an `agents/*` branch with commits not in `origin/dev`
-whose last commit is less than 1 hour old. Then exit.
+**Open PRs are waiting for the owner, not stuck.** Never merge, close or
+rebase someone else's open PR. Pick a task that no open PR already covers,
+preferably one that touches different files. If 4 or more task PRs are
+already open, the owner's review queue is full: exit with a one-line note.
 
-**Stale open PR = finish it first.** An open `agents/*` PR older than 1
-hour is a stuck run, not a running one. The new run finishes it before
-anything else: if its CI is green and its body is clean of any Claude/AI
-mention, rebase-merge it; if CI is red or a verifier blocker is recorded,
-leave it open, note it in PROGRESS_LOG.md, and carry on with the next
-task. An unmerged `agents/*` branch with no PR and no commits for over 1
-hour is abandoned: leave it untouched (it is history) and mention it.
+**Overlap guard for scheduled runs:** another run is in progress if an
+`agents/*` branch got a commit in the last 50 minutes. Then exit.
 
 **Branch name gotcha:** git cannot have a branch `X` and branches `X/...`
 at the same time. The old shared `agents` branch was renamed to
