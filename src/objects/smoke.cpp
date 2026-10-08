@@ -1,6 +1,6 @@
 #include "smoke.h"
+#include "sprites.h"
 #include "raymath.h"
-#include "rlgl.h"
 #include <cmath>
 
 namespace {
@@ -105,34 +105,19 @@ void UpdateExplosionSmoke(SmokeState &smoke, float dt) {
 void DrawSmoke(const SmokeState &smoke, const Camera3D &camera) {
     Vector3 forward = Vector3Normalize(Vector3Subtract(camera.target, camera.position));
     Vector3 right = Vector3Normalize(Vector3CrossProduct(forward, camera.up));
-    Vector3 up = Vector3CrossProduct(right, forward);
+    BillboardAxes axes = {right, Vector3CrossProduct(right, forward)};
 
-    rlDisableDepthMask();
-    rlDisableBackfaceCulling();
+    BeginSprites(SpriteKind::Puff, false);
     for (int i = 0; i < kMaxSmokePuffs; i++) {
         if (!smoke.alive[i]) continue;
-        rlCheckRenderBatchLimit(6);
-        rlBegin(RL_TRIANGLES);
         float t = smoke.puffs[i].age / smoke.lifetime;
-        float half = (0.4f + t * 1.4f) * smoke.sizeScale;
+        // The soft sprite's visible edge sits well inside its quad, so it is drawn larger than the old flat square.
+        float half = (0.7f + t * 2.2f) * smoke.sizeScale;
         unsigned char shade = (unsigned char)((70.0f + t * 90.0f) * (1.0f - 0.65f * smoke.darkness * (1.0f - t)));
-        unsigned char alpha = (unsigned char)(150.0f * (1.0f - t));
-        Vector3 c = smoke.puffs[i].position;
-        Vector3 r = Vector3Scale(right, half), u = Vector3Scale(up, half);
-        Vector3 a = Vector3Subtract(Vector3Subtract(c, r), u);
-        Vector3 b = Vector3Subtract(Vector3Add(c, r), u);
-        Vector3 d = Vector3Add(Vector3Add(c, r), u);
-        Vector3 e = Vector3Add(Vector3Subtract(c, r), u);
-        rlColor4ub(shade, shade, shade, alpha);
-        rlVertex3f(a.x, a.y, a.z);
-        rlVertex3f(b.x, b.y, b.z);
-        rlVertex3f(d.x, d.y, d.z);
-        rlVertex3f(a.x, a.y, a.z);
-        rlVertex3f(d.x, d.y, d.z);
-        rlVertex3f(e.x, e.y, e.z);
-        rlEnd();
+        float fadeIn = fminf(t / 0.1f, 1.0f);
+        unsigned char alpha = (unsigned char)(170.0f * fadeIn * (1.0f - t));
+        float rotation = i * 2.39996f + t * 0.8f;
+        DrawSprite(axes, smoke.puffs[i].position, half, rotation, {shade, shade, shade, alpha});
     }
-    rlDrawRenderBatchActive();
-    rlEnableBackfaceCulling();
-    rlEnableDepthMask();
+    EndSprites();
 }
