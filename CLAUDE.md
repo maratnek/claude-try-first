@@ -92,7 +92,12 @@ priority. Skip items marked "owner" (waiting on his decision) or
 
 | Pri | Task | Status | Details |
 | --- | --- | --- | --- |
-| P0 | Effects polish: squares → soft sprites (smoke, fireball, snow, rain, streaks) | in progress — interactive session, branch `session/effects-polish` | "Next up" below |
+| P0 | A/D (rudder) turning feels dead since blocker 2 | open — small PR, owner flies it before merge | "Owner feedback 2026-10-08" |
+| P0 | Altitude awareness: the player can't tell the ground is close in a dive | open — chain of small PRs | "Owner feedback 2026-10-08" |
+| P0 | Effects polish part 1: smoke, fireball, snow → soft sprites | done on branch `session/effects-polish`, awaiting owner review | "Next up" below |
+| P1 | World art track: sky, then ground (look like 2000s today) | open — world-artist agent, small PRs | "World art track" |
+| P1 | Code split: world look (render) separate from world gameplay | open — first PR of the world art track, no visual change | "World art track" |
+| P1 | Effects polish part 2: rain streaks, speed streaks, debris dust, clouds | open | "Next up" below |
 | P0 | Release blockers 1–3 (throttle/gravity, turns, visible damage) | done, in `release` | "Current priority" |
 | P1 | Known small bugs and polish (window title, menu title, loading indicator, touch settings, rollout, dead code) | open | Backlog 1 |
 | P1 | Headless physics regression tests in CI | open | Backlog 2 |
@@ -108,6 +113,59 @@ priority. Skip items marked "owner" (waiting on his decision) or
 | P2 | Monetization direction | owner | `design-notes/monetization.md` |
 | P2 | Apple Developer enrolment, App Store | owner, later | rollout plan |
 | later | Track D modes (parachute, helicopter, docking) | after first revenue | Track D |
+
+## Owner feedback 2026-10-08 (P0, small PRs each)
+
+The owner flew the current build:
+
+1. **A/D turning feels dead.** Cause: blocker 2 cut the in-air rudder to
+   `yawRate = 8` deg/s (`BiplaneParams` in `src/flight.cpp`); the plane now
+   turns almost only by bank (arrows), so A/D barely does anything. Earlier
+   (40 deg/s, flat spin) felt nicer but was unrealistic. Goal: A/D gives a
+   clear, pleasant turn at cruise speed without bringing back the flat spin
+   on the spot. Suggested: rudder yaw ~20-25 deg/s at cruise (still scaled
+   by airspeed authority, zero at standstill) plus a gentle automatic bank
+   into the rudder turn, so it reads as a coordinated arcade turn. Values
+   in `PlaneParams`, one PR, before/after turn numbers (radius and time
+   for a 90 deg turn at 25/35 m/s with A/D alone) in the body. Update
+   `tests/flight_tests.cpp` bounds in the same PR only where the new
+   behaviour intends it. The owner decides by flying it, so the PR stays
+   open until he has.
+2. **Altitude awareness.** Diving at the ground, the player has no sense
+   of how close it is. One small PR each, in this order, each switchable
+   where decorative:
+   a. HUD altitude above ground (AGL) shown big near the centre-bottom
+      when below ~30 m and descending, turning amber/red as time-to-impact
+      drops (gameplay-critical, always on);
+   b. a short procedural warning beep below ~10 m AGL when sinking fast;
+   c. the blob shadow under the plane grows darker and sharper as the
+      plane gets lower (A1 toggle exists);
+   d. ground detail that shows motion and distance (handled by the world
+      art track: textured ground, see below).
+
+## World art track (P1, world-artist agent, small PRs)
+
+The owner: sky and ground look like a game from the 2000s; world detail
+should be worked on by separate agents that keep improving it, and the
+code should be separated accordingly. Work this track with the
+`world-artist` agent, one small PR per step, each with before/after
+screenshots from a real run, each new look behind an A1 preset/toggle
+(Low stays cheap: iPhone 11 class). No new asset files unless via
+`asset-requests/`; textures generated in code at startup are fine.
+
+1. **Code split (no visual change):** move how the world *looks* (sky,
+   ground colouring/texturing, fog, decorative scatter drawing) into
+   `src/render/` (e.g. `sky.cpp`, `ground_look.cpp`), keeping
+   `src/objects/world.cpp` for gameplay data (heights, collision,
+   obstacles). Same pixels before and after.
+2. **Sky:** gradient sky dome (zenith → horizon), sun disc with soft glow,
+   horizon haze; distance fog that blends terrain into the horizon colour.
+3. **Ground:** procedural detail texture (grass noise, subtle variation,
+   tiling with distance blending), softer colour palette, darker valleys /
+   lighter ridges; must also make height and speed easier to read.
+4. **Then, one at a time:** better trees/rocks, field patches and paths,
+   water, time-of-day presets — only items the owner picked in
+   `design-notes/world-improvements.md` or asked for here.
 
 ## Current priority: v0.1 release blockers, then level 2 (overrides everything below)
 
