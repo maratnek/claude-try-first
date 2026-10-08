@@ -12,6 +12,13 @@ owner can skim what happened without digging through git log. Format:
 - PR: <link or branch, if one was opened>
 ```
 
+## 2026-10-08 23:10 UTC — night run
+- Did: Bug fix (branch agents/2026-10-08-2310-gate-airborne): a run could be finished without ever taking off (full throttle on the ground through the gate, then slow to rolloutSpeed earned time, medal and stars). `LevelState::hasFlown` is latched in `UpdateLevel` when the plane is airborne and cleared in `ResetLevelProgress`; with `requireLanding`, `IsRunFinished` stays false until the plane has flown. The gate banner reads "GATE! Take off and land to finish" while never flown. New `LevelTests`; `docs/ARCHITECTURE.md` finish rule updated. The non-requireLanding path is unchanged. Not release-relevant.
+- Why: a taxi-only run should not count as a finished level; `requireLanding` means take off, cross the gate, land.
+- Verified: built raylib 5.5 from source and the game plus all 6 test targets in a scratch copy with Conan bypassed; ctest 6/6 pass. The game was started but exited at once (no display in the sandbox), so no gameplay was run. CI status: see PR.
+- Open: a grounded plane that never flew cannot restart with R (the restart condition needs level.crashed, the Finished screen, or a Safe landing), so after a taxi-through the player must take off and land (or crash) before R works; the menu key M is also only handled on Crashed/Finished. Not changed here; decide whether R should work on the ground before the first takeoff. A human should check the banner and the take-off, gate, land run by hand.
+- PR: PR into dev from agents/2026-10-08-2310-gate-airborne
+
 ## 2026-10-08 05:10 UTC — night run (63)
 - Did: Backlog 4, third iteration (branch agents/2026-10-08-0510-level-start-terrain): plane start position (x, z, height above ground) and the level-specific terrain shape (grid size, world size, max hill height, flat corridor half width, edge fade) now live in `LevelDef` (`TerrainDef`), read by `main.cpp` and `GenerateWorld`. Level 1 numbers are identical (the 0.12 edge fade was a literal in `ComputeRawHeight`). `LevelDefTests` pins the new values and checks that checkpoints and obstacles lie inside the flat corridor. Hill sine formula, scatter, clouds, distance markers and level selection stay in code. Not release-relevant.
 - Why: P0 effects polish is with an interactive session, owner items wait on him; this is the next open P1 piece (Backlog 4) and brings level 2 closer to being content, not code.
