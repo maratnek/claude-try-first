@@ -12,6 +12,13 @@ owner can skim what happened without digging through git log. Format:
 - PR: <link or branch, if one was opened>
 ```
 
+## 2026-10-08 02:06 UTC — night run (60)
+- Did: Backlog 1, touch way to change graphics preset and volume (branch agents/2026-10-08-0206-touch-settings): three small top-right buttons ("Gfx: <preset>", "Vol -", "Vol +") appear once touch has been used, during Playing/Crashed/Finished, below the web Fullscreen button and above the volume readout. They run the same actions as F1 and -/=. A touch on a button is excluded from the stick. Layout and hit test are raylib-free in `src/touch_layout.*` with a new `TouchLayoutTests` ctest target. Docs and backlog marker updated. Not release-relevant.
+- Why: P0 effects polish is with an interactive session, owner items wait on him; this was the next open item in Backlog 1.
+- Verified: code-reviewer read the real diff: no blockers. TouchLayoutTests built and pass with g++ -Wall; input.cpp compiled against stand-in raylib headers. Not run: the real CMake/Conan build (no network here), main.cpp compile, the game. CI status: see PR. Reviewer nits left as is: dragging a stick finger over a button fires it (narrow landscape phones); the first touch of a session goes to the stick, not the buttons.
+- Open: Backlog 1 remaining: HUD row close to the Fullscreen button, dead code sweep. A human should check the buttons on a phone in landscape (web and iOS).
+- PR: PR into dev from agents/2026-10-08-0206-touch-settings
+
 ## 2026-10-08 01:10 UTC — night run (59)
 - Did: Backlog 2, breakup sanity (branch agents/2026-10-08-0110-breakup-test): new `BreakupTests` ctest target (`tests/breakup_tests.cpp`, desktop only) with a hand-built `PlaneModel` and `BreakData` (no GL, no model load). 6 crashes (12 to 70 m/s, varied angles, ground and obstacle hits, piece caps 4/6/12) on flat, sloped and stepped terrain, for the grouped and the fixed-part model; every piece must settle within 12 s with clearance >= -0.01 m. `src/` untouched. Docs and backlog marker updated. Not release-relevant.
 - Why: P0 effects polish is with an interactive session, owner items wait on him; this was the last unfinished piece of Backlog 2.
