@@ -12,6 +12,13 @@ owner can skim what happened without digging through git log. Format:
 - PR: <link or branch, if one was opened>
 ```
 
+## 2026-10-08 05:10 UTC — night run (63)
+- Did: Backlog 4, third iteration (branch agents/2026-10-08-0510-level-start-terrain): plane start position (x, z, height above ground) and the level-specific terrain shape (grid size, world size, max hill height, flat corridor half width, edge fade) now live in `LevelDef` (`TerrainDef`), read by `main.cpp` and `GenerateWorld`. Level 1 numbers are identical (the 0.12 edge fade was a literal in `ComputeRawHeight`). `LevelDefTests` pins the new values and checks that checkpoints and obstacles lie inside the flat corridor. Hill sine formula, scatter, clouds, distance markers and level selection stay in code. Not release-relevant.
+- Why: P0 effects polish is with an interactive session, owner items wait on him; this is the next open P1 piece (Backlog 4) and brings level 2 closer to being content, not code.
+- Verified: code-reviewer compared every number with origin/dev and checked every user of `WorldState` (including tests and CMake lists): no blockers. LevelDefTests built with g++ -std=c++23 -Wall -Wextra and pass; mutations of edgeFade, start height and gridSize each fail the test. Not run: the real CMake/Conan build (Conan returned 403 in the sandbox) or the game; `main.cpp`, `world.cpp`, `world.h` were checked by reading only, so CI is their first compile. CI status: see PR.
+- Open: Backlog 4 remaining: hill formula, scatter, level selection. A human should launch the game once and check the spawn point and terrain look as before. `WorldState` now defaults to zeros, so code must not read it before `GenerateWorld`.
+- PR: PR into dev from agents/2026-10-08-0510-level-start-terrain
+
 ## 2026-10-08 04:06 UTC — night run (62)
 - Did: Backlog 1, dead-code sweep (branch agents/2026-10-08-0406-dead-code): counted references for every constant, function, struct field and include in src/ and tests/. No unreferenced symbol is left; `kLandingMaxSinkRate` was the only dead symbol and is already gone. Only the CLAUDE.md Backlog 1 marker changed (docs only, no code). Not release-relevant.
 - Why: P0 effects polish is with an interactive session, owner items wait on him; this was the last open piece of Backlog 1, and the marker stops the next run from repeating the sweep.
