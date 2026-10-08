@@ -74,8 +74,10 @@ void InitLevel(LevelState &level) {
     level.checkpointModel = LoadModelFromMesh(ringMesh);
 }
 
-void UpdateLevel(LevelState &level, Vector3 planePosition, float dt) {
+void UpdateLevel(LevelState &level, Vector3 planePosition, bool airborne, float dt) {
     if (level.crashed) return;
+
+    if (airborne) level.hasFlown = true;
 
     if (!level.gateCrossed) level.elapsed += dt;
 
@@ -96,7 +98,7 @@ void UpdateLevel(LevelState &level, Vector3 planePosition, float dt) {
 bool IsRunFinished(const LevelState &level, bool airborne, float speed) {
     if (!level.gateCrossed) return false;
     if (!Level1Def().requireLanding) return true;
-    return !airborne && speed <= Level1Def().rolloutSpeed;
+    return level.hasFlown && !airborne && speed <= Level1Def().rolloutSpeed;
 }
 
 int ComputeStars(const LevelState &level, bool damaged) {
@@ -159,7 +161,7 @@ void DrawLevelHUD(const LevelState &level, bool damaged) {
     DrawText(damaged ? "Plane: DAMAGED" : "Plane: OK", 10 + (int)sa.left, 180 + (int)sa.top, 20, damaged ? MAROON : DARKGREEN);
 
     if (level.gateCrossed && Level1Def().requireLanding) {
-        const char *banner = "GATE! Land to finish";
+        const char *banner = level.hasFlown ? "GATE! Land to finish" : "GATE! Take off and land to finish";
         DrawText(banner, (GetScreenWidth() - MeasureText(banner, 40)) / 2, 110 + (int)sa.top, 40, GOLD);
     }
 }
@@ -239,6 +241,7 @@ void ResetLevelProgress(LevelState &level) {
     level.distanceFlown = 0.0f;
     level.gateCrossed = false;
     level.crashed = false;
+    level.hasFlown = false;
     level.elapsed = 0.0f;
     level.newBest = false;
     for (Checkpoint &cp : level.checkpoints) {

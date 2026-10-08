@@ -81,7 +81,7 @@ stateDiagram-v2
     Playing --> Crashed: удар о препятствие / жёсткая посадка
     Crashed --> Playing: R — заново
     Crashed --> Menu: M — в меню
-    Playing --> Finished: ворота 1000 м пройдены, посадка и скорость ≤ 8 м/с
+    Playing --> Finished: ворота 1000 м пройдены, взлёт, посадка и скорость ≤ 8 м/с
     Finished --> Playing: R — заново
     Finished --> Menu: M — в меню
     Menu --> [*]: Выход (только desktop)
@@ -89,7 +89,7 @@ stateDiagram-v2
 
 Пока игра не в экране `Playing`, двигатель молчит; при входе в `Crashed`
 один раз звучит удар. После ворот время останавливается, самолёт остаётся управляемым, на HUD баннер
-«GATE! Land to finish», за воротами зона посадки; жёсткая посадка или удар
+«GATE! Land to finish» (если самолёт ещё ни разу не взлетал — «GATE! Take off and land to finish», финиш без взлёта не засчитывается), за воротами зона посадки; жёсткая посадка или удар
 после ворот ведёт в `Crashed` со строкой «Gate reached in X.XX s».
 `requireLanding = false` в `Level1Def()` (`level_def.cpp`) возвращает мгновенный финиш
 на воротах. На экране `Finished` физика заморожена, показываются

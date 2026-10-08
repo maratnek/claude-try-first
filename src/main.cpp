@@ -192,7 +192,7 @@ void UpdateFrame(Game &g) {
         if (g.crashTest.active) input.pitch = -0.01f;
 #endif
         UpdatePlaneControls(plane, g.planeParams, input, dt, groundHeight, slopeDeg);
-        UpdateLevel(level, plane.position, dt);
+        UpdateLevel(level, plane.position, plane.airborne, dt);
         if (CountPassed(level) > passedBefore) PlayChimeSound(engineAudio);
         if (wasAirborne && !plane.airborne && plane.landing == LandingResult::Safe) PlayTouchdownSound(engineAudio);
 

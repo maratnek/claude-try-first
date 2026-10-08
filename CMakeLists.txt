@@ -136,6 +136,11 @@ if(NOT EMSCRIPTEN AND NOT CMAKE_SYSTEM_NAME STREQUAL "iOS")
     target_link_libraries(FlightTests PRIVATE raylib)
     add_test(NAME FlightTests COMMAND FlightTests)
 
+    add_executable(LevelTests tests/level_tests.cpp src/level.cpp src/level_def.cpp src/safe_area.cpp src/settings.cpp)
+    target_include_directories(LevelTests PRIVATE src)
+    target_link_libraries(LevelTests PRIVATE raylib)
+    add_test(NAME LevelTests COMMAND LevelTests)
+
     add_executable(ProgressTests tests/progress_tests.cpp src/progress.cpp)
     target_include_directories(ProgressTests PRIVATE src)
     add_test(NAME ProgressTests COMMAND ProgressTests)
