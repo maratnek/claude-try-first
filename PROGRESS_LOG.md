@@ -13,10 +13,10 @@ owner can skim what happened without digging through git log. Format:
 ```
 
 ## 2026-10-08 19:07 UTC — evening run
-- Did: P0 Altitude awareness 2b (branch agents/2026-10-08-1907-agl-beep, stacked on #82): short procedural beep while airborne, under 10 m AGL and the AGL warning is amber/red. Repeats every 0.4 s, down to 0.15 s as time-to-impact falls. Decision is `ComputeAglBeepInterval` in `flight.cpp` (unit tested); the sound is `beepSound` in `audio.cpp`, played from `main.cpp` only on `Screen::Playing`. Follows master volume; cut by `StopOneShotSounds`. No physics, controls or visual change.
+- Did: P0 Altitude awareness 2b (branch agents/2026-10-08-1907-agl-beep, stacked on #82): short procedural beep while airborne, under 10 m AGL and the AGL warning is amber/red. Repeats every 0.4 s, down to 0.15 s as time-to-impact falls. Decision is `ComputeAglBeepInterval` in `flight.cpp` (unit tested); the sound is `beepSound` in `audio.cpp`, played from `main.cpp` only on `Screen::Playing`. Follows master volume; cut by `StopOneShotSounds`. Needs a sink rate of at least 2 m/s: a real run found a spurious beep at every liftoff (first airborne frame, agl 0.3 m, leftover smoothed descent 0.3 m/s from ground bumps), fixed in a second commit. No physics, controls or visual change.
 - Why: second step of the board P0 chain after the HUD number (2a).
 - Verified: flight tests pass (built with g++ against raylib 5.5 headers); audio.cpp, main.cpp, flight.cpp compile cleanly. The full CMake build and the game were not run here (no X11 dev headers in the sandbox, Conan blocked), so CI is the first full build. Sound not heard.
-- Open: awaiting owner review. A human should dive toward the ground and judge the beep (pitch, loudness, rate); check silence in menu, on the crash and results screens, and after landing. Every normal landing will beep briefly in the last metres.
+- Open: awaiting owner review. A human should dive toward the ground and judge the beep (pitch, loudness, rate); check silence in menu, on the crash and results screens, and after landing. A plain-glide landing at about 3 m/s still beeps in the last 8 m, by design.
 - PR: stacked on #82, awaiting owner review
 
 ## 2026-10-08 17:10 UTC — evening run
