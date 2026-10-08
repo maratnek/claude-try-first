@@ -55,6 +55,12 @@ owner can skim what happened without digging through git log. Format:
 - Verified: built raylib 5.5 from source and the game plus all 6 test targets in a scratch copy with Conan bypassed; ctest 6/6 pass. The game was started but exited at once (no display in the sandbox), so no gameplay was run. CI status: see PR.
 - Open: a grounded plane that never flew cannot restart with R (the restart condition needs level.crashed, the Finished screen, or a Safe landing), so after a taxi-through the player must take off and land (or crash) before R works; the menu key M is also only handled on Crashed/Finished. Not changed here; decide whether R should work on the ground before the first takeoff. A human should check the banner and the take-off, gate, land run by hand.
 - PR: PR into dev from agents/2026-10-08-2310-gate-airborne
+## 2026-10-08 18:40 UTC — art run (world art track, step 1)
+- Did: Code split with no visual change (branch agents/2026-10-08-1840-art-render-split): world look code moved from `src/objects/world.cpp` into `src/render/` (`ground_look.cpp` terrain colours and backdrop, `sky.cpp` sky clear, `world_draw.cpp` `DrawWorldObject` / `DrawBlobShadow`). `world.cpp` keeps heights, collision, obstacles, weather. `main.cpp` calls `DrawSky()` instead of `ClearBackground`. `docs/ARCHITECTURE.md` updated.
+- Why: first step of the world art track, so later sky / fog / ground steps touch only `src/render/`.
+- Verified: built raylib 5.5 from source and the game (Conan bypassed in a scratch copy); ran under Xvfb on Low and High, before (origin/dev) vs after screenshots of the menu view are identical except the animated top band (clouds, rain). CI status: see PR.
+- Open: awaiting owner review. Next art step: gradient sky dome.
+- PR: see PR into dev from agents/2026-10-08-1840-art-render-split
 
 ## 2026-10-08 05:10 UTC — night run (63)
 - Did: Backlog 4, third iteration (branch agents/2026-10-08-0510-level-start-terrain): plane start position (x, z, height above ground) and the level-specific terrain shape (grid size, world size, max hill height, flat corridor half width, edge fade) now live in `LevelDef` (`TerrainDef`), read by `main.cpp` and `GenerateWorld`. Level 1 numbers are identical (the 0.12 edge fade was a literal in `ComputeRawHeight`). `LevelDefTests` pins the new values and checks that checkpoints and obstacles lie inside the flat corridor. Hill sine formula, scatter, clouds, distance markers and level selection stay in code. Not release-relevant.
