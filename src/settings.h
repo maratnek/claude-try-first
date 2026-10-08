@@ -19,6 +19,7 @@ struct GraphicsSettings {
     bool damageVisuals = true;
     bool blobShadow = true;
     bool terrainColors = true;
+    bool skyGradient = true;
     float scatterDensity = 1.0f;
     int cloudCount = 30;
     int smokePuffs = 64;
