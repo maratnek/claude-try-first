@@ -527,6 +527,10 @@ integrates it and moves the request to `asset-requests/fulfilled/`.
   runs the game to confirm it starts cleanly.
 - **asset-planner** — manages the asset-requests/ workflow: files new
   requests, integrates fulfilled ones.
+- **world-artist** — improves how the world looks (sky, ground, fog,
+  vegetation) in small revertible steps, keeping look code in
+  `src/render/` apart from gameplay; driven by its own scheduled routine
+  (see "World art track").
 
 **Verifier team** — skeptically checks the builder team, never rubber-stamps:
 - **game-tester** — read-only: builds, runs, checks logs/code for
