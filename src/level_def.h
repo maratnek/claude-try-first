@@ -12,7 +12,18 @@ struct ObstacleDef {
     float radius;
 };
 
+struct TerrainDef {
+    int gridSize;
+    float worldSize;
+    float maxHeight;
+    float flatHalfWidth;
+    float edgeFade;
+};
+
 struct LevelDef {
+    float startX, startZ;
+    float startHeightAboveGround;
+    TerrainDef terrain;
     float gateDistance;
     float medalGold, medalSilver, medalBronze;
     bool requireLanding;

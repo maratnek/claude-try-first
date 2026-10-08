@@ -362,7 +362,8 @@ int main() {
 #endif
     GenerateWorld(game.world, game.gfx);
 
-    game.planeStart.position = (Vector3){0.0f, GetGroundHeight(game.world, 0.0f, 0.0f) + 0.3f, 0.0f};
+    const LevelDef &levelDef = Level1Def();
+    game.planeStart.position = (Vector3){levelDef.startX, GetGroundHeight(game.world, levelDef.startX, levelDef.startZ) + levelDef.startHeightAboveGround, levelDef.startZ};
     game.planeStart.fuel = game.planeParams.fuelCapacity;
 #ifdef FLIGHT_DEBUG
     if (const char *fuel = getenv("FLIGHT_FUEL")) game.planeStart.fuel = game.planeParams.fuelCapacity * (float)atof(fuel);

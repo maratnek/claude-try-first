@@ -28,6 +28,16 @@ bool Matches(const ObstacleDef &o, float x, float z, float h, float r) {
 int main() {
     const LevelDef &d = Level1Def();
 
+    Expect("start position", Near(d.startX, 0.0f) && Near(d.startZ, 0.0f) && Near(d.startHeightAboveGround, 0.3f));
+    Expect("terrain shape", d.terrain.gridSize == 64 && Near(d.terrain.worldSize, 1400.0f) &&
+                                Near(d.terrain.maxHeight, 10.0f) && Near(d.terrain.flatHalfWidth, 40.0f) &&
+                                Near(d.terrain.edgeFade, 0.12f));
+    Expect("flat corridor covers checkpoints and obstacles", [&] {
+        for (const ObstacleDef &o : d.hardObstacles) if (std::fabs(o.x) >= d.terrain.flatHalfWidth) return false;
+        for (const ObstacleDef &o : d.softObstacles) if (std::fabs(o.x) >= d.terrain.flatHalfWidth) return false;
+        for (const CheckpointDef &c : d.checkpoints) if (std::fabs(c.x) >= d.terrain.flatHalfWidth) return false;
+        return true;
+    }());
     Expect("gate distance", Near(d.gateDistance, 1000.0f));
     Expect("medal times", Near(d.medalGold, 24.0f) && Near(d.medalSilver, 30.0f) && Near(d.medalBronze, 40.0f));
     Expect("landing rules", d.requireLanding && Near(d.landingZoneLength, 300.0f) &&
