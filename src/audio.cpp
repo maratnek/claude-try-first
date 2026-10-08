@@ -152,6 +152,18 @@ void LoadEngineAudio(EngineAudio &audio) {
     wave.frameCount = damageFrames;
     wave.data = damage.data();
     audio.damageSound = LoadSoundFromWave(wave);
+
+    constexpr float kBeepSeconds = 0.09f;
+    int beepFrames = (int)(kSampleRate * kBeepSeconds);
+    std::vector<short> beep(beepFrames);
+    for (int i = 0; i < beepFrames; i++) {
+        float t = (float)i / (float)kSampleRate;
+        float env = Clamp(t / 0.004f, 0.0f, 1.0f) * Clamp((kBeepSeconds - t) / 0.01f, 0.0f, 1.0f);
+        beep[i] = (short)(sinf(2.0f * PI * 1500.0f * t) * env * 12000.0f);
+    }
+    wave.frameCount = beepFrames;
+    wave.data = beep.data();
+    audio.beepSound = LoadSoundFromWave(wave);
 }
 
 void StopEngineAudio(EngineAudio &audio) {
@@ -212,6 +224,10 @@ void PlayDamageSound(EngineAudio &audio) {
     PlaySound(audio.damageSound);
 }
 
+void PlayAglBeepSound(EngineAudio &audio) {
+    PlaySound(audio.beepSound);
+}
+
 float SetMasterVolumeClamped(float volume) {
     volume = Clamp(roundf(volume * 10.0f) / 10.0f, 0.0f, 1.0f);
     SetMasterVolume(volume);
@@ -227,6 +243,7 @@ void StopOneShotSounds(EngineAudio &audio) {
     StopSound(audio.touchdownSound);
     StopSound(audio.crashSound);
     StopSound(audio.damageSound);
+    StopSound(audio.beepSound);
     if (audio.boomSound.frameCount > 0) StopSound(audio.boomSound);
 }
 
@@ -271,5 +288,6 @@ void UnloadEngineAudio(EngineAudio &audio) {
     UnloadSound(audio.touchdownSound);
     UnloadSound(audio.clickSound);
     UnloadSound(audio.damageSound);
+    UnloadSound(audio.beepSound);
     UnloadSound(audio.boomSound);
 }

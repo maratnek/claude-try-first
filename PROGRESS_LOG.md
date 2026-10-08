@@ -12,6 +12,20 @@ owner can skim what happened without digging through git log. Format:
 - PR: <link or branch, if one was opened>
 ```
 
+## 2026-10-08 19:07 UTC — evening run
+- Did: P0 Altitude awareness 2b (branch agents/2026-10-08-1907-agl-beep, stacked on #82): short procedural beep while airborne, under 10 m AGL and the AGL warning is amber/red. Repeats every 0.4 s, down to 0.15 s as time-to-impact falls. Decision is `ComputeAglBeepInterval` in `flight.cpp` (unit tested); the sound is `beepSound` in `audio.cpp`, played from `main.cpp` only on `Screen::Playing`. Follows master volume; cut by `StopOneShotSounds`. Needs a sink rate of at least 2 m/s: a real run found a spurious beep at every liftoff (first airborne frame, agl 0.3 m, leftover smoothed descent 0.3 m/s from ground bumps), fixed in a second commit. No physics, controls or visual change.
+- Why: second step of the board P0 chain after the HUD number (2a).
+- Verified: flight tests pass (built with g++ against raylib 5.5 headers); audio.cpp, main.cpp, flight.cpp compile cleanly. The full CMake build and the game were not run here (no X11 dev headers in the sandbox, Conan blocked), so CI is the first full build. Sound not heard.
+- Open: awaiting owner review. A human should dive toward the ground and judge the beep (pitch, loudness, rate); check silence in menu, on the crash and results screens, and after landing. A plain-glide landing at about 3 m/s still beeps in the last 8 m, by design.
+- PR: stacked on #82, awaiting owner review
+
+## 2026-10-08 17:10 UTC — evening run
+- Did: P0 Altitude awareness 2a (branch agents/2026-10-08-1710-hud-agl): big height-above-ground number at bottom-centre of the HUD while airborne, under 30 m AGL and descending; amber when time-to-impact is under 4 s, red under 2 s. Always on. Logic is `ComputeAglWarning` in `flight.cpp` with unit tests; the descent rate is measured around `UpdatePlaneControls` and only read by the HUD. Not release-relevant.
+- Why: first open P0 board item not covered by an open PR or session branch (A/D rudder is PR #79, CI autoplay is #81).
+- Verified: real run (raylib 5.5 from source, Xvfb, xdotool keys, screenshots viewed): no warning in menu, ground roll, takeoff, high dive or after landing; amber in a shallow dive at 29 m, red in a steep dive at 14 m, none on the crash screen. All 5 ctest targets pass. Independent code review: no blockers. Not tested: notch safe-area, Finished screen (covered by the Playing gate), sound. CI status: see PR.
+- Open: owner to dive in the game and judge feel. Every normal landing flashes amber/red in the last metres. On a narrow phone the number sits near the touch stick hint. Next in the chain: 2b warning beep.
+- PR: PR into dev from agents/2026-10-08-1710-hud-agl
+
 ## 2026-10-08 05:10 UTC — night run (63)
 - Did: Backlog 4, third iteration (branch agents/2026-10-08-0510-level-start-terrain): plane start position (x, z, height above ground) and the level-specific terrain shape (grid size, world size, max hill height, flat corridor half width, edge fade) now live in `LevelDef` (`TerrainDef`), read by `main.cpp` and `GenerateWorld`. Level 1 numbers are identical (the 0.12 edge fade was a literal in `ComputeRawHeight`). `LevelDefTests` pins the new values and checks that checkpoints and obstacles lie inside the flat corridor. Hill sine formula, scatter, clouds, distance markers and level selection stay in code. Not release-relevant.
 - Why: P0 effects polish is with an interactive session, owner items wait on him; this is the next open P1 piece (Backlog 4) and brings level 2 closer to being content, not code.
