@@ -55,6 +55,13 @@ owner can skim what happened without digging through git log. Format:
 - Verified: built raylib 5.5 from source and the game plus all 6 test targets in a scratch copy with Conan bypassed; ctest 6/6 pass. The game was started but exited at once (no display in the sandbox), so no gameplay was run. CI status: see PR.
 - Open: a grounded plane that never flew cannot restart with R (the restart condition needs level.crashed, the Finished screen, or a Safe landing), so after a taxi-through the player must take off and land (or crash) before R works; the menu key M is also only handled on Crashed/Finished. Not changed here; decide whether R should work on the ground before the first takeoff. A human should check the banner and the take-off, gate, land run by hand.
 - PR: PR into dev from agents/2026-10-08-2310-gate-airborne
+## 2026-10-08 21:40 UTC — art run (world art track, step 2: gradient sky)
+- Did: Gradient sky (branch agents/2026-10-08-2140-art-sky-gradient, stacked on #85): `DrawSky(camera, gfx)` paints a zenith-to-horizon gradient whose horizon follows the camera's horizon line; new toggle `gfx.skyGradient` (on in all presets). `docs/ARCHITECTURE.md` updated. No gameplay, physics or controls touched.
+- Why: step 2 of the world art track; the flat `SKYBLUE` clear was the most 2000s-looking part of the frame.
+- Verified: raylib 5.5 built from source, game built in a scratch copy, run under Xvfb on High and Low, same in-game view before/after. Gradient visible on High; Low uses the same gradient. Low cost: one gradient rectangle plus one flat rectangle per frame, no textures. CI status: see PR.
+- Open: awaiting owner review; merge #85 first. Next art step: sun disc with soft glow.
+- PR: PR into dev from agents/2026-10-08-2140-art-sky-gradient
+
 ## 2026-10-08 18:40 UTC — art run (world art track, step 1)
 - Did: Code split with no visual change (branch agents/2026-10-08-1840-art-render-split): world look code moved from `src/objects/world.cpp` into `src/render/` (`ground_look.cpp` terrain colours and backdrop, `sky.cpp` sky clear, `world_draw.cpp` `DrawWorldObject` / `DrawBlobShadow`). `world.cpp` keeps heights, collision, obstacles, weather. `main.cpp` calls `DrawSky()` instead of `ClearBackground`. `docs/ARCHITECTURE.md` updated.
 - Why: first step of the world art track, so later sky / fog / ground steps touch only `src/render/`.
