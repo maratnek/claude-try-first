@@ -1,7 +1,9 @@
 cmake_minimum_required(VERSION 3.24)
 
 # EMSCRIPTEN is only defined once the toolchain file is processed inside project(), too late for this check.
-if(NOT CMAKE_TOOLCHAIN_FILE MATCHES "Emscripten" AND NOT CMAKE_SYSTEM_NAME STREQUAL "iOS")
+# FLIGHT_SYSTEM_RAYLIB=ON skips Conan and uses an installed raylib (CMAKE_PREFIX_PATH); used by the Linux autoplay CI job.
+option(FLIGHT_SYSTEM_RAYLIB "Use an installed raylib instead of Conan" OFF)
+if(NOT CMAKE_TOOLCHAIN_FILE MATCHES "Emscripten" AND NOT CMAKE_SYSTEM_NAME STREQUAL "iOS" AND NOT FLIGHT_SYSTEM_RAYLIB)
     set(CMAKE_PROJECT_TOP_LEVEL_INCLUDES "${CMAKE_CURRENT_SOURCE_DIR}/cmake/conan_provider.cmake")
 endif()
 
@@ -78,9 +80,11 @@ add_executable(FlightGame
 )
 target_include_directories(FlightGame PRIVATE src)
 
-# Test hooks (FLIGHT_FUEL, FLIGHT_PRESET, --crash-test); never enable for Web, iOS or release CI builds.
+# Test hooks (FLIGHT_FUEL, FLIGHT_PRESET, --crash-test, --autoplay with FLIGHT_AUTOPLAY_DIR/FLIGHT_SHOT_PREFIX);
+# never enable for Web, iOS or release builds. The autoplay CI job is the only intended user.
 option(FLIGHT_DEBUG "Enable debug-only test hooks" OFF)
 if(FLIGHT_DEBUG)
+    target_sources(FlightGame PRIVATE src/autoplay.cpp)
     target_compile_definitions(FlightGame PRIVATE FLIGHT_DEBUG)
 endif()
 target_link_libraries(FlightGame PRIVATE raylib)
@@ -135,6 +139,11 @@ if(NOT EMSCRIPTEN AND NOT CMAKE_SYSTEM_NAME STREQUAL "iOS")
     target_include_directories(FlightTests PRIVATE src)
     target_link_libraries(FlightTests PRIVATE raylib)
     add_test(NAME FlightTests COMMAND FlightTests)
+
+    add_executable(AutoplayTests tests/autoplay_tests.cpp src/autoplay.cpp)
+    target_include_directories(AutoplayTests PRIVATE src)
+    target_link_libraries(AutoplayTests PRIVATE raylib)
+    add_test(NAME AutoplayTests COMMAND AutoplayTests)
 
     add_executable(ProgressTests tests/progress_tests.cpp src/progress.cpp)
     target_include_directories(ProgressTests PRIVATE src)
