@@ -1,5 +1,5 @@
 # Local build output of any kind (build, build-debug, build-web, build-ios, ...)
-build*/
+/build*/
 # Tooling and editor leftovers
 node_modules/
 .cache/
