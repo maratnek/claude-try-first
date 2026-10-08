@@ -11,6 +11,7 @@
 #include "objects/plane.h"
 #include "objects/world.h"
 #include "objects/smoke.h"
+#include "objects/sprites.h"
 #include "objects/explosion.h"
 #include "objects/streaks.h"
 #include "objects/debris.h"
@@ -391,6 +392,7 @@ int main() {
     UnloadPlaneModel(game.planeModel);
     UnloadLevel(game.level);
     UnloadWorld(game.world);
+    UnloadSprites();
     CloseWindow();
 #endif
     return 0;
