@@ -55,7 +55,9 @@ so the game runs regardless of the launcher's working directory.
   logical step (new module, then each call site, then docs). Never mix a
   feel/physics change with refactoring or visuals in one PR. Tuning values
   that change how the plane feels go in their own PR, with before/after
-  numbers in the body. If a task is big, split it into a chain of PRs.
+  numbers in the body. If a task is big, split it into a chain of PRs —
+  but not into micro-steps: one PR should still be a meaningful, testable
+  piece (e.g. all of effects part 1 in one PR is fine).
 
 ## Current state (roughly newest last)
 
