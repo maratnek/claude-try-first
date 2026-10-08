@@ -84,7 +84,10 @@ jobs:
         run: |
           mkdir autoplay-out
           FLIGHT_AUTOPLAY_DIR="$PWD/autoplay-out" timeout 180 xvfb-run -a -s "-screen 0 1280x720x24" ./build-autoplay/FlightGame --autoplay
-          cat autoplay-out/autoplay-results.txt
+
+      - name: Autoplay results
+        if: always()
+        run: cat autoplay-out/autoplay-results.txt
 
       - uses: actions/upload-artifact@v4
         if: always()
