@@ -13,9 +13,9 @@ void DrawSky(const Camera3D &camera, const GraphicsSettings &gfx) {
     if (!gfx.skyGradient) return;
 
     Vector3 forward = {camera.target.x - camera.position.x, 0.0f, camera.target.z - camera.position.z};
-    float len = sqrtf(forward.x * forward.x + forward.z * forward.z);
-    if (len < 1e-4f) forward = {0.0f, 0.0f, 1.0f};
-    else forward = {forward.x / len, 0.0f, forward.z / len};
+    float len = std::sqrt(forward.x * forward.x + forward.z * forward.z);
+    forward = {forward.x / len, 0.0f, forward.z / len};
+    // GetWorldToScreen does no clipping, so a point far beyond the far plane still lands on the horizon line.
     Vector3 far = {camera.position.x + forward.x * 20000.0f, camera.position.y, camera.position.z + forward.z * 20000.0f};
     int horizonY = static_cast<int>(GetWorldToScreen(far, camera).y);
 
