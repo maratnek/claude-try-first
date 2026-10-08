@@ -13,9 +13,9 @@ owner can skim what happened without digging through git log. Format:
 ```
 
 ## 2026-10-08 03:10 UTC — night run (61)
-- Did: Backlog 1, HUD row near the web Fullscreen button (branch agents/2026-10-08-0310-hud-fullscreen): the two top HUD lines (controls, speed/altitude/power) are drawn with a font size that shrinks (20 down to 12) until the text fits left of a 150 px reserve on web (10 px elsewhere), so they no longer run under the button. `FitFontSize` in `src/main.cpp`. Not release-relevant.
+- Did: Backlog 1, HUD row near the web Fullscreen button (branch agents/2026-10-08-0310-hud-fullscreen): the two top HUD lines (controls, speed/altitude/power) are drawn with a font size that shrinks (20 down to 12) until the text fits left of a 150 px reserve on web (10 px elsewhere), so they no longer run under the button. On desktop the long on-ground status line may also shrink slightly in a narrow window. `FitFontSize` in `src/main.cpp`. Not release-relevant.
 - Why: P0 effects polish is with an interactive session, owner items wait on him; this was the next open item in Backlog 1.
-- Verified: see PR for reviewer and CI. Not run: the game (no raylib in this sandbox).
+- Verified: code-reviewer read the real diff: no blockers (TextFormat buffer not clobbered, ox/sa defined before use, tiny widths stop at size 12). Not run: the real build or the game (no raylib in this sandbox); the first compile is CI. Limits: the 150 px reserve is estimated by eye, and on high-DPI screens canvas pixels differ from the button's CSS pixels.
 - Open: Backlog 1 remaining: dead code sweep. A human should check the HUD on a narrow web window.
 - PR: PR into dev from agents/2026-10-08-0310-hud-fullscreen
 
