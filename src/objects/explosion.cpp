@@ -1,4 +1,5 @@
 #include "explosion.h"
+#include "sprites.h"
 #include "raymath.h"
 #include "rlgl.h"
 #include <cmath>
@@ -87,26 +88,48 @@ void DrawExplosion(const ExplosionState &explosion, const Camera3D &camera) {
         float radius = (1.5f + 3.5f * s) * (0.4f + 0.6f * t);
         Color color = {255, 140, 30, (unsigned char)(220.0f * (1.0f - t))};
         DrawRingSprite(explosion.centre, radius, radius * 0.7f, color, camera);
-    } else {
-        float radius = fmaxf(kBigRadius * s, kMinRadius);
-        for (int i = 0; i < explosion.fireballs; i++) {
-            const Ball &ball = kBalls[i];
-            float age = explosion.age - ball.delay;
-            if (age < 0.0f) continue;
-            float grow = fminf(age / kGrowSeconds, 1.0f);
-            float fade = fmaxf((age - kGrowSeconds) / kFadeSeconds, 0.0f);
-            if (fade >= 1.0f) continue;
-            float r = radius * ball.size * (1.0f - (1.0f - grow) * (1.0f - grow));
-            float cool = fminf(age / (kGrowSeconds + kFadeSeconds), 1.0f);
-            Color color = {Lerp8(ball.hot.r, ball.cold.r, cool), Lerp8(ball.hot.g, ball.cold.g, cool),
-                           Lerp8(ball.hot.b, ball.cold.b, cool), (unsigned char)(230.0f * (1.0f - fade))};
-            Vector3 centre = Vector3Add(explosion.centre, Vector3Scale(ball.offset, radius * grow));
-            DrawSphereEx(centre, r, 8, 12, color);
-            rlDrawRenderBatchActive();
-        }
     }
     rlEnableBackfaceCulling();
     rlEnableDepthMask();
+    if (explosion.fireballs == 0) return;
+
+    Vector3 forward = Vector3Normalize(Vector3Subtract(camera.target, camera.position));
+    Vector3 right = Vector3Normalize(Vector3CrossProduct(forward, camera.up));
+    BillboardAxes axes = {right, Vector3CrossProduct(right, forward)};
+    float radius = fmaxf(kBigRadius * s, kMinRadius);
+
+    // Body pass: each ball cools from flame colour to dark smoke while it fades.
+    BeginSprites(SpriteKind::Puff, false);
+    for (int i = 0; i < explosion.fireballs; i++) {
+        const Ball &ball = kBalls[i];
+        float age = explosion.age - ball.delay;
+        if (age < 0.0f) continue;
+        float grow = fminf(age / kGrowSeconds, 1.0f);
+        float fade = fmaxf((age - kGrowSeconds) / kFadeSeconds, 0.0f);
+        if (fade >= 1.0f) continue;
+        float r = radius * ball.size * (1.0f - (1.0f - grow) * (1.0f - grow));
+        float cool = fminf(age / (kGrowSeconds + kFadeSeconds), 1.0f);
+        Color color = {Lerp8(ball.hot.r, ball.cold.r, cool), Lerp8(ball.hot.g, ball.cold.g, cool),
+                       Lerp8(ball.hot.b, ball.cold.b, cool), (unsigned char)(230.0f * (1.0f - fade))};
+        Vector3 centre = Vector3Add(explosion.centre, Vector3Scale(ball.offset, radius * grow));
+        DrawSprite(axes, centre, r * 1.6f, i * 1.7f + age * 0.5f, color);
+    }
+    EndSprites();
+
+    // Glow pass: an additive hot core while the ball is still burning.
+    BeginSprites(SpriteKind::Puff, true);
+    for (int i = 0; i < explosion.fireballs; i++) {
+        const Ball &ball = kBalls[i];
+        float age = explosion.age - ball.delay;
+        if (age < 0.0f) continue;
+        float heat = 1.0f - fminf(age / (kGrowSeconds + 0.4f * kFadeSeconds), 1.0f);
+        if (heat <= 0.0f) continue;
+        float grow = fminf(age / kGrowSeconds, 1.0f);
+        float r = radius * ball.size * (1.0f - (1.0f - grow) * (1.0f - grow));
+        Vector3 centre = Vector3Add(explosion.centre, Vector3Scale(ball.offset, radius * grow));
+        DrawSprite(axes, centre, r * 0.9f, i * 0.9f, {255, 190, 90, (unsigned char)(200.0f * heat)});
+    }
+    EndSprites();
 }
 
 void DrawExplosionFlash(const ExplosionState &explosion) {
