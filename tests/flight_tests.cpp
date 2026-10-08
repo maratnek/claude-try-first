@@ -236,6 +236,25 @@ void TestLanding(const PlaneParams &p) {
     Expect("landing banked 40deg is Hard", rolled.landing == LandingResult::Hard);
 }
 
+float MeasureRollout(const PlaneParams &p, float touchdownSpeed, float throttle) {
+    PlaneState s;
+    s.speed = touchdownSpeed;
+    s.position.y = p.wheelHeight;
+    s.landing = LandingResult::Safe;
+    FlightInput in;
+    in.throttle = throttle;
+    float stop = Level1Def().rolloutSpeed;
+    for (int i = 0; i < 60 * 60 && s.speed > stop; i++) UpdatePlaneControls(s, p, in, kDt, 0.0f, 0.0f);
+    return s.speed > stop ? 1.0e9f : s.position.z;
+}
+
+void TestRollout(const PlaneParams &p) {
+    float zone = Level1Def().landingZoneLength;
+    Report("rollout from max landing speed", MeasureRollout(p, p.landingMaxSpeed, 0.0f), 150.0f, zone);
+    Report("rollout from 20 m/s", MeasureRollout(p, 20.0f, 0.0f), 50.0f, zone);
+    Report("braked rollout from max speed", MeasureRollout(p, p.landingMaxSpeed, -1.0f), 10.0f, 80.0f);
+}
+
 void TestRollClamp(const PlaneParams &p) {
     const float dirs[2] = {1.0f, -1.0f};
     for (float dir : dirs) {
@@ -267,6 +286,7 @@ int main(int argc, char **argv) {
     TestSpeed(p);
     TestLanding(p);
     TestRollClamp(p);
+    TestRollout(p);
     if (g_failures) printf("%d check(s) failed\n", g_failures);
     else printf("all flight checks passed\n");
     return g_failures ? 1 : 0;
