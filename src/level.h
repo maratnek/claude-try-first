@@ -44,7 +44,7 @@ enum class Medal { None, Bronze, Silver, Gold };
 // Time medal for a finished run from the gate time: gold <= 24 s, silver <= 30 s, bronze <= 40 s.
 Medal ComputeMedal(float elapsed);
 
-// Stores the elapsed time as the session best when it beats the previous one (not persisted).
+// Stores the elapsed time as the best when it beats the previous one; main.cpp seeds bestTime from saved progress and saves after a finish.
 void RecordFinish(LevelState &level);
 
 void DrawFinishGate(const LevelState &level);

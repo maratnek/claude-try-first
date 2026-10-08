@@ -245,7 +245,7 @@ those stay proposals until he decides.
    soft vs hard landing; plus breakup sanity (no piece below ground after
    settling). Wire it into `.github/workflows/build.yml` so physics
    regressions turn CI red.
-3. **Save/progress persistence layer** [data layer done: `src/progress.*`, branch agents/2026-10-07-1907-progress-store; still open: wire best time into level.cpp and the volume/preset into settings once a progression is picked] every progression option needs:
+3. **Save/progress persistence layer** [best time of level 1 now loaded at start and saved after a finish (branch agents/2026-10-08-1810-progress-wire); data layer done: `src/progress.*`, branch agents/2026-10-07-1907-progress-store; still open: wire the volume/preset into settings once a progression is picked; stars are saved but not shown anywhere] every progression option needs:
    best times, medals, unlock flags, settings — a file on desktop,
    `localStorage` on web, a stub for iOS. Data only; no new levels or UI.
 4. **Data-driven level definition** [first iteration done: `src/level_def.*` holds level 1 checkpoints, obstacles, landing zone and rollout speed, read by `level.cpp`/`world.cpp`; second iteration: gate distance and medal times now live only in `LevelDef` and `src/level_targets.h` is deleted; third iteration: plane start position and terrain shape (grid size, world size, max height, flat corridor half-width, edge fade) in `LevelDef`, pinned by `LevelDefTests`; branches agents/2026-10-07-2210-level-def, agents/2026-10-07-2310-level-gate-medals, agents/2026-10-08-0510-level-start-terrain; still open: the hill formula coefficients in `ComputeRawHeight`, scatter and cloud layout as data, level selection] move level 1's checkpoints, obstacles,

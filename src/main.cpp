@@ -6,6 +6,7 @@
 #include "input.h"
 #include "level.h"
 #include "menu.h"
+#include "progress.h"
 #include "safe_area.h"
 #include "settings.h"
 #include "objects/plane.h"
@@ -35,6 +36,8 @@
 
 namespace {
 enum class Screen { Menu, Playing, Crashed, Finished };
+
+constexpr const char *kLevel1Id = "level1";
 
 #ifdef FLIGHT_DEBUG
 // Debug-only crash harness: --crash-test dives into the ground from FLIGHT_SPEED, saves PNGs named
@@ -66,6 +69,7 @@ struct Game {
     PlaneState plane;
     PlaneParams planeParams = BiplaneParams();
     LevelState level;
+    ProgressData progress;
     InputState inputState;
     GraphicsSettings gfx;
     bool quitRequested = false;
@@ -215,6 +219,8 @@ void UpdateFrame(Game &g) {
             SpawnDebris(g.debris, planeModel, plane, impact, g.gfx.debrisPieces);
         } else if (IsRunFinished(level, plane.airborne, plane.speed)) {
             RecordFinish(level);
+            RecordLevelResult(g.progress, kLevel1Id, level.elapsed, ComputeStars(level, plane.damaged));
+            SaveProgress(g.progress);
             g.screen = Screen::Finished;
         }
     }
@@ -377,6 +383,8 @@ int main() {
 
     game.level.startPosition = game.planeStart.position;
     InitLevel(game.level);
+    game.progress = LoadProgress();
+    if (LevelRecord *record = FindLevelRecord(game.progress, kLevel1Id)) game.level.bestTime = record->bestTime;
 
 #ifdef __EMSCRIPTEN__
     emscripten_set_main_loop_arg(UpdateFrameCallback, &game, 0, 1);
