@@ -12,6 +12,13 @@ owner can skim what happened without digging through git log. Format:
 - PR: <link or branch, if one was opened>
 ```
 
+## 2026-10-08 21:40 UTC — art run (world art track, step 2: gradient sky)
+- Did: Gradient sky (branch agents/2026-10-08-2140-art-sky-gradient, stacked on #85): `DrawSky(camera, gfx)` paints a zenith-to-horizon gradient whose horizon follows the camera's horizon line; new toggle `gfx.skyGradient` (on in all presets). `docs/ARCHITECTURE.md` updated. No gameplay, physics or controls touched.
+- Why: step 2 of the world art track; the flat `SKYBLUE` clear was the most 2000s-looking part of the frame.
+- Verified: raylib 5.5 built from source, game built in a scratch copy, run under Xvfb on High and Low, same in-game view before/after. Gradient visible on High; Low uses the same gradient. Low cost: one gradient rectangle plus one flat rectangle per frame, no textures. CI status: see PR.
+- Open: awaiting owner review; merge #85 first. Next art step: sun disc with soft glow.
+- PR: PR into dev from agents/2026-10-08-2140-art-sky-gradient
+
 ## 2026-10-08 18:40 UTC — art run (world art track, step 1)
 - Did: Code split with no visual change (branch agents/2026-10-08-1840-art-render-split): world look code moved from `src/objects/world.cpp` into `src/render/` (`ground_look.cpp` terrain colours and backdrop, `sky.cpp` sky clear, `world_draw.cpp` `DrawWorldObject` / `DrawBlobShadow`). `world.cpp` keeps heights, collision, obstacles, weather. `main.cpp` calls `DrawSky()` instead of `ClearBackground`. `docs/ARCHITECTURE.md` updated.
 - Why: first step of the world art track, so later sky / fog / ground steps touch only `src/render/`.
