@@ -479,10 +479,10 @@ integrates it and moves the request to `asset-requests/fulfilled/`.
   release notes. Stops before anything goes public — see Branches.
 
 **Required flow**: every builder-team task must go through at least one
-verifier-team agent before it is merged into `dev`. If a verifier raises a
+verifier-team agent before its PR is offered to the owner. If a verifier raises a
 real, concrete blocking issue: send it back to the relevant builder agent
 for one fix pass, then re-verify. If it's still unresolved after that one
-round, do NOT merge — report the disagreement plainly in the run's
+round, mark the PR as blocked — report the disagreement plainly in the run's
 write-up and PROGRESS_LOG.md entry instead of forcing it through or
 looping indefinitely.
 
@@ -592,7 +592,7 @@ main/dev, independent of any agent's self-reported build result. After
 pushing, check that this workflow is passing (e.g. `gh run list
 --branch agents --limit 1` or check the PR's checks) before treating the
 change as verified — don't rely solely on your own local build/run check.
-If CI is red on `dev` after your merge and you cannot fix it this run,
+If CI is red on your PR or on `dev` and you cannot fix it this run,
 say so prominently in your write-up rather than moving on.
 
 ## Progress log
