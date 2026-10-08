@@ -105,19 +105,22 @@ void UpdateFrame(Game &g) {
 
     float dt = GetFrameTime();
 
-    if (IsKeyPressed(KEY_F1)) {
+    bool inRun = g.screen != Screen::Menu;
+    FlightInput input = ReadFlightInput(g.inputState, level.crashed || g.screen == Screen::Finished, inRun);
+
+    if (IsKeyPressed(KEY_F1) || input.cycleGraphics) {
         CycleGraphicsPreset(g.gfx);
         ApplyTerrainColors(world, g.gfx);
         SaveGraphicsSettings(g.gfx);
     }
 
-    if (IsKeyPressed(KEY_MINUS) || IsKeyPressed(KEY_EQUAL)) {
-        g.masterVolume = SetMasterVolumeClamped(g.masterVolume + (IsKeyPressed(KEY_EQUAL) ? 0.1f : -0.1f));
+    float volumeDelta = (IsKeyPressed(KEY_EQUAL) ? 0.1f : 0.0f) - (IsKeyPressed(KEY_MINUS) ? 0.1f : 0.0f) + 0.1f * input.volumeStep;
+    if (IsKeyPressed(KEY_MINUS) || IsKeyPressed(KEY_EQUAL) || input.volumeStep != 0) {
+        g.masterVolume = SetMasterVolumeClamped(g.masterVolume + volumeDelta);
         g.volumeShownSeconds = 1.5f;
     }
     g.volumeShownSeconds = fmaxf(g.volumeShownSeconds - dt, 0.0f);
 
-    FlightInput input = ReadFlightInput(g.inputState, level.crashed || g.screen == Screen::Finished);
     MenuAction menuAction = MenuAction::None;
     if (g.screen == Screen::Menu) menuAction = UpdateMenu(g.menu);
 
@@ -292,7 +295,7 @@ void UpdateFrame(Game &g) {
     DrawText(TextFormat("Graphics: %s (F1)", GraphicsPresetName(g.gfx)), ox + 100, 60 + oy, 20, DARKGRAY);
     if (level.crashed) DrawCrashScreen(level, g.inputState.touchUsed);
     if (g.screen == Screen::Finished) DrawResultsScreen(level, plane.damaged, g.inputState.touchUsed);
-    DrawTouchOverlay(g.inputState, level.crashed || g.screen == Screen::Finished);
+    DrawTouchOverlay(g.inputState, level.crashed || g.screen == Screen::Finished, true, TextFormat("Gfx: %s", GraphicsPresetName(g.gfx)));
 #ifdef FLIGHT_DEBUG
     if (g.crashTest.active && g.screen == Screen::Crashed) {
         g.crashTest.timer += dt;

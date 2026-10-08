@@ -61,6 +61,7 @@ add_executable(FlightGame
     src/progress_store.cpp
     src/safe_area.cpp
     src/settings.cpp
+    src/touch_layout.cpp
     src/objects/glb_nodes.cpp
     src/objects/break_data.cpp
     src/objects/plane.cpp
@@ -142,6 +143,10 @@ if(NOT EMSCRIPTEN AND NOT CMAKE_SYSTEM_NAME STREQUAL "iOS")
     add_executable(LevelDefTests tests/level_def_tests.cpp src/level_def.cpp)
     target_include_directories(LevelDefTests PRIVATE src)
     add_test(NAME LevelDefTests COMMAND LevelDefTests)
+
+    add_executable(TouchLayoutTests tests/touch_layout_tests.cpp src/touch_layout.cpp)
+    target_include_directories(TouchLayoutTests PRIVATE src)
+    add_test(NAME TouchLayoutTests COMMAND TouchLayoutTests)
 
     add_executable(BreakupTests tests/breakup_tests.cpp src/objects/debris.cpp src/objects/plane.cpp
         src/objects/break_data.cpp src/objects/glb_nodes.cpp src/flight.cpp src/level_def.cpp)

@@ -1,6 +1,7 @@
 #include "input.h"
 #include "raymath.h"
 #include "safe_area.h"
+#include "touch_layout.h"
 
 namespace {
 
@@ -32,6 +33,11 @@ Rectangle MenuRect() {
     return r;
 }
 
+SettingsButtons SettingsRects() {
+    SafeArea sa = GetSafeArea();
+    return LayoutSettingsButtons((float)GetScreenWidth(), sa.right, sa.top);
+}
+
 float StickAxis(float delta) {
     float v = Clamp(delta / kStickRadius, -1.0f, 1.0f);
     float mag = fabsf(v);
@@ -48,7 +54,7 @@ float KeyAxis(int positive, int negative) {
 
 }  // namespace
 
-FlightInput ReadFlightInput(InputState &state, bool endButtonsActive) {
+FlightInput ReadFlightInput(InputState &state, bool endButtonsActive, bool settingsActive) {
     FlightInput in;
     in.pitch = KeyAxis(KEY_DOWN, KEY_UP);
     in.roll = KeyAxis(KEY_LEFT, KEY_RIGHT);
@@ -64,12 +70,16 @@ FlightInput ReadFlightInput(InputState &state, bool endButtonsActive) {
     bool stickFound = false;
     bool restartTouched = false;
     bool menuTouched = false;
+    bool gfxTouched = false;
+    bool volDownTouched = false;
+    bool volUpTouched = false;
     float throttle = 0.0f;
     float halfWidth = GetScreenWidth() * 0.5f;
     Rectangle up = ThrottleUpRect();
     Rectangle down = ThrottleDownRect();
     Rectangle restartRect = RestartRect();
     Rectangle menuRect = MenuRect();
+    SettingsButtons settings = SettingsRects();
 
     for (int i = 0; i < count; i++) {
         Vector2 p = GetTouchPosition(i);
@@ -77,7 +87,17 @@ FlightInput ReadFlightInput(InputState &state, bool endButtonsActive) {
         if (CheckCollisionPointRec(p, down)) throttle -= 1.0f;
         if (endButtonsActive && CheckCollisionPointRec(p, restartRect)) restartTouched = true;
         if (endButtonsActive && CheckCollisionPointRec(p, menuRect)) menuTouched = true;
-        if (!stickFound && p.x < halfWidth) {
+        bool onSettings = false;
+        if (settingsActive && state.touchUsed) {
+            bool g = TouchBoxContains(settings.gfx, p.x, p.y);
+            bool d = TouchBoxContains(settings.volDown, p.x, p.y);
+            bool u = TouchBoxContains(settings.volUp, p.x, p.y);
+            gfxTouched |= g;
+            volDownTouched |= d;
+            volUpTouched |= u;
+            onSettings = g || d || u;
+        }
+        if (!stickFound && !onSettings && p.x < halfWidth) {
             stickFound = true;
             if (!state.stickActive) state.stickOrigin = p;
             state.stickPos = p;
@@ -100,10 +120,17 @@ FlightInput ReadFlightInput(InputState &state, bool endButtonsActive) {
     if (menuTouched && !state.menuHeld) in.menu = true;
     state.menuHeld = menuTouched;
 
+    if (gfxTouched && !state.gfxHeld) in.cycleGraphics = true;
+    if (volDownTouched && !state.volDownHeld) in.volumeStep -= 1;
+    if (volUpTouched && !state.volUpHeld) in.volumeStep += 1;
+    state.gfxHeld = gfxTouched;
+    state.volDownHeld = volDownTouched;
+    state.volUpHeld = volUpTouched;
+
     return in;
 }
 
-void DrawTouchOverlay(const InputState &state, bool endButtonsShown) {
+void DrawTouchOverlay(const InputState &state, bool endButtonsShown, bool settingsShown, const char *gfxLabel) {
     if (!state.touchUsed) return;
 
     Color fill = {255, 255, 255, 60};
@@ -140,5 +167,18 @@ void DrawTouchOverlay(const InputState &state, bool endButtonsShown) {
         DrawRectangleRec(m, (Color){255, 255, 255, 140});
         DrawRectangleLinesEx(m, 2.0f, line);
         DrawText("MENU", (int)(m.x + (m.width - MeasureText("MENU", 30)) * 0.5f), (int)(m.y + 15), 30, BLACK);
+    }
+
+    if (settingsShown) {
+        SettingsButtons b = SettingsRects();
+        Color btnFill = {255, 255, 255, 140};
+        const TouchBox boxes[] = {b.gfx, b.volDown, b.volUp};
+        const char *labels[] = {gfxLabel, "Vol -", "Vol +"};
+        for (int i = 0; i < 3; i++) {
+            Rectangle r = {boxes[i].x, boxes[i].y, boxes[i].w, boxes[i].h};
+            DrawRectangleRec(r, btnFill);
+            DrawRectangleLinesEx(r, 2.0f, line);
+            DrawText(labels[i], (int)(r.x + (r.width - MeasureText(labels[i], 18)) * 0.5f), (int)(r.y + 7), 18, BLACK);
+        }
     }
 }
