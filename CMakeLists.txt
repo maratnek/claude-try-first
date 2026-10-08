@@ -75,6 +75,9 @@ add_executable(FlightGame
     src/objects/debris.cpp
     src/objects/explosion.cpp
     src/objects/character.cpp
+    src/render/sky.cpp
+    src/render/ground_look.cpp
+    src/render/world_draw.cpp
 )
 target_include_directories(FlightGame PRIVATE src)
 

@@ -37,15 +37,6 @@ struct WorldState {
 // Builds the terrain heightmap (shape from the level definition) and obstacle layout. Call once at startup.
 void GenerateWorld(WorldState &world, const GraphicsSettings &gfx);
 
-// Swaps the terrain vertex colours to match gfx.terrainColors; no-op when already current.
-void ApplyTerrainColors(WorldState &world, const GraphicsSettings &gfx);
-
-// Draws terrain, distance-marker pillars, obstacles, decorative trees/rocks and clouds near viewPosition (density from gfx.scatterDensity), and the run's weather: rain (gfx.rainDrops) or snow (gfx.snowFlakes), never both.
-void DrawWorldObject(const WorldState &world, const GraphicsSettings &gfx, Vector3 viewPosition);
-
-// Flat translucent plane-shaped shadow on the terrain below the plane; hidden above a max altitude.
-void DrawBlobShadow(const WorldState &world, Vector3 planePosition, float yawDegrees);
-
 // Ground height (meters) at the given world X/Z, bilinear-free nearest sample.
 float GetGroundHeight(const WorldState &world, float worldX, float worldZ);
 
