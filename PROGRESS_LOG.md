@@ -12,6 +12,13 @@ owner can skim what happened without digging through git log. Format:
 - PR: <link or branch, if one was opened>
 ```
 
+## 2026-10-08 00:10 UTC — night run (58)
+- Did: Backlog 1 item "rollout after landing can run past the 300 m landing zone" (branch agents/2026-10-08-0010-rollout-test): measured it with a scripted ground roll. From the 30 m/s maximum safe landing speed the unbraked plane slows to the 8 m/s finish speed in 188 m (11.3 s); from 20 m/s in 105 m; with the wheel brake 49 m from 30 m/s. All inside the 300 m zone, so the reported problem does not occur at current numbers. `tests/flight_tests.cpp` gains `TestRollout` pinning these (unbraked from max speed in [150, 300] m, from 20 m/s in [50, 300] m, braked in [10, 80] m). `src/flight.cpp` untouched. CLAUDE.md backlog markers and DEVELOPMENT_HISTORY.md updated. The "dead `kLandingMaxSinkRate`" item is already gone from src (no match); nothing to do. Not release-relevant.
+- Why: P0 effects polish is with an interactive session (no `session/effects-polish` branch on origin), owner items wait on him; this turns an unverified "open" line into a measured fact plus a regression guard.
+- Verified: g++ -std=c++23 -Wall -Wextra against stand-in raylib headers (outside the repo): all flight checks pass. Mutation on a copy of flight.cpp: groundDrag 0.8 to 0.2 gives 281 m (still passes, inside the zone), groundDrag 0 gives 350 m (test FAILS). Reviewer result and CI status: see PR. Not run: real CMake/Conan build or the game.
+- Open: Backlog 1 remaining: HUD row near the Fullscreen button, touch way to change preset or volume. Backlog 2 remaining: breakup sanity. Rollout past the world edge was not measured (the gate is at 1000 m, zone ends at 1300 m). Owner items unchanged.
+- PR: PR into dev from agents/2026-10-08-0010-rollout-test
+
 ## 2026-10-07 23:10 UTC — night run (57)
 - Did: Backlog 4, second iteration (branch agents/2026-10-07-2310-level-gate-medals): `LevelDef` now holds the gate distance (1000 m) and medal times (24/30/40 s) as its own values; `level.cpp` (`InitLevel`, `ComputeMedal`, the next-target line) and both test files read them from `Level1Def()`. `src/level_targets.h` is deleted; `FlightTests` now builds `level_def.cpp`. Values and behaviour unchanged. ARCHITECTURE.md, DEVELOPMENT_HISTORY.md, CLAUDE.md markers updated. Not release-relevant.
 - Why: P0 effects polish is with an interactive session, owner items wait on him; this closes the "mirrored, still read from the header" gap left by the last run, so level 2 can carry its own gate and medals.
