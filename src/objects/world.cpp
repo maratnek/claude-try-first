@@ -11,7 +11,7 @@ float SmoothStep01(float t) {
     return t * t * (3.0f - 2.0f * t);
 }
 
-float ComputeRawHeight(float x, float z, float maxHeight, float flatHalfWidth, float u, float v) {
+float ComputeRawHeight(float x, float z, float maxHeight, float flatHalfWidth, float edgeFade, float u, float v) {
     float h = 0.5f + 0.25f * sinf(x * 0.015f) + 0.25f * cosf(z * 0.012f) +
                0.12f * sinf(x * 0.05f + z * 0.04f);
     h = Clamp(h, 0.0f, 1.0f) * maxHeight;
@@ -24,7 +24,7 @@ float ComputeRawHeight(float x, float z, float maxHeight, float flatHalfWidth, f
     // patch blends into the flat backdrop plane instead of showing as a
     // raised square with a visible cliff around it.
     float edgeDist = fminf(fminf(u, 1.0f - u), fminf(v, 1.0f - v));
-    h *= SmoothStep01(edgeDist / 0.12f);
+    h *= SmoothStep01(edgeDist / edgeFade);
 
     return h;
 }
@@ -64,6 +64,12 @@ void ApplyTerrainColors(WorldState &world, const GraphicsSettings &gfx) {
 }
 
 void GenerateWorld(WorldState &world, const GraphicsSettings &gfx) {
+    const TerrainDef &terrain = Level1Def().terrain;
+    world.gridSize = terrain.gridSize;
+    world.worldSize = terrain.worldSize;
+    world.maxHeight = terrain.maxHeight;
+    world.flatHalfWidth = terrain.flatHalfWidth;
+    world.edgeFade = terrain.edgeFade;
     world.heights.assign(world.gridSize * world.gridSize, 0.0f);
 
     Image heightImage = GenImageColor(world.gridSize, world.gridSize, BLACK);
@@ -76,7 +82,7 @@ void GenerateWorld(WorldState &world, const GraphicsSettings &gfx) {
             float x = -halfSize + u * world.worldSize;
             float z = -halfSize + v * world.worldSize;
 
-            float h = ComputeRawHeight(x, z, world.maxHeight, world.flatHalfWidth, u, v);
+            float h = ComputeRawHeight(x, z, world.maxHeight, world.flatHalfWidth, world.edgeFade, u, v);
             world.heights[j * world.gridSize + i] = h;
 
             unsigned char gray = (unsigned char)Clamp((h / world.maxHeight) * 255.0f, 0.0f, 255.0f);

@@ -91,7 +91,7 @@ priority. Skip items marked "owner" (waiting on his decision) or
 | P1 | Known small bugs and polish (window title, menu title, loading indicator, touch settings, rollout, dead code) | open | Backlog 1 |
 | P1 | Headless physics regression tests in CI | open | Backlog 2 |
 | P1 | Save/progress persistence layer | data layer done (branch agents/2026-10-07-1907-progress-store), not wired into the game | Backlog 3 |
-| P1 | Data-driven level definition | gate/medal wiring done (branches agents/2026-10-07-2210-level-def, agents/2026-10-07-2310-level-gate-medals): level 1 content incl. gate distance and medal times in `src/level_def.*`; terrain/start position/scatter as data and level selection still open | Backlog 4 |
+| P1 | Data-driven level definition | gate/medal wiring done (branches agents/2026-10-07-2210-level-def, agents/2026-10-07-2310-level-gate-medals): level 1 content incl. gate distance and medal times in `src/level_def.*`; hill formula, scatter/clouds as data and level selection still open; start position and terrain shape done (branch agents/2026-10-08-0510-level-start-terrain) | Backlog 4 |
 | P1 | Progression choice (A/B/C) → then level 2 | owner | `design-notes/progression.md` |
 | P1 | Game name + itch.io page, going public | owner | rollout plan |
 | P2 | Fuel consumption behind a flag | open | Backlog 5 |
@@ -248,7 +248,7 @@ those stay proposals until he decides.
 3. **Save/progress persistence layer** [data layer done: `src/progress.*`, branch agents/2026-10-07-1907-progress-store; still open: wire best time into level.cpp and the volume/preset into settings once a progression is picked] every progression option needs:
    best times, medals, unlock flags, settings — a file on desktop,
    `localStorage` on web, a stub for iOS. Data only; no new levels or UI.
-4. **Data-driven level definition** [first iteration done: `src/level_def.*` holds level 1 checkpoints, obstacles, landing zone and rollout speed, read by `level.cpp`/`world.cpp`; second iteration: gate distance and medal times now live only in `LevelDef` and `src/level_targets.h` is deleted; pinned by `LevelDefTests`; branches agents/2026-10-07-2210-level-def, agents/2026-10-07-2310-level-gate-medals; still open: terrain/start position/scatter as data, level selection] move level 1's checkpoints, obstacles,
+4. **Data-driven level definition** [first iteration done: `src/level_def.*` holds level 1 checkpoints, obstacles, landing zone and rollout speed, read by `level.cpp`/`world.cpp`; second iteration: gate distance and medal times now live only in `LevelDef` and `src/level_targets.h` is deleted; third iteration: plane start position and terrain shape (grid size, world size, max height, flat corridor half-width, edge fade) in `LevelDef`, pinned by `LevelDefTests`; branches agents/2026-10-07-2210-level-def, agents/2026-10-07-2310-level-gate-medals, agents/2026-10-08-0510-level-start-terrain; still open: the hill formula coefficients in `ComputeRawHeight`, scatter and cloud layout as data, level selection] move level 1's checkpoints, obstacles,
    gate, landing zone and medal times out of code into a level data file,
    so level 2 (whichever progression wins) is content, not code. Level 1
    must play identically (the regression test from item 2 proves it).

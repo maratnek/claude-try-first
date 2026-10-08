@@ -16,10 +16,11 @@ struct Obstacle {
 enum class ObstacleHit { None, Soft, Hard };
 
 struct WorldState {
-    int gridSize = 64;
-    float worldSize = 1400.0f;
-    float maxHeight = 10.0f;
-    float flatHalfWidth = 40.0f;  // flight corridor kept flat around x=0
+    int gridSize = 0;
+    float worldSize = 0.0f;
+    float maxHeight = 0.0f;
+    float flatHalfWidth = 0.0f;  // flight corridor kept flat around x=0
+    float edgeFade = 0.0f;
     std::vector<float> heights;   // gridSize * gridSize, row-major
     Model terrainModel{};
     std::vector<unsigned char> terrainShadedColors;  // RGBA per vertex
@@ -33,7 +34,7 @@ struct WorldState {
     bool snowRun = false;
 };
 
-// Builds the terrain heightmap and obstacle layout. Call once at startup.
+// Builds the terrain heightmap (shape from the level definition) and obstacle layout. Call once at startup.
 void GenerateWorld(WorldState &world, const GraphicsSettings &gfx);
 
 // Swaps the terrain vertex colours to match gfx.terrainColors; no-op when already current.

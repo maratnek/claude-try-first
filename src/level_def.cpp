@@ -4,6 +4,10 @@ namespace {
 
 LevelDef MakeLevel1() {
     LevelDef d;
+    d.startX = 0.0f;
+    d.startZ = 0.0f;
+    d.startHeightAboveGround = 0.3f;
+    d.terrain = {64, 1400.0f, 10.0f, 40.0f, 0.12f};
     d.gateDistance = 1000.0f;
     d.medalGold = 24.0f;
     d.medalSilver = 30.0f;
