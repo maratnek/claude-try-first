@@ -83,6 +83,26 @@ Bank MeasureBank(const PlaneParams &p, float speed, float bankDeg, float seconds
     return {dist / fabsf(turned), y0 - s.position.y};
 }
 
+struct RudderTurn { float radius; float time90; float peakBank; float altLoss; };
+
+RudderTurn MeasureRudderTurn(const PlaneParams &p, float speed) {
+    PlaneState s = Airborne(speed, 1000.0f, p.levelPower);
+    FlightInput in;
+    in.yaw = 1.0f;
+    float y0 = s.position.y, dist = 0.0f, peak = 0.0f, t = 0.0f;
+    while (s.yaw < 90.0f && t < 30.0f) {
+        Vector3 before = s.position;
+        s.speed = speed;
+        s.enginePower = p.levelPower;
+        UpdatePlaneControls(s, p, in, kDt, 0.0f, 0.0f);
+        float dx = s.position.x - before.x, dz = s.position.z - before.z;
+        dist += sqrtf(dx * dx + dz * dz);
+        peak = fmaxf(peak, fabsf(s.roll));
+        t += kDt;
+    }
+    return {dist / (s.yaw * kPi / 180.0f), t, peak, y0 - s.position.y};
+}
+
 float MeasureFall(const PlaneParams &p, float speed, float seconds, float *endPitch) {
     PlaneState s = Airborne(speed, 500.0f, p.levelPower);
     FlightInput in;
@@ -145,6 +165,19 @@ void TestBank(const PlaneParams &p) {
     Report("turn radius 75deg @20 m/s", MeasureBank(p, 20.0f, 75.0f, 6.0f).radius, 17.7f, 24.0f);
     Bank b = MeasureBank(p, 35.0f, 45.0f, 4.0f);
     Report("altitude loss 45deg bank 4s @35", b.altLoss, 4.0f, 6.5f);
+}
+
+void TestRudderTurn(const PlaneParams &p) {
+    RudderTurn a = MeasureRudderTurn(p, 25.0f);
+    Report("rudder turn radius @25 m/s", a.radius, 38.0f, 52.0f);
+    Report("rudder turn 90deg time @25 m/s", a.time90, 2.4f, 3.3f);
+    Report("rudder turn peak bank @25 m/s", a.peakBank, 24.5f, 25.5f);
+    Report("rudder turn altitude loss @25 m/s", a.altLoss, 0.4f, 1.4f);
+    RudderTurn b = MeasureRudderTurn(p, 35.0f);
+    Report("rudder turn radius @35 m/s", b.radius, 58.0f, 80.0f);
+    Report("rudder turn 90deg time @35 m/s", b.time90, 2.65f, 3.6f);
+    Report("rudder turn peak bank @35 m/s", b.peakBank, 24.5f, 25.5f);
+    Report("rudder turn altitude loss @35 m/s", b.altLoss, 0.4f, 1.5f);
 }
 
 void TestStandstill(const PlaneParams &p) {
@@ -280,6 +313,7 @@ int main(int argc, char **argv) {
     TestGateTime(p);
     TestGlide(p);
     TestBank(p);
+    TestRudderTurn(p);
     TestStandstill(p);
     TestStallFall(p);
     TestStallSpeed(p);
