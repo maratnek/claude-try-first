@@ -12,6 +12,13 @@ owner can skim what happened without digging through git log. Format:
 - PR: <link or branch, if one was opened>
 ```
 
+## 2026-10-08 04:06 UTC — night run (62)
+- Did: Backlog 1, dead-code sweep (branch agents/2026-10-08-0406-dead-code): counted references for every constant, function, struct field and include in src/ and tests/. Nothing with zero references is left; `kLandingMaxSinkRate` was the only dead symbol and is already gone. Only the CLAUDE.md Backlog 1 marker changed (docs only, no code). Not release-relevant.
+- Why: P0 effects polish is with an interactive session, owner items wait on him; this was the last open piece of Backlog 1, and the marker stops the next run from repeating the sweep.
+- Verified: static sweep only (no code changed, so no build or run). code-reviewer read the real diff. CI status: see PR.
+- Open: `BreakData::fuelRadius` is parsed and validated in `break_data.cpp` but never read; removing it would change what the parser accepts, so it was left for a decision. Backlog 1 is otherwise done. Next: Backlog 4 (terrain/start/scatter as data) or Backlog 5-8.
+- PR: PR into dev from agents/2026-10-08-0406-dead-code
+
 ## 2026-10-08 03:10 UTC — night run (61)
 - Did: Backlog 1, HUD row near the web Fullscreen button (branch agents/2026-10-08-0310-hud-fullscreen): the two top HUD lines (controls, speed/altitude/power) are drawn with a font size that shrinks (20 down to 12) until the text fits left of a 150 px reserve on web (10 px elsewhere), so they no longer run under the button. On desktop the long on-ground status line may also shrink slightly in a narrow window. `FitFontSize` in `src/main.cpp`. Not release-relevant.
 - Why: P0 effects polish is with an interactive session, owner items wait on him; this was the next open item in Backlog 1.
