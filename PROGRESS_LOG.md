@@ -12,6 +12,13 @@ owner can skim what happened without digging through git log. Format:
 - PR: <link or branch, if one was opened>
 ```
 
+## 2026-10-08 15:15 UTC — day run
+- Did: P0 CI autoplay, PR 1 (branch agents/2026-10-08-1515-ci-autoplay): debug-only `--autoplay` (FLIGHT_DEBUG) replays a timed input script (takeoff, cruise, A/D alone, arrow banks) through the normal input path at a fixed 1/60 s step, saves a screenshot per step and writes a results log. New `autoplay` Linux job in build.yml builds raylib 5.5 from source, runs the game under Xvfb and uploads shots and log. New CMake option `FLIGHT_SYSTEM_RAYLIB` (default OFF) skips Conan for that job. Screenshots now flush the 2D batch so the HUD is captured (also for --crash-test). Not release-relevant (debug only).
+- Why: top open P0 on the task board not covered by an open PR; the A/D rudder P0 is with an interactive session. No assertions yet (PR 2).
+- Verified: real run: raylib 5.5 from source, game with FLIGHT_DEBUG under Xvfb, exit 0, 8 screenshots viewed, results log identical across two runs; all 5 ctest targets pass; build without FLIGHT_DEBUG has no autoplay symbols; --crash-test still works. code-reviewer: no blockers. CI status: see PR.
+- Open: the script has no restart/landing step and does not assert anything yet (PR 2). HUD showed Power 100% in the 0.5-throttle steps, so the script's throttle value probably acts as a rate; check when assertions are added. Screenshots are not byte-identical between runs (particles); flight numbers are.
+- PR: PR into dev from agents/2026-10-08-1515-ci-autoplay
+
 ## 2026-10-08 05:10 UTC — night run (63)
 - Did: Backlog 4, third iteration (branch agents/2026-10-08-0510-level-start-terrain): plane start position (x, z, height above ground) and the level-specific terrain shape (grid size, world size, max hill height, flat corridor half width, edge fade) now live in `LevelDef` (`TerrainDef`), read by `main.cpp` and `GenerateWorld`. Level 1 numbers are identical (the 0.12 edge fade was a literal in `ComputeRawHeight`). `LevelDefTests` pins the new values and checks that checkpoints and obstacles lie inside the flat corridor. Hill sine formula, scatter, clouds, distance markers and level selection stay in code. Not release-relevant.
 - Why: P0 effects polish is with an interactive session, owner items wait on him; this is the next open P1 piece (Backlog 4) and brings level 2 closer to being content, not code.
