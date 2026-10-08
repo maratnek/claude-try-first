@@ -12,6 +12,13 @@ owner can skim what happened without digging through git log. Format:
 - PR: <link or branch, if one was opened>
 ```
 
+## 2026-10-08 18:10 UTC — evening run
+- Did: Backlog 3 (branch agents/2026-10-08-1810-progress-wire): the level 1 best time is loaded from `progress.cfg` / localStorage at startup and saved after a finished run; the results screen now compares against the best from earlier sessions. Volume and preset are not wired. iOS is still a no-op stub. Not release-relevant yet (a retention nicety for the itch.io build).
+- Why: the P0 items are either covered by open PRs (#81 autoplay, #79 rudder, #82 AGL) or would stack on them; this is the next unstacked board item and uses the data layer that was already merged.
+- Verified: real run (raylib 5.5 from source, game with FLIGHT_DEBUG, Xvfb, xdotool): no file at start; ground-roll finish wrote `level.level1=22.174,2`; a faster run in a new session updated it; a slower run showed "+0.37 s vs best 21.68 s" and left the file unchanged; empty, garbage and nan files did not crash. 5 ctest targets pass. code-reviewer: no blockers. Not run: airborne takeoff/landing finish, Web, iOS. CI status: see PR.
+- Open: stars are saved but shown nowhere. Seen during the test, not part of this PR: holding full throttle on the ground rolls through the gate and finishes the level without taking off; the first R restart mid-session did not visibly reset the run (not investigated).
+- PR: PR into dev from agents/2026-10-08-1810-progress-wire, awaiting owner review
+
 ## 2026-10-08 05:10 UTC — night run (63)
 - Did: Backlog 4, third iteration (branch agents/2026-10-08-0510-level-start-terrain): plane start position (x, z, height above ground) and the level-specific terrain shape (grid size, world size, max hill height, flat corridor half width, edge fade) now live in `LevelDef` (`TerrainDef`), read by `main.cpp` and `GenerateWorld`. Level 1 numbers are identical (the 0.12 edge fade was a literal in `ComputeRawHeight`). `LevelDefTests` pins the new values and checks that checkpoints and obstacles lie inside the flat corridor. Hill sine formula, scatter, clouds, distance markers and level selection stay in code. Not release-relevant.
 - Why: P0 effects polish is with an interactive session, owner items wait on him; this is the next open P1 piece (Backlog 4) and brings level 2 closer to being content, not code.
