@@ -47,6 +47,9 @@ so the game runs regardless of the launcher's working directory.
   ask.
 - Verify changes by actually building and launching the game (background
   process, check the log, kill it) — not just by reading the diff.
+- **Reuse before adding.** Extend an existing module (e.g. `sprites.*`
+  for any billboard effect, the `--crash-test`/screenshot hook for any
+  debug capture) instead of writing a parallel one.
 - **Small PRs and small commits (owner's rule)** so any single change can
   be reverted on its own: one PR = one behaviour change; one commit = one
   logical step (new module, then each call site, then docs). Never mix a
@@ -92,12 +95,14 @@ priority. Skip items marked "owner" (waiting on his decision) or
 
 | Pri | Task | Status | Details |
 | --- | --- | --- | --- |
+| P0 | CI autoplay: the game runs itself in CI and fails on broken start/controls/flight | open — 2-3 PRs | "CI autoplay" |
 | P0 | A/D (rudder) turning feels dead since blocker 2 | open — small PR, owner flies it before merge | "Owner feedback 2026-10-08" |
 | P0 | Altitude awareness: the player can't tell the ground is close in a dive | open — chain of small PRs | "Owner feedback 2026-10-08" |
 | P0 | Effects polish part 1: smoke, fireball, snow → soft sprites | done on branch `session/effects-polish`, awaiting owner review | "Next up" below |
 | P1 | World art track: sky, then ground (look like 2000s today) | open — world-artist agent, small PRs | "World art track" |
 | P1 | Code split: world look (render) separate from world gameplay | open — first PR of the world art track, no visual change | "World art track" |
-| P1 | Effects polish part 2: rain streaks, speed streaks, debris dust, clouds | open | "Next up" below |
+| P1 | Effects polish part 2: rain, speed streaks, debris dust (one PR, reusing `src/objects/sprites.*`); clouds separately if they read as blocks | open — waits for part 1 to be merged | "Next up" below |
+| P2 | Effects v3: richer detail — real snowflake shapes, detailed fire (flicker, embers, heat colours), raindrops/splashes — as far as each preset allows | open, after part 2 | "Next up" below |
 | P0 | Release blockers 1–3 (throttle/gravity, turns, visible damage) | done, in `release` | "Current priority" |
 | P1 | Known small bugs and polish (window title, menu title, loading indicator, touch settings, rollout, dead code) | open | Backlog 1 |
 | P1 | Headless physics regression tests in CI | open | Backlog 2 |
@@ -142,6 +147,34 @@ The owner flew the current build:
       plane gets lower (A1 toggle exists);
    d. ground detail that shows motion and distance (handled by the world
       art track: textured ground, see below).
+
+## CI autoplay (P0)
+
+CI today only builds and runs headless physics tests; nothing launches the
+game, so a broken start position or dead A/D turning passes CI. Add a
+scripted autoplay that runs the real game and turns CI red when gameplay
+breaks. Reasonable-size PRs, not micro-steps:
+
+1. **Autoplay harness + CI job.** Debug-only (`FLIGHT_DEBUG`) scripted
+   input: a small script of timed inputs (throttle, pitch, roll, A/D,
+   restart) replayed through the normal input path, so it exercises the
+   same code as a player. A Linux job in `.github/workflows/build.yml`
+   builds raylib 5.5 + the game, runs the script under Xvfb, saves
+   screenshots at key moments and uploads them as CI artifacts. Reuse the
+   existing `--crash-test` hook and screenshot code rather than adding a
+   second mechanism.
+2. **Assertions.** The run writes a short results log and the job fails
+   when: the plane does not start at the level start; no liftoff within
+   the expected time; holding A/D alone at cruise speed changes heading
+   by less than a set minimum; arrows-only bank turn too slow; checkpoint
+   1 not reachable on the scripted path; a gentle landing is judged hard;
+   the game crashes or logs an error. Bounds live next to the existing
+   flight tests' numbers.
+3. **(optional) Web smoke:** load the Emscripten build in headless
+   Chromium, check the menu appears and there are no console errors.
+
+Every agent PR that touches gameplay must keep this job green; the PR
+body links its screenshots.
 
 ## World art track (P1, world-artist agent, small PRs)
 
