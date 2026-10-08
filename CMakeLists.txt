@@ -69,6 +69,7 @@ add_executable(FlightGame
     src/objects/scatter.cpp
     src/objects/clouds.cpp
     src/objects/smoke.cpp
+    src/objects/sprites.cpp
     src/objects/streaks.cpp
     src/objects/rain.cpp
     src/objects/snow.cpp
