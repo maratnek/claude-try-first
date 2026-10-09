@@ -174,15 +174,15 @@ void DrawCrashScreen(const LevelState &level, bool touchUsed) {
         const char *gateLine = TextFormat("Gate reached in %.2f s", level.elapsed);
         DrawText(gateLine, cx - MeasureText(gateLine, 28) / 2, cy - 70, 28, WHITE);
     }
-#ifdef SETTINGS_MOBILE_OR_WEB
-    const char *hint = "R: Restart     M: Menu";
+#ifndef SETTINGS_MOBILE_OR_WEB
+    const char *hint = "Esc / Q: Exit";
+    if (!touchUsed) DrawText(hint, cx - MeasureText(hint, 28) / 2, cy + 90, 28, WHITE);
 #else
-    const char *hint = "R: Restart     M: Menu     Esc / Q: Exit";
+    (void)touchUsed;
 #endif
-    if (!touchUsed) DrawText(hint, cx - MeasureText(hint, 28) / 2, cy + 170, 28, WHITE);
 }
 
-void DrawResultsScreen(const LevelState &level, bool damaged, bool touchUsed) {
+void DrawResultsScreen(const LevelState &level, bool damaged) {
     DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), (Color){0, 0, 0, 150});
     Rectangle safe = GetSafeRect();
     float h = safe.height;
@@ -231,8 +231,6 @@ void DrawResultsScreen(const LevelState &level, bool damaged, bool touchUsed) {
     }
 
     DrawCentered(NextTargetLine(medal, stars), cx, y(365), sz(26), MedalColor(medal));
-
-    if (!touchUsed) DrawCentered("R: Restart     M: Menu", cx, y(450), sz(28), WHITE);
 }
 
 void ResetLevelProgress(LevelState &level) {

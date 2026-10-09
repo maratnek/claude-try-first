@@ -51,11 +51,11 @@ void DrawFinishGate(const LevelState &level);
 void DrawCheckpoints(const LevelState &level);
 void DrawLevelHUD(const LevelState &level, bool damaged);
 
-// Dimmed overlay with the Restart/Exit prompts and the gate time when the gate was crossed; Exit is omitted on Web/iOS. The touch Restart button is drawn by DrawTouchOverlay.
+// Dimmed overlay with the gate time when the gate was crossed and the Exit key hint (desktop only). The Restart/Menu buttons (mouse and touch) are drawn by DrawTouchOverlay.
 void DrawCrashScreen(const LevelState &level, bool touchUsed);
 
-// Dimmed overlay with stars, medal, time, delta vs best, a Finished/All rings/Clean checklist and the next medal target; layout scales with screen height. The touch Restart/Menu buttons are drawn by DrawTouchOverlay.
-void DrawResultsScreen(const LevelState &level, bool damaged, bool touchUsed);
+// Dimmed overlay with stars, medal, time, delta vs best, a Finished/All rings/Clean checklist and the next medal target; layout scales with screen height. The Restart/Menu buttons (mouse and touch) are drawn by DrawTouchOverlay.
+void DrawResultsScreen(const LevelState &level, bool damaged);
 
 // Clears progress (distance, gateCrossed, crashed, elapsed, passed checkpoints) so the
 // level can be retried. Keeps the loaded model and the session best time.
