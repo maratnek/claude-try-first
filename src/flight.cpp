@@ -140,7 +140,7 @@ void UpdatePlaneControls(PlaneState &plane, const PlaneParams &params, const Fli
 
         float minY = groundHeight + params.minAltitudeAboveGround;
         if (plane.position.y <= minY && plane.airTime > kMinAirTimeForLanding) {
-            float sinkRate = plane.fallSpeed - plane.speed * sinf(plane.pitch * DEG2RAD);
+            float sinkRate = SinkRate(plane);
             bool gentle = sinkRate <= params.landingMaxSinkRate && plane.speed <= params.landingMaxSpeed &&
                           plane.pitch <= params.liftoffPitch && plane.pitch >= -params.landingMaxNoseDown && fabsf(plane.roll) <= params.landingMaxRoll;
             if (gentle) {
@@ -155,6 +155,22 @@ void UpdatePlaneControls(PlaneState &plane, const PlaneParams &params, const Fli
             plane.position.y = minY;
         }
     }
+}
+
+float SinkRate(const PlaneState &plane) {
+    return plane.fallSpeed - plane.speed * sinf(plane.pitch * DEG2RAD);
+}
+
+GroundWarning GetGroundWarning(float heightAboveGround, float sinkRate, const PlaneParams &params) {
+    constexpr float kWarnAltitude = 30.0f;
+    constexpr float kMinSink = 0.5f;
+    constexpr float kCautionSeconds = 6.0f;
+    constexpr float kDangerSeconds = 3.0f;
+    if (heightAboveGround >= kWarnAltitude || sinkRate <= kMinSink) return GroundWarning::None;
+    float secondsToImpact = heightAboveGround / sinkRate;
+    if (secondsToImpact < kDangerSeconds) return GroundWarning::Danger;
+    if (secondsToImpact < kCautionSeconds || sinkRate > params.landingMaxSinkRate) return GroundWarning::Caution;
+    return GroundWarning::Info;
 }
 
 float FuelFraction(const PlaneState &plane, const PlaneParams &params) {

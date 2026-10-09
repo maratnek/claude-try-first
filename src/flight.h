@@ -80,5 +80,14 @@ void UpdatePlaneControls(PlaneState &plane, const PlaneParams &params, const Fli
 
 float FuelFraction(const PlaneState &plane, const PlaneParams &params);
 
+// m/s the plane is descending (positive = down), from lost lift plus the nose's vertical component.
+float SinkRate(const PlaneState &plane);
+
+enum class GroundWarning { None, Info, Caution, Danger };
+
+// How loudly to warn about the ground: only below warnAltitude and while sinking;
+// Caution/Danger by seconds to impact, or Caution when sinking faster than a safe landing allows.
+GroundWarning GetGroundWarning(float heightAboveGround, float sinkRate, const PlaneParams &params);
+
 // Unit vector the plane's nose currently points along, in world space.
 Vector3 GetPlaneForward(const PlaneState &plane);

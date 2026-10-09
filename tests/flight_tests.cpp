@@ -180,6 +180,19 @@ void TestRudderTurn(const PlaneParams &p) {
     Report("rudder turn altitude loss @35 m/s", b.altLoss, -0.3f, 0.3f);
 }
 
+void TestGroundWarning(const PlaneParams &p) {
+    Expect("ground warning off high up", GetGroundWarning(80.0f, 5.0f, p) == GroundWarning::None);
+    Expect("ground warning off when climbing", GetGroundWarning(10.0f, -2.0f, p) == GroundWarning::None);
+    Expect("ground warning info on slow descent", GetGroundWarning(25.0f, 2.0f, p) == GroundWarning::Info);
+    Expect("ground warning caution 4s to impact", GetGroundWarning(20.0f, 5.0f, p) == GroundWarning::Caution);
+    Expect("ground warning caution sink above landing limit", GetGroundWarning(29.0f, 4.0f, p) == GroundWarning::Info &&
+                                                              GetGroundWarning(29.0f, 7.0f, p) == GroundWarning::Caution);
+    Expect("ground warning danger 2s to impact", GetGroundWarning(10.0f, 5.0f, p) == GroundWarning::Danger);
+    PlaneState level = Airborne(30.0f, 100.0f, p.levelPower);
+    level.pitch = -10.0f;
+    Report("sink rate from a 10 deg dive @30", SinkRate(level), 5.1f, 5.3f);
+}
+
 void TestStandstill(const PlaneParams &p) {
     PlaneState s;
     s.position.y = p.wheelHeight;
@@ -314,6 +327,7 @@ int main(int argc, char **argv) {
     TestGlide(p);
     TestBank(p);
     TestRudderTurn(p);
+    TestGroundWarning(p);
     TestStandstill(p);
     TestStallFall(p);
     TestStallSpeed(p);
