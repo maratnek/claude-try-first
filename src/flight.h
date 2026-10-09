@@ -89,6 +89,9 @@ enum class GroundWarning { None, Info, Caution, Danger };
 // How loudly to warn about the ground: only below warnAltitude and while sinking;
 // Caution/Danger by seconds to impact, or Caution when sinking faster than a safe landing allows.
 GroundWarning GetGroundWarning(float heightAboveGround, float sinkRate, const PlaneParams &params);
+// Landing limits widened after repeated hard landings so a struggling player can still finish:
+// nothing changes for the first two failures, the limits grow until about the tenth.
+PlaneParams WithLandingAssist(const PlaneParams &params, int hardLandingsInARow);
 
 // Unit vector the plane's nose currently points along, in world space.
 Vector3 GetPlaneForward(const PlaneState &plane);

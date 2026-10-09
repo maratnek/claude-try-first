@@ -176,6 +176,19 @@ GroundWarning GetGroundWarning(float heightAboveGround, float sinkRate, const Pl
     return GroundWarning::Info;
 }
 
+PlaneParams WithLandingAssist(const PlaneParams &params, int hardLandingsInARow) {
+    constexpr int kFreeFailures = 2;
+    constexpr int kFullAssistAt = 10;
+    float a = Clamp((float)(hardLandingsInARow - kFreeFailures) / (float)(kFullAssistAt - kFreeFailures), 0.0f, 1.0f);
+    PlaneParams p = params;
+    p.landingMaxSpeed *= 1.0f + 0.6f * a;
+    p.landingMaxSinkRate *= 1.0f + 1.0f * a;
+    p.landingMaxRoll *= 1.0f + 1.0f * a;
+    p.landingMaxNoseDown *= 1.0f + 0.4f * a;
+    p.landingMaxNoseUp *= 1.0f + 0.5f * a;
+    return p;
+}
+
 float FuelFraction(const PlaneState &plane, const PlaneParams &params) {
     return Clamp(plane.fuel / params.fuelCapacity, 0.0f, 1.0f);
 }
