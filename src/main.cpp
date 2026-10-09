@@ -306,13 +306,14 @@ void UpdateFrame(Game &g) {
     DrawFPS(ox, 60 + oy);
     DrawText(TextFormat("Graphics: %s (F1)", GraphicsPresetName(g.gfx)), ox + 100, 60 + oy, 20, DARKGRAY);
     if (level.crashed) DrawCrashScreen(level, g.inputState.touchUsed);
-    if (g.screen == Screen::Finished) DrawResultsScreen(level, plane.damaged, g.inputState.touchUsed);
+    if (g.screen == Screen::Finished) DrawResultsScreen(level, plane.damaged);
     DrawTouchOverlay(g.inputState, level.crashed || g.screen == Screen::Finished, true, TextFormat("Gfx: %s", GraphicsPresetName(g.gfx)));
 #ifdef FLIGHT_DEBUG
     if (g.crashTest.active && g.screen == Screen::Crashed) {
         g.crashTest.timer += dt;
         if (g.crashTest.nextShot < (int)(sizeof(kCrashTestShots) / sizeof(kCrashTestShots[0])) &&
             g.crashTest.timer >= kCrashTestShots[g.crashTest.nextShot]) {
+            rlDrawRenderBatchActive();
             Image shot = LoadImageFromScreen();
             ExportImage(shot, TextFormat("%s-%.1f.png", g.crashTest.prefix, kCrashTestShots[g.crashTest.nextShot]));
             UnloadImage(shot);
