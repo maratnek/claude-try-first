@@ -1,4 +1,5 @@
 #include "level_def.h"
+#include <cmath>
 
 namespace {
 
@@ -42,4 +43,12 @@ LevelDef MakeLevel1() {
 const LevelDef &Level1Def() {
     static const LevelDef def = MakeLevel1();
     return def;
+}
+
+bool CrossesRingHole(float ax, float ay, float az, float bx, float by, float bz, float cx, float cy, float cz, float holeRadius) {
+    if ((az - cz) * (bz - cz) > 0.0f || az == bz) return false;
+    float t = (cz - az) / (bz - az);
+    float hx = ax + (bx - ax) * t - cx;
+    float hy = ay + (by - ay) * t - cy;
+    return std::sqrt(hx * hx + hy * hy) < holeRadius;
 }

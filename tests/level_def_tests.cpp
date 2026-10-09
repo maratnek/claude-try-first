@@ -26,6 +26,12 @@ bool Matches(const ObstacleDef &o, float x, float z, float h, float r) {
 }  // namespace
 
 int main() {
+    Expect("ring: straight through the centre counts", CrossesRingHole(0, 15, 140, 0, 15, 160, 0, 15, 150, 5.0f));
+    Expect("ring: 4 m off centre counts", CrossesRingHole(4, 15, 149, 4, 15, 151, 0, 15, 150, 5.0f));
+    Expect("ring: clipping the rim does not count", !CrossesRingHole(5.5f, 15, 149, 5.5f, 15, 151, 0, 15, 150, 5.0f));
+    Expect("ring: passing beside it does not count", !CrossesRingHole(9, 15, 140, 9, 15, 160, 0, 15, 150, 5.0f));
+    Expect("ring: not reached yet", !CrossesRingHole(0, 15, 140, 0, 15, 149, 0, 15, 150, 5.0f));
+    Expect("ring: diagonal crossing through the hole", CrossesRingHole(-3, 12, 148, 3, 18, 152, 0, 15, 150, 5.0f));
     const LevelDef &d = Level1Def();
 
     Expect("start position", Near(d.startX, 0.0f) && Near(d.startZ, 0.0f) && Near(d.startHeightAboveGround, 0.3f));

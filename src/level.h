@@ -19,6 +19,8 @@ struct LevelState {
     float bestTime = -1.0f;
     bool newBest = false;
     std::vector<Checkpoint> checkpoints;
+    Vector3 lastPlanePosition = {0.0f, 0.0f, 0.0f};
+    bool hasLastPlanePosition = false;
     Model checkpointModel{};
 };
 
@@ -27,7 +29,7 @@ struct LevelState {
 void InitLevel(LevelState &level);
 
 // Updates elapsed time, distanceFlown, gateCrossed and checkpoint-passed flags from the
-// plane's position. The clock freezes at the gate. Does nothing once crashed.
+// plane's position; a ring counts only when the plane crosses its plane through the hole. The clock freezes at the gate. Does nothing once crashed.
 void UpdateLevel(LevelState &level, Vector3 planePosition, float dt);
 
 // Number of checkpoint rings flown through so far.
