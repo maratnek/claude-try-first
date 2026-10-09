@@ -132,8 +132,9 @@ void GenerateWorld(WorldState &world, const GraphicsSettings &gfx) {
 
 void AddHardObstacle(WorldState &world, float x, float z, float height, float radius) {
     Obstacle o;
-    o.position = (Vector3){x, GetGroundHeight(world, x, z) + height, z};
+    o.position = (Vector3){x, GetGroundHeight(world, x, z), z};
     o.radius = radius;
+    o.height = height;
     world.obstacles.push_back(o);
 }
 
@@ -174,8 +175,7 @@ void DrawWorldObject(const WorldState &world, const GraphicsSettings &gfx, Vecto
             DrawSphere(o.position, o.radius, (Color){40, 120, 50, 255});
             if (gfx.obstacleWires) DrawSphereWires(o.position, o.radius, 8, 8, (Color){20, 70, 30, 255});
         } else {
-            DrawSphere(o.position, o.radius, (Color){180, 30, 30, 255});
-            if (gfx.obstacleWires) DrawSphereWires(o.position, o.radius, 8, 8, BLACK);
+            DrawPineTree(o.position, o.height, o.position.x * 0.37f + o.position.z * 0.11f, 60);
         }
     }
 
@@ -241,10 +241,17 @@ float GetGroundHeight(const WorldState &world, float worldX, float worldZ) {
 ObstacleHit CheckObstacleHit(const WorldState &world, Vector3 planePosition, float planeRadius) {
     ObstacleHit result = ObstacleHit::None;
     for (const Obstacle &o : world.obstacles) {
-        if (Vector3Distance(planePosition, o.position) < (o.radius + planeRadius)) {
-            if (!o.soft) return ObstacleHit::Hard;
-            result = ObstacleHit::Soft;
+        if (o.soft) {
+            if (Vector3Distance(planePosition, o.position) < (o.radius + planeRadius)) result = ObstacleHit::Soft;
+            continue;
         }
+        float y = planePosition.y - o.position.y;
+        if (y < 0.0f || y > o.height) continue;
+        // Matches the drawn pine: thin trunk, then a crown cone from 1/6 of the height up to the tip.
+        float crownBase = o.height / 6.0f;
+        float r = y < crownBase ? o.radius * 0.16f : o.radius * (1.0f - (y - crownBase) / (o.height - crownBase));
+        float dx = planePosition.x - o.position.x, dz = planePosition.z - o.position.z;
+        if (sqrtf(dx * dx + dz * dz) < r + planeRadius) return ObstacleHit::Hard;
     }
     return result;
 }

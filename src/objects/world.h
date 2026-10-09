@@ -8,8 +8,9 @@
 #include <vector>
 
 struct Obstacle {
-    Vector3 position;
-    float radius;
+    Vector3 position;  // soft: canopy centre; tree: base of the trunk on the ground
+    float radius;      // soft: canopy radius; tree: crown radius at its widest
+    float height = 0.0f;  // tree only: total height
     bool soft = false;
 };
 
@@ -49,7 +50,7 @@ void DrawBlobShadow(const WorldState &world, Vector3 planePosition, float yawDeg
 // Ground height (meters) at the given world X/Z, bilinear-free nearest sample.
 float GetGroundHeight(const WorldState &world, float worldX, float worldZ);
 
-// Adds a hard obstacle (crashes the plane) centered height meters above the ground.
+// Adds a hard obstacle (crashes the plane): a tall pine, height meters tall with a crown radius of radius meters.
 void AddHardObstacle(WorldState &world, float x, float z, float height, float radius);
 
 // Adds a soft obstacle (bush/treetop canopy; damages the plane) centered height meters above the ground.

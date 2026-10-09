@@ -6,6 +6,8 @@ struct CheckpointDef {
     float radius;
 };
 
+// Hard obstacles are pines: height = total height, radius = crown radius (about 0.32 x height to match the drawn tree).
+// Soft obstacles are canopies: height = centre above the ground, radius = canopy radius.
 struct ObstacleDef {
     float x, z;
     float height;
