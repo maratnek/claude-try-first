@@ -11,6 +11,7 @@ const int kMaxProps = 1800;
 const float kCorridorMargin = 20.0f;
 const float kObstacleClearance = 12.0f;
 const float kSink = 0.4f;
+const float kTreeHeight = 6.0f;  // AddTree's top at scale 1
 
 uint32_t NextRandom(uint32_t &state) {
     state = state * 1664525u + 1013904223u;
@@ -119,6 +120,17 @@ void GenerateScatter(ScatterState &scatter, const WorldState &world) {
         p.tint = tint;
         scatter.props.push_back(p);
     }
+}
+
+void DrawPineTree(Vector3 base, float height, float yaw, unsigned char tint) {
+    ScatterProp p = {base, height / kTreeHeight, yaw, ScatterKind::Tree, tint};
+    rlDisableBackfaceCulling();
+    rlCheckRenderBatchLimit(64);
+    rlBegin(RL_TRIANGLES);
+    AddTree(p);
+    rlEnd();
+    rlDrawRenderBatchActive();
+    rlEnableBackfaceCulling();
 }
 
 void DrawScatter(const ScatterState &scatter, float density, Vector3 viewPosition, float drawDistance) {

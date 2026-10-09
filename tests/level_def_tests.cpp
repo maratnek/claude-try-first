@@ -59,10 +59,10 @@ int main() {
 
     Expect("hard obstacle count", d.hardObstacles.size() == 4);
     if (d.hardObstacles.size() == 4) {
-        Expect("hard obstacle 0", Matches(d.hardObstacles[0], -8.0f, 300.0f, 6.0f, 3.0f));
-        Expect("hard obstacle 1", Matches(d.hardObstacles[1], 10.0f, 500.0f, 6.0f, 3.0f));
-        Expect("hard obstacle 2", Matches(d.hardObstacles[2], -6.0f, 700.0f, 6.0f, 3.0f));
-        Expect("hard obstacle 3", Matches(d.hardObstacles[3], 9.0f, 850.0f, 6.0f, 3.0f));
+        Expect("hard obstacle 0", Matches(d.hardObstacles[0], -8.0f, 300.0f, 16.0f, 5.0f));
+        Expect("hard obstacle 1", Matches(d.hardObstacles[1], 10.0f, 500.0f, 16.0f, 5.0f));
+        Expect("hard obstacle 2", Matches(d.hardObstacles[2], -6.0f, 700.0f, 16.0f, 5.0f));
+        Expect("hard obstacle 3", Matches(d.hardObstacles[3], 9.0f, 850.0f, 16.0f, 5.0f));
     }
 
     Expect("soft obstacle count", d.softObstacles.size() == 4);

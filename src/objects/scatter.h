@@ -21,4 +21,7 @@ struct ScatterState {
 
 void GenerateScatter(ScatterState &scatter, const WorldState &world);
 
+// Draws one pine in the same style as the scatter trees, height meters tall from base.
+void DrawPineTree(Vector3 base, float height, float yaw, unsigned char tint);
+
 void DrawScatter(const ScatterState &scatter, float density, Vector3 viewPosition, float drawDistance);
