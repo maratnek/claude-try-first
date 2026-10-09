@@ -111,7 +111,12 @@ priority. Skip items marked "owner" (waiting on his decision) or
 | P1 | Headless physics regression tests in CI | open | Backlog 2 |
 | P1 | Save/progress persistence layer | data layer done (branch agents/2026-10-07-1907-progress-store), not wired into the game | Backlog 3 |
 | P1 | Data-driven level definition | gate/medal wiring done (branches agents/2026-10-07-2210-level-def, agents/2026-10-07-2310-level-gate-medals): level 1 content incl. gate distance and medal times in `src/level_def.*`; hill formula, scatter/clouds as data and level selection still open; start position and terrain shape done (branch agents/2026-10-08-0510-level-start-terrain) | Backlog 4 |
-| P1 | Progression choice (A/B/C) → then level 2 | owner | `design-notes/progression.md` |
+| P1 | Campaign design note: tutorial levels, mountains, water/seaplane, stage types, teasers, plane choice | open — game-designer, do first | "Campaign (owner decision 2026-10-09)" |
+| P1 | Stage system: a level is a sequence of stages of different types (data in `LevelDef`) | open — after the design note | "Campaign" |
+| P1 | Level select with locked, darkened teaser levels; unlocks saved via `src/progress.*` | open — after the design note | "Campaign" |
+| P1 | Tutorial levels (learn to fly step by step), then mountains level, then water level | open — content PRs after the stage system | "Campaign" |
+| P1 | Plane choice (hangar): pick the right plane per level; seaplane with water landing | open — after aircraft configs | "Campaign" |
+| P1 | Plane look: materials, lighting and textures (wood looks like wood, metal like metal) + request a detailed textured model | open — world-art routine + asset-planner | "World art track" |
 | P1 | Game name + itch.io page, going public | owner | rollout plan |
 | P2 | Fuel consumption behind a flag | open | Backlog 5 |
 | P2 | Low-preset performance pass | open | Backlog 6 |
@@ -195,6 +200,33 @@ game-feel tuning on top of the real ones (e.g. the A/D rudder rate). Add
 the same fields to the asset-request template in `asset-requests/README.md`
 so every future aircraft arrives with its flight config.
 
+## Campaign (owner decision 2026-10-09, P1)
+
+The owner picked the progression: a chain of levels where finishing one
+unlocks the next, and each level is made of several stages of different
+types. Locked levels are visible from the start but darkened, and must
+tease the player ("advertise" the next levels so he wants to get there):
+a silhouette/preview, a name, and what unlocks it.
+
+- **Start simple:** the first levels teach flying step by step (take off,
+  climb, turn with arrows and with A/D, throttle, approach, land), so a
+  new player learns the controls before anything hard.
+- **Then new terrain and goals:** a level where the route goes around
+  mountains; a level with water, where a seaplane can land on the water.
+- **Plane choice:** the player can change and pick the right plane for a
+  level (e.g. the seaplane for the water level). Builds on the per-aircraft
+  configs.
+- **Stage types** (examples, the design note decides): checkpoint rings,
+  low-level valley run, go around mountains, landing on a runway, landing
+  on water, later cargo drop or flying under a bridge.
+
+Order: (1) game-designer writes `design-notes/campaign.md` (levels 1-5,
+stage types, teaser look, what is saved, plane per level; replaces the
+open choice in `design-notes/progression.md`); (2) stage system as data in
+`LevelDef`, level 1 still plays the same; (3) level select with teasers
+and saved unlocks; (4) tutorial levels; (5) mountains; (6) water +
+seaplane. Every step is its own PR.
+
 ## World art track (P1, world-artist agent, small PRs)
 
 The owner: sky and ground look like a game from the 2000s; world detail
@@ -215,7 +247,14 @@ screenshots from a real run, each new look behind an A1 preset/toggle
 3. **Ground:** procedural detail texture (grass noise, subtle variation,
    tiling with distance blending), softer colour palette, darker valleys /
    lighter ridges; must also make height and speed easier to read.
-4. **Then, one at a time:** better trees/rocks, field patches and paths,
+4. **Plane look:** lighting and shading on the plane, procedural or small
+   textures so fabric/wood reads as wood and metal as metal; ask
+   asset-planner for a detailed, textured biplane model with the same
+   node names (and a seaplane variant for the campaign).
+5. **Trees:** textured branch cards (alpha-tested leaves on a few quads)
+   instead of plain cones/spheres — realistic at low cost, fewer cards on
+   Low.
+6. **Then, one at a time:** better trees/rocks, field patches and paths,
    water, time-of-day presets — only items the owner picked in
    `design-notes/world-improvements.md` or asked for here.
 
