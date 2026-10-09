@@ -169,15 +169,15 @@ void TestBank(const PlaneParams &p) {
 
 void TestRudderTurn(const PlaneParams &p) {
     RudderTurn a = MeasureRudderTurn(p, 25.0f);
-    Report("rudder turn radius @25 m/s", a.radius, 38.0f, 52.0f);
-    Report("rudder turn 90deg time @25 m/s", a.time90, 2.4f, 3.3f);
-    Report("rudder turn peak bank @25 m/s", a.peakBank, 24.5f, 25.5f);
-    Report("rudder turn altitude loss @25 m/s", a.altLoss, 0.4f, 1.4f);
+    Report("rudder turn radius @25 m/s", a.radius, 58.0f, 72.0f);
+    Report("rudder turn 90deg time @25 m/s", a.time90, 3.7f, 4.5f);
+    Report("rudder turn peak bank @25 m/s", a.peakBank, 0.0f, 0.5f);
+    Report("rudder turn altitude loss @25 m/s", a.altLoss, -0.3f, 0.3f);
     RudderTurn b = MeasureRudderTurn(p, 35.0f);
-    Report("rudder turn radius @35 m/s", b.radius, 58.0f, 80.0f);
-    Report("rudder turn 90deg time @35 m/s", b.time90, 2.65f, 3.6f);
-    Report("rudder turn peak bank @35 m/s", b.peakBank, 24.5f, 25.5f);
-    Report("rudder turn altitude loss @35 m/s", b.altLoss, 0.4f, 1.5f);
+    Report("rudder turn radius @35 m/s", b.radius, 82.0f, 100.0f);
+    Report("rudder turn 90deg time @35 m/s", b.time90, 3.7f, 4.5f);
+    Report("rudder turn peak bank @35 m/s", b.peakBank, 0.0f, 0.5f);
+    Report("rudder turn altitude loss @35 m/s", b.altLoss, -0.3f, 0.3f);
 }
 
 void TestStandstill(const PlaneParams &p) {
