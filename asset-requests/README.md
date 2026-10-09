@@ -1,8 +1,11 @@
-# Asset requests (3D models)
+# Asset requests (3D models and 2D art)
 
 There is no automated text-to-3D generation hooked up to this project. When
 the game needs a new 3D model, the `asset-planner` agent writes a request
 file here instead of generating the asset itself.
+
+2D art (menu illustrations, level cards, UI) uses the same flow: the request
+names the PNG path under `assets/ui/`, its size, and the image prompt.
 
 ## Workflow
 
