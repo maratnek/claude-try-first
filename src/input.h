@@ -28,10 +28,11 @@ struct InputState {
     bool volUpHeld = false;
 };
 
-// Combines keyboard and touch (touch needs a touch device or the web build; desktop mouse does not register).
-// Restart/Menu touch buttons only register when endButtonsActive (crashed or finished).
-// Graphics/volume touch buttons only register when settingsActive and touch has already been used.
+// Combines keyboard, touch and mouse. The mouse only presses on-screen buttons; the stick and throttle are touch-only.
+// Restart/Menu buttons only register when endButtonsActive (crashed or finished).
+// Graphics/volume buttons register when settingsActive and either touch has been used or an end screen is up.
 FlightInput ReadFlightInput(InputState &state, bool endButtonsActive, bool settingsActive);
 
-// Draws the stick and buttons; does nothing until touch has been used.
+// Draws the Restart/Menu buttons on end screens (always) and the settings buttons there; the stick and
+// throttle buttons, and settings during flight, only once touch has been used.
 void DrawTouchOverlay(const InputState &state, bool endButtonsShown, bool settingsShown, const char *gfxLabel);

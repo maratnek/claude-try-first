@@ -81,14 +81,18 @@ FlightInput ReadFlightInput(InputState &state, bool endButtonsActive, bool setti
     Rectangle menuRect = MenuRect();
     SettingsButtons settings = SettingsRects();
 
-    for (int i = 0; i < count; i++) {
-        Vector2 p = GetTouchPosition(i);
-        if (CheckCollisionPointRec(p, up)) throttle += 1.0f;
-        if (CheckCollisionPointRec(p, down)) throttle -= 1.0f;
+    bool settingsClickable = settingsActive && (state.touchUsed || endButtonsActive);
+    bool mouseDown = count == 0 && IsMouseButtonDown(MOUSE_BUTTON_LEFT);
+    // The mouse only presses on-screen buttons; the stick and throttle stay touch-only.
+    for (int i = 0; i < count + (mouseDown ? 1 : 0); i++) {
+        bool isTouch = i < count;
+        Vector2 p = isTouch ? GetTouchPosition(i) : GetMousePosition();
+        if (isTouch && CheckCollisionPointRec(p, up)) throttle += 1.0f;
+        if (isTouch && CheckCollisionPointRec(p, down)) throttle -= 1.0f;
         if (endButtonsActive && CheckCollisionPointRec(p, restartRect)) restartTouched = true;
         if (endButtonsActive && CheckCollisionPointRec(p, menuRect)) menuTouched = true;
         bool onSettings = false;
-        if (settingsActive && state.touchUsed) {
+        if (settingsClickable) {
             bool g = TouchBoxContains(settings.gfx, p.x, p.y);
             bool d = TouchBoxContains(settings.volDown, p.x, p.y);
             bool u = TouchBoxContains(settings.volUp, p.x, p.y);
@@ -97,7 +101,7 @@ FlightInput ReadFlightInput(InputState &state, bool endButtonsActive, bool setti
             volUpTouched |= u;
             onSettings = g || d || u;
         }
-        if (!stickFound && !onSettings && p.x < halfWidth) {
+        if (isTouch && !stickFound && !onSettings && p.x < halfWidth) {
             stickFound = true;
             if (!state.stickActive) state.stickOrigin = p;
             state.stickPos = p;
@@ -131,10 +135,36 @@ FlightInput ReadFlightInput(InputState &state, bool endButtonsActive, bool setti
 }
 
 void DrawTouchOverlay(const InputState &state, bool endButtonsShown, bool settingsShown, const char *gfxLabel) {
-    if (!state.touchUsed) return;
-
     Color fill = {255, 255, 255, 60};
     Color line = {40, 40, 40, 140};
+    Color btnFill = {255, 255, 255, 140};
+
+    if (endButtonsShown) {
+        const char *restartLabel = state.touchUsed ? "RESTART" : "RESTART (R)";
+        const char *menuLabel = state.touchUsed ? "MENU" : "MENU (M)";
+        Rectangle r = RestartRect();
+        DrawRectangleRec(r, btnFill);
+        DrawRectangleLinesEx(r, 2.0f, line);
+        DrawText(restartLabel, (int)(r.x + (r.width - MeasureText(restartLabel, 26)) * 0.5f), (int)(r.y + 17), 26, BLACK);
+        Rectangle m = MenuRect();
+        DrawRectangleRec(m, btnFill);
+        DrawRectangleLinesEx(m, 2.0f, line);
+        DrawText(menuLabel, (int)(m.x + (m.width - MeasureText(menuLabel, 26)) * 0.5f), (int)(m.y + 17), 26, BLACK);
+    }
+
+    if (settingsShown && (state.touchUsed || endButtonsShown)) {
+        SettingsButtons b = SettingsRects();
+        const TouchBox boxes[] = {b.gfx, b.volDown, b.volUp};
+        const char *labels[] = {gfxLabel, "Vol -", "Vol +"};
+        for (int i = 0; i < 3; i++) {
+            Rectangle r = {boxes[i].x, boxes[i].y, boxes[i].w, boxes[i].h};
+            DrawRectangleRec(r, btnFill);
+            DrawRectangleLinesEx(r, 2.0f, line);
+            DrawText(labels[i], (int)(r.x + (r.width - MeasureText(labels[i], 18)) * 0.5f), (int)(r.y + 7), 18, BLACK);
+        }
+    }
+
+    if (!state.touchUsed) return;
 
     if (state.stickActive) {
         DrawCircleV(state.stickOrigin, kStickRadius, fill);
@@ -157,28 +187,4 @@ void DrawTouchOverlay(const InputState &state, bool endButtonsShown, bool settin
     DrawRectangleRec(down, fill);
     DrawRectangleLinesEx(down, 2.0f, line);
     DrawText("-", (int)(down.x + down.width * 0.5f - 8), (int)(down.y + down.height * 0.5f - 20), 40, line);
-
-    if (endButtonsShown) {
-        Rectangle r = RestartRect();
-        DrawRectangleRec(r, (Color){255, 255, 255, 140});
-        DrawRectangleLinesEx(r, 2.0f, line);
-        DrawText("RESTART", (int)(r.x + (r.width - MeasureText("RESTART", 30)) * 0.5f), (int)(r.y + 15), 30, BLACK);
-        Rectangle m = MenuRect();
-        DrawRectangleRec(m, (Color){255, 255, 255, 140});
-        DrawRectangleLinesEx(m, 2.0f, line);
-        DrawText("MENU", (int)(m.x + (m.width - MeasureText("MENU", 30)) * 0.5f), (int)(m.y + 15), 30, BLACK);
-    }
-
-    if (settingsShown) {
-        SettingsButtons b = SettingsRects();
-        Color btnFill = {255, 255, 255, 140};
-        const TouchBox boxes[] = {b.gfx, b.volDown, b.volUp};
-        const char *labels[] = {gfxLabel, "Vol -", "Vol +"};
-        for (int i = 0; i < 3; i++) {
-            Rectangle r = {boxes[i].x, boxes[i].y, boxes[i].w, boxes[i].h};
-            DrawRectangleRec(r, btnFill);
-            DrawRectangleLinesEx(r, 2.0f, line);
-            DrawText(labels[i], (int)(r.x + (r.width - MeasureText(labels[i], 18)) * 0.5f), (int)(r.y + 7), 18, BLACK);
-        }
-    }
 }
