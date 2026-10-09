@@ -11,9 +11,8 @@ float SmoothStep01(float t) {
     return t * t * (3.0f - 2.0f * t);
 }
 
-float ComputeRawHeight(float x, float z, float maxHeight, float flatHalfWidth, float edgeFade, float u, float v) {
-    float h = 0.5f + 0.25f * sinf(x * 0.015f) + 0.25f * cosf(z * 0.012f) +
-               0.12f * sinf(x * 0.05f + z * 0.04f);
+float ComputeRawHeight(const HillDef &hill, float x, float z, float maxHeight, float flatHalfWidth, float edgeFade, float u, float v) {
+    float h = HillHeight01(hill, x, z);
     h = Clamp(h, 0.0f, 1.0f) * maxHeight;
 
     // Keep a flat flight corridor around x=0 regardless of z, so the runway
@@ -82,7 +81,7 @@ void GenerateWorld(WorldState &world, const GraphicsSettings &gfx) {
             float x = -halfSize + u * world.worldSize;
             float z = -halfSize + v * world.worldSize;
 
-            float h = ComputeRawHeight(x, z, world.maxHeight, world.flatHalfWidth, world.edgeFade, u, v);
+            float h = ComputeRawHeight(terrain.hill, x, z, world.maxHeight, world.flatHalfWidth, world.edgeFade, u, v);
             world.heights[j * world.gridSize + i] = h;
 
             unsigned char gray = (unsigned char)Clamp((h / world.maxHeight) * 255.0f, 0.0f, 255.0f);
