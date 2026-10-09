@@ -32,6 +32,22 @@ int main() {
     Expect("terrain shape", d.terrain.gridSize == 64 && Near(d.terrain.worldSize, 1400.0f) &&
                                 Near(d.terrain.maxHeight, 10.0f) && Near(d.terrain.flatHalfWidth, 40.0f) &&
                                 Near(d.terrain.edgeFade, 0.12f));
+    const HillDef &hill = d.terrain.hill;
+    Expect("hill coefficients", Near(hill.base, 0.5f) && Near(hill.ampX, 0.25f) && Near(hill.freqX, 0.015f) &&
+                                    Near(hill.ampZ, 0.25f) && Near(hill.freqZ, 0.012f) && Near(hill.ampXZ, 0.12f) &&
+                                    Near(hill.freqXZx, 0.05f) && Near(hill.freqXZz, 0.04f));
+    Expect("hill heights match the original formula", [&] {
+        const float xs[] = {-700.0f, -123.4f, 0.0f, 55.5f, 321.0f, 699.0f};
+        const float zs[] = {-700.0f, -50.0f, 0.0f, 250.5f, 640.0f, 699.0f};
+        for (float x : xs) {
+            for (float z : zs) {
+                float old = 0.5f + 0.25f * sinf(x * 0.015f) + 0.25f * cosf(z * 0.012f) +
+                            0.12f * sinf(x * 0.05f + z * 0.04f);
+                if (HillHeight01(hill, x, z) != old) return false;
+            }
+        }
+        return true;
+    }());
     Expect("flat corridor covers checkpoints and obstacles", [&] {
         for (const ObstacleDef &o : d.hardObstacles) if (std::fabs(o.x) >= d.terrain.flatHalfWidth) return false;
         for (const ObstacleDef &o : d.softObstacles) if (std::fabs(o.x) >= d.terrain.flatHalfWidth) return false;
