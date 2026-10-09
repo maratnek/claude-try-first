@@ -101,6 +101,7 @@ priority. Skip items marked "owner" (waiting on his decision) or
 | P0 | A/D (rudder) turning feels dead since blocker 2 | open — small PR, owner flies it before merge | "Owner feedback 2026-10-08" |
 | P0 | Altitude awareness: the player can't tell the ground is close in a dive | open — chain of small PRs | "Owner feedback 2026-10-08" |
 | P0 | Effects polish part 1: smoke, fireball, snow → soft sprites | done on branch `session/effects-polish`, awaiting owner review | "Next up" below |
+| P1 | Aircraft configs: each aircraft's flight parameters in its own data file, sourced from real specs | open | "Aircraft configs" |
 | P1 | World art track: sky, then ground (look like 2000s today) | open — world-artist agent, small PRs | "World art track" |
 | P1 | Code split: world look (render) separate from world gameplay | open — first PR of the world art track, no visual change | "World art track" |
 | P1 | Effects polish part 2: rain, speed streaks, debris dust (one PR, reusing `src/objects/sprites.*`); clouds separately if they read as blocks | open — waits for part 1 to be merged | "Next up" below |
@@ -177,6 +178,22 @@ breaks. Reasonable-size PRs, not micro-steps:
 
 Every agent PR that touches gameplay must keep this job green; the PR
 body links its screenshots.
+
+## Aircraft configs (P1)
+
+Aircraft will differ (Track C plane types, Track D vehicles). Today
+`BiplaneParams()` in `src/flight.cpp` hard-codes the biplane's numbers.
+Move every `PlaneParams` value into a per-aircraft data file next to its
+model (e.g. `assets/models/biplane-1920.flight.txt`, same key=value style
+as the `.break.txt` sidecar), loaded at startup with the current values as
+the fallback, so level 1 flies identically (the flight tests prove it).
+Each file records where its numbers come from: real specs of the
+reference aircraft found online (top speed, stall speed, climb rate, roll
+rate, glide ratio, mass, wing loading — e.g. a 1920s biplane such as the
+Sopwith Camel / Curtiss JN-4 for the current model), plus which values are
+game-feel tuning on top of the real ones (e.g. the A/D rudder rate). Add
+the same fields to the asset-request template in `asset-requests/README.md`
+so every future aircraft arrives with its flight config.
 
 ## World art track (P1, world-artist agent, small PRs)
 
