@@ -75,6 +75,7 @@ struct Game {
 #ifdef FLIGHT_DEBUG
     CrashTest crashTest;
 #endif
+    int hardLandingsInARow = 0;
 };
 
 int FitFontSize(const char *text, int size, int maxWidth) {
@@ -192,10 +193,13 @@ void UpdateFrame(Game &g) {
 #ifdef FLIGHT_DEBUG
         if (g.crashTest.active) input.pitch = -0.01f;
 #endif
-        UpdatePlaneControls(plane, g.planeParams, input, dt, groundHeight, slopeDeg);
+        UpdatePlaneControls(plane, WithLandingAssist(g.planeParams, g.hardLandingsInARow), input, dt, groundHeight, slopeDeg);
         UpdateLevel(level, plane.position, dt);
         if (CountPassed(level) > passedBefore) PlayChimeSound(engineAudio);
-        if (wasAirborne && !plane.airborne && plane.landing == LandingResult::Safe) PlayTouchdownSound(engineAudio);
+        if (wasAirborne && !plane.airborne && plane.landing == LandingResult::Safe) {
+            PlayTouchdownSound(engineAudio);
+            g.hardLandingsInARow = 0;
+        }
 
         ObstacleHit hit = CheckObstacleHit(world, plane.position, 1.5f);
         if (hit == ObstacleHit::Soft) {
@@ -203,6 +207,7 @@ void UpdateFrame(Game &g) {
             plane.damaged = true;
         }
         if (hit == ObstacleHit::Hard || plane.landing == LandingResult::Hard) {
+            if (plane.landing == LandingResult::Hard) g.hardLandingsInARow++;
             level.crashed = true;
             g.screen = Screen::Crashed;
             float s = FuelFraction(plane, g.planeParams);

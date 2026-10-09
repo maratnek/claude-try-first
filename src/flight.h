@@ -81,5 +81,9 @@ void UpdatePlaneControls(PlaneState &plane, const PlaneParams &params, const Fli
 
 float FuelFraction(const PlaneState &plane, const PlaneParams &params);
 
+// Landing limits widened after repeated hard landings so a struggling player can still finish:
+// nothing changes for the first two failures, the limits grow until about the tenth.
+PlaneParams WithLandingAssist(const PlaneParams &params, int hardLandingsInARow);
+
 // Unit vector the plane's nose currently points along, in world space.
 Vector3 GetPlaneForward(const PlaneState &plane);

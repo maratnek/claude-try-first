@@ -180,6 +180,15 @@ void TestRudderTurn(const PlaneParams &p) {
     Report("rudder turn altitude loss @35 m/s", b.altLoss, -0.3f, 0.3f);
 }
 
+void TestLandingAssist(const PlaneParams &p) {
+    Expect("assist off after 2 hard landings", TouchDown(WithLandingAssist(p, 2), 45.0f, 0.0f, 0.0f, 1.0f) == LandingResult::Hard);
+    Report("assist speed limit after 6", WithLandingAssist(p, 6).landingMaxSpeed, 51.0f, 53.0f);
+    PlaneParams full = WithLandingAssist(p, 10);
+    Expect("full assist: 50 m/s, 12 m/s sink lands Safe", TouchDown(full, 50.0f, 0.0f, 0.0f, 12.0f) == LandingResult::Safe);
+    Expect("full assist: 35 deg bank lands Safe", TouchDown(full, 30.0f, 0.0f, 35.0f, 1.0f) == LandingResult::Safe);
+    Report("assist capped after 30", WithLandingAssist(p, 30).landingMaxSpeed, full.landingMaxSpeed, full.landingMaxSpeed);
+}
+
 void TestStandstill(const PlaneParams &p) {
     PlaneState s;
     s.position.y = p.wheelHeight;
@@ -324,6 +333,7 @@ int main(int argc, char **argv) {
     TestGlide(p);
     TestBank(p);
     TestRudderTurn(p);
+    TestLandingAssist(p);
     TestStandstill(p);
     TestStallFall(p);
     TestStallSpeed(p);
