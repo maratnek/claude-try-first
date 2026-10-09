@@ -98,13 +98,13 @@ priority. Skip items marked "owner" (waiting on his decision) or
 | Pri | Task | Status | Details |
 | --- | --- | --- | --- |
 | P0 | CI autoplay: the game runs itself in CI and fails on broken start/controls/flight | open — 2-3 PRs | "CI autoplay" |
-| P0 | A/D (rudder) turning feels dead since blocker 2 | open — small PR, owner flies it before merge | "Owner feedback 2026-10-08" |
+| P0 | A/D (rudder) turning feels dead since blocker 2 | done — flat 22 deg/s yaw, owner flew it, merged 2026-10-09 | "Owner feedback 2026-10-08" |
 | P0 | Altitude awareness: the player can't tell the ground is close in a dive | open — chain of small PRs | "Owner feedback 2026-10-08" |
-| P0 | Effects polish part 1: smoke, fireball, snow → soft sprites | done on branch `session/effects-polish`, awaiting owner review | "Next up" below |
+| P0 | Effects polish part 1: smoke, fireball, snow → soft sprites | done, merged 2026-10-09 | "Next up" below |
 | P1 | Aircraft configs: each aircraft's flight parameters in its own data file, sourced from real specs | open | "Aircraft configs" |
 | P1 | World art track: sky, then ground (look like 2000s today) | open — world-artist agent, small PRs | "World art track" |
 | P1 | Code split: world look (render) separate from world gameplay | open — first PR of the world art track, no visual change | "World art track" |
-| P1 | Effects polish part 2: rain, speed streaks, debris dust (one PR, reusing `src/objects/sprites.*`); clouds separately if they read as blocks | open — waits for part 1 to be merged | "Next up" below |
+| P1 | Effects polish part 2: rain, speed streaks, debris dust (one PR, reusing `src/objects/sprites.*`); clouds separately if they read as blocks | open | "Next up" below |
 | P2 | Effects v3: richer detail — real snowflake shapes, detailed fire (flicker, embers, heat colours), raindrops/splashes — as far as each preset allows | open, after part 2 | "Next up" below |
 | P0 | Release blockers 1–3 (throttle/gravity, turns, visible damage) | done, in `release` | "Current priority" |
 | P1 | Known small bugs and polish (window title, menu title, loading indicator, touch settings, rollout, dead code) | open | Backlog 1 |
