@@ -14,7 +14,6 @@ const types = { '.html': 'text/html', '.js': 'text/javascript', '.wasm': 'applic
 const server = http.createServer((req, res) => {
   const name = req.url.split('?')[0] === '/' ? 'index.html' : path.normalize(req.url.split('?')[0]).replace(/^(\.\.[/\\])+/, '');
   const file = path.join(dist, name);
-  if (!file.startsWith(path.resolve(dist)) && !file.startsWith(dist)) { res.writeHead(403).end(); return; }
   fs.readFile(file, (err, body) => {
     if (err) { res.writeHead(404).end(); return; }
     res.writeHead(200, { 'Content-Type': types[path.extname(file)] || 'application/octet-stream' }).end(body);
