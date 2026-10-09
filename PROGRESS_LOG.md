@@ -12,6 +12,13 @@ owner can skim what happened without digging through git log. Format:
 - PR: <link or branch, if one was opened>
 ```
 
+## 2026-10-09 00:10 UTC — night run
+- Did: P0 "CI autoplay" item 3 (optional web smoke), branch agents/2026-10-09-0010-web-smoke: new `web-smoke` CI job (after `web`) loads the `FlightGame-web` artifact in headless Chromium with Playwright (`tools/web_smoke.mjs`). It fails on console errors, page errors, HTTP/request failures, a loading overlay that never goes away or shows "Failed to load", or a blank menu frame. Screenshot and console log are uploaded as `FlightGame-web-smoke`. No game code changed. Release-relevant: it guards the itch.io Web build.
+- Why: every other board item is covered by an open PR or the interactive rudder session; this one is independent of the stacked autoplay PRs and shortens the road to a safe Web release.
+- Verified: script run against stub pages: pass, console error fails, blank canvas fails. code-reviewer: no blockers. NOT run on the real web build (no Emscripten here); the first CI run is the first real test. Risk: a harmless console error or the 12-colour threshold could turn the job red on a healthy build; check `console.txt` in the artifact and tell me.
+- Open: awaiting owner review. Autoplay PR 3 (checkpoint, landing, restart asserts) waits for #81/#87 to merge.
+- PR: PR into dev from agents/2026-10-09-0010-web-smoke
+
 ## 2026-10-08 05:10 UTC — night run (63)
 - Did: Backlog 4, third iteration (branch agents/2026-10-08-0510-level-start-terrain): plane start position (x, z, height above ground) and the level-specific terrain shape (grid size, world size, max hill height, flat corridor half width, edge fade) now live in `LevelDef` (`TerrainDef`), read by `main.cpp` and `GenerateWorld`. Level 1 numbers are identical (the 0.12 edge fade was a literal in `ComputeRawHeight`). `LevelDefTests` pins the new values and checks that checkpoints and obstacles lie inside the flat corridor. Hill sine formula, scatter, clouds, distance markers and level selection stay in code. Not release-relevant.
 - Why: P0 effects polish is with an interactive session, owner items wait on him; this is the next open P1 piece (Backlog 4) and brings level 2 closer to being content, not code.
