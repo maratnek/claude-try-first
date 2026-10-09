@@ -91,7 +91,7 @@ priority. Skip items marked "owner" (waiting on his decision) or
 | P1 | Known small bugs and polish (window title, menu title, loading indicator, touch settings, rollout, dead code) | open | Backlog 1 |
 | P1 | Headless physics regression tests in CI | open | Backlog 2 |
 | P1 | Save/progress persistence layer | data layer done (branch agents/2026-10-07-1907-progress-store), not wired into the game | Backlog 3 |
-| P1 | Data-driven level definition | gate/medal wiring done (branches agents/2026-10-07-2210-level-def, agents/2026-10-07-2310-level-gate-medals): level 1 content incl. gate distance and medal times in `src/level_def.*`; hill formula, scatter/clouds as data and level selection still open; start position and terrain shape done (branch agents/2026-10-08-0510-level-start-terrain) | Backlog 4 |
+| P1 | Data-driven level definition | gate/medal wiring done (branches agents/2026-10-07-2210-level-def, agents/2026-10-07-2310-level-gate-medals): level 1 content incl. gate distance and medal times in `src/level_def.*`; hill formula coefficients done (branch agents/2026-10-09-0115-hill-data, `TerrainDef::hill`); scatter/clouds as data and level selection still open; start position and terrain shape done (branch agents/2026-10-08-0510-level-start-terrain) | Backlog 4 |
 | P1 | Progression choice (A/B/C) → then level 2 | owner | `design-notes/progression.md` |
 | P1 | Game name + itch.io page, going public | owner | rollout plan |
 | P2 | Fuel consumption behind a flag | open | Backlog 5 |
