@@ -55,6 +55,13 @@ owner can skim what happened without digging through git log. Format:
 - Verified: built raylib 5.5 from source and the game plus all 6 test targets in a scratch copy with Conan bypassed; ctest 6/6 pass. The game was started but exited at once (no display in the sandbox), so no gameplay was run. CI status: see PR.
 - Open: a grounded plane that never flew cannot restart with R (the restart condition needs level.crashed, the Finished screen, or a Safe landing), so after a taxi-through the player must take off and land (or crash) before R works; the menu key M is also only handled on Crashed/Finished. Not changed here; decide whether R should work on the ground before the first takeoff. A human should check the banner and the take-off, gate, land run by hand.
 - PR: PR into dev from agents/2026-10-08-2310-gate-airborne
+## 2026-10-09 00:45 UTC — art run (world art track, step 3: sun disc)
+- Did: Sun disc with soft glow (branch agents/2026-10-09-0045-art-sun-disc, stacked on #88): `DrawSun` in `src/render/sky.cpp` projects a fixed sun direction and draws a radial-gradient glow plus a core disc; skipped when the sun is out of view. New toggle `gfx.sunDisc` (on in all presets). `docs/ARCHITECTURE.md` updated. No gameplay, physics or controls touched.
+- Why: step 3 of the world art track.
+- Verified: raylib 5.5 built from source, game built in a scratch copy, run under Xvfb on Low and High, menu view before/after. Sun visible just above the horizon in both. Not verified: in-flight view (no key input tool in the sandbox). Low cost: one gradient circle and one circle per frame, no textures. CI status: see PR.
+- Open: awaiting owner review; merge #85 and #88 first. Next art step: distance fog / horizon haze.
+- PR: PR into dev from agents/2026-10-09-0045-art-sun-disc
+
 ## 2026-10-08 21:40 UTC — art run (world art track, step 2: gradient sky)
 - Did: Gradient sky (branch agents/2026-10-08-2140-art-sky-gradient, stacked on #85): `DrawSky(camera, gfx)` paints a zenith-to-horizon gradient whose horizon follows the camera's horizon line; new toggle `gfx.skyGradient` (on in all presets). `docs/ARCHITECTURE.md` updated. No gameplay, physics or controls touched.
 - Why: step 2 of the world art track; the flat `SKYBLUE` clear was the most 2000s-looking part of the frame.
