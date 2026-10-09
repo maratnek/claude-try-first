@@ -16,23 +16,24 @@ void ApplyGraphicsPreset(GraphicsSettings &settings, GraphicsPreset preset) {
     settings.preset = preset;
     bool low = preset == GraphicsPreset::Low;
     bool high = preset == GraphicsPreset::High;
-    settings.distanceMarkers = !low;
-    settings.characters = !low;
-    settings.propBlur = !low;
-    settings.pilotHead = !low;
-    settings.damageVisuals = !low;
+    // Low is "the same world, less of it", not a stripped world: cheap features stay on, counts shrink.
+    settings.distanceMarkers = true;
+    settings.characters = true;
+    settings.propBlur = true;
+    settings.pilotHead = true;
+    settings.damageVisuals = true;
     settings.blobShadow = true;
-    settings.terrainColors = !low;
+    settings.terrainColors = true;
     settings.obstacleWires = high;
-    settings.scatterDensity = low ? 0.0f : (high ? 1.0f : 0.35f);
-    settings.cloudCount = low ? 0 : (high ? 30 : 12);
-    settings.smokePuffs = low ? 0 : (high ? 64 : 24);
+    settings.scatterDensity = low ? 0.12f : (high ? 1.0f : 0.35f);
+    settings.cloudCount = low ? 5 : (high ? 30 : 12);
+    settings.smokePuffs = low ? 12 : (high ? 64 : 24);
     settings.debrisPieces = low ? 4 : (high ? 12 : 6);
-    settings.explosionFire = !low;
+    settings.explosionFire = true;
     settings.explosionSmoke = low ? 12 : (high ? 64 : 32);
-    settings.speedStreaks = low ? 0 : (high ? 40 : 16);
-    settings.rainDrops = low ? 0 : (high ? 200 : 80);
-    settings.snowFlakes = high ? 200 : 0;
+    settings.speedStreaks = low ? 8 : (high ? 40 : 16);
+    settings.rainDrops = low ? 40 : (high ? 200 : 80);
+    settings.snowFlakes = low ? 40 : (high ? 200 : 80);
 }
 
 void CycleGraphicsPreset(GraphicsSettings &settings) {
