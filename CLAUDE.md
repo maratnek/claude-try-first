@@ -102,6 +102,7 @@ priority. Skip items marked "owner" (waiting on his decision) or
 | P0 | Altitude awareness: the player can't tell the ground is close in a dive | (a) HUD ground warning done 2026-10-09; (b) beep, (c) shadow open | "Owner feedback 2026-10-08" |
 | P0 | Landing too hard for players | done 2026-10-09: forgiving limits + flare, hidden assist after repeated hard landings | owner flew it |
 | P0 | Rings counted on touch; red floating obstacles | done 2026-10-09: upright hoops counted only through the hole; hard obstacles are 16 m pines | owner flew it |
+| P1 | Brakes: a dedicated wheel-brake key (Space/B) on the ground at any power, a BRAKE touch button after touchdown, HUD hint; today braking needs power 0 + S | open — owner request 2026-10-09 | owner flies it |
 | P1 | Menu look: 1920s cartoon main menu with key art and a side panel of what the game offers | waiting for the owner's generated art (`asset-requests/pending/menu-*.md`); layout and fonts can start | "Art direction" |
 | P0 | Effects polish part 1: smoke, fireball, snow → soft sprites | done, merged 2026-10-09 | "Next up" below |
 | P1 | Aircraft configs: each aircraft's flight parameters in its own data file, sourced from real specs | open | "Aircraft configs" |
