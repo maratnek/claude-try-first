@@ -12,6 +12,13 @@ owner can skim what happened without digging through git log. Format:
 - PR: <link or branch, if one was opened>
 ```
 
+## 2026-10-09 01:15 UTC — night run
+- Did: Backlog 4, hill formula (branch agents/2026-10-09-0115-hill-data): the coefficients of the hill formula (base plus amplitude/frequency of the three sine/cosine terms) moved from literals in `ComputeRawHeight` into `HillDef` inside `TerrainDef`; `HillHeight01` in `level_def.cpp` (raylib-free) evaluates it with the same operation order. `world.cpp` only calls it; drawing code untouched. `LevelDefTests` pins the values and compares `HillHeight01` bit-for-bit with the old inline formula at 36 sample points. CLAUDE.md marker and ARCHITECTURE.md updated. Not release-relevant.
+- Why: Level 2 needs its own hills; this is a data-only step toward it.
+- Verified: LevelDefTests built with g++ -std=c++23 -Wall -Wextra and pass; `world.cpp` checked with `g++ -fsyntax-only` against raylib 5.5 headers (no errors). Not run: the CMake/Conan build or the game (Conan blocked), so CI is the first full build. Awaiting owner review.
+- Open: Backlog 4 remaining: scatter/clouds as data, level selection. A human should launch the game once and check the hills look as before.
+- PR: none yet (awaiting owner review)
+
 ## 2026-10-08 05:10 UTC — night run (63)
 - Did: Backlog 4, third iteration (branch agents/2026-10-08-0510-level-start-terrain): plane start position (x, z, height above ground) and the level-specific terrain shape (grid size, world size, max hill height, flat corridor half width, edge fade) now live in `LevelDef` (`TerrainDef`), read by `main.cpp` and `GenerateWorld`. Level 1 numbers are identical (the 0.12 edge fade was a literal in `ComputeRawHeight`). `LevelDefTests` pins the new values and checks that checkpoints and obstacles lie inside the flat corridor. Hill sine formula, scatter, clouds, distance markers and level selection stay in code. Not release-relevant.
 - Why: P0 effects polish is with an interactive session, owner items wait on him; this is the next open P1 piece (Backlog 4) and brings level 2 closer to being content, not code.

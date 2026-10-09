@@ -1,4 +1,10 @@
 #include "level_def.h"
+#include <cmath>
+
+float HillHeight01(const HillDef &hill, float x, float z) {
+    return hill.base + hill.ampX * sinf(x * hill.freqX) + hill.ampZ * cosf(z * hill.freqZ) +
+           hill.ampXZ * sinf(x * hill.freqXZx + z * hill.freqXZz);
+}
 
 namespace {
 
@@ -7,7 +13,7 @@ LevelDef MakeLevel1() {
     d.startX = 0.0f;
     d.startZ = 0.0f;
     d.startHeightAboveGround = 0.3f;
-    d.terrain = {64, 1400.0f, 10.0f, 40.0f, 0.12f};
+    d.terrain = {64, 1400.0f, 10.0f, 40.0f, 0.12f, {0.5f, 0.25f, 0.015f, 0.25f, 0.012f, 0.12f, 0.05f, 0.04f}};
     d.gateDistance = 1000.0f;
     d.medalGold = 24.0f;
     d.medalSilver = 30.0f;
