@@ -35,7 +35,8 @@ struct PlaneParams {
     float landingMaxSinkRate;   // m/s
     float landingMaxSpeed;      // m/s
     float landingMaxRoll;       // deg
-    float landingMaxNoseDown;   // deg; nose-up limit is liftoffPitch so a landing can't re-lift
+    float landingMaxNoseDown;   // deg
+    float landingMaxNoseUp;     // deg; a flare up to this is fine, the nose is lowered on touchdown so it can't re-lift
     float fuelCapacity;         // units, about 1 l each
 };
 

@@ -263,15 +263,25 @@ void TestLanding(const PlaneParams &p) {
     }
     Expect("steep dive impact is Hard", hard.landing == LandingResult::Hard);
 
-    Expect("sink only 7.5 m/s", TouchDown(p, 25.0f, 0.0f, 0.0f, 7.5f) == LandingResult::Hard);
-    Expect("sink only 5.0 m/s", TouchDown(p, 25.0f, 0.0f, 0.0f, 5.0f) == LandingResult::Safe);
+    Expect("sink only 8.5 m/s", TouchDown(p, 25.0f, 0.0f, 0.0f, 8.5f) == LandingResult::Hard);
+    Expect("sink only 6.5 m/s", TouchDown(p, 25.0f, 0.0f, 0.0f, 6.5f) == LandingResult::Safe);
     Expect("nose-down 30 low sink", TouchDown(p, 14.5f, -30.0f, 0.0f, -2.0f) == LandingResult::Hard);
     Expect("nose-down 20 low sink", TouchDown(p, 14.5f, -20.0f, 0.0f, -2.0f) == LandingResult::Safe);
-    Expect("nose-up 8 low sink", TouchDown(p, 25.0f, 8.0f, 0.0f, 7.5f) == LandingResult::Hard);
-    Expect("nose-up 4 low sink", TouchDown(p, 25.0f, 4.0f, 0.0f, 7.5f) == LandingResult::Safe);
-    Expect("bank 20 low sink", TouchDown(p, 25.0f, 0.0f, 20.0f, 1.0f) == LandingResult::Hard);
-    Expect("bank 12 low sink", TouchDown(p, 25.0f, 0.0f, 12.0f, 1.0f) == LandingResult::Safe);
-    Expect("bank -20 low sink", TouchDown(p, 25.0f, 0.0f, -20.0f, 1.0f) == LandingResult::Hard);
+    Expect("nose-up 15 low sink", TouchDown(p, 20.0f, 15.0f, 0.0f, 9.0f) == LandingResult::Hard);
+    Expect("nose-up 10 flare low sink", TouchDown(p, 25.0f, 10.0f, 0.0f, 7.5f) == LandingResult::Safe);
+    Expect("bank 25 low sink", TouchDown(p, 25.0f, 0.0f, 25.0f, 1.0f) == LandingResult::Hard);
+    Expect("bank 17 low sink", TouchDown(p, 25.0f, 0.0f, 17.0f, 1.0f) == LandingResult::Safe);
+    Expect("bank -25 low sink", TouchDown(p, 25.0f, 0.0f, -25.0f, 1.0f) == LandingResult::Hard);
+    Expect("38 m/s low sink lands Safe", TouchDown(p, 38.0f, 0.0f, 0.0f, 1.0f) == LandingResult::Safe);
+    Expect("45 m/s low sink is Hard", TouchDown(p, 45.0f, 0.0f, 0.0f, 1.0f) == LandingResult::Hard);
+    PlaneState flared = Airborne(25.0f, 1.2f, p.levelPower);
+    flared.fallSpeed = 7.5f;
+    for (int i = 0; i < 60 * 5 && flared.landing == LandingResult::None; i++) {
+        flared.pitch = 10.0f;
+        UpdatePlaneControls(flared, p, in, kDt, 0.0f, 0.0f);
+    }
+    for (int i = 0; i < 60; i++) UpdatePlaneControls(flared, p, in, kDt, 0.0f, 0.0f);
+    Expect("flared touchdown stays on the ground", flared.landing == LandingResult::Safe && !flared.airborne);
 
     PlaneState rolled = Airborne(22.0f, 8.0f, 0.0f);
     for (int i = 0; i < 60 * 20 && rolled.landing == LandingResult::None; i++) {
@@ -298,7 +308,7 @@ void TestRollout(const PlaneParams &p) {
     float zone = Level1Def().landingZoneLength;
     Report("rollout from max landing speed", MeasureRollout(p, p.landingMaxSpeed, 0.0f), 150.0f, zone);
     Report("rollout from 20 m/s", MeasureRollout(p, 20.0f, 0.0f), 80.0f, 140.0f);
-    Report("braked rollout from max speed", MeasureRollout(p, p.landingMaxSpeed, -1.0f), 10.0f, 80.0f);
+    Report("braked rollout from max speed", MeasureRollout(p, p.landingMaxSpeed, -1.0f), 10.0f, 100.0f);
 }
 
 void TestRollClamp(const PlaneParams &p) {

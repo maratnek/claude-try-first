@@ -49,10 +49,11 @@ PlaneParams BiplaneParams() {
     p.levelRate = 50.0f;
     p.wheelHeight = 0.3f;
     p.minAltitudeAboveGround = 1.0f;
-    p.landingMaxSinkRate = 6.0f;
-    p.landingMaxSpeed = 30.0f;
-    p.landingMaxRoll = 15.0f;
+    p.landingMaxSinkRate = 7.0f;
+    p.landingMaxSpeed = 40.0f;
+    p.landingMaxRoll = 20.0f;
     p.landingMaxNoseDown = 25.0f;
+    p.landingMaxNoseUp = 12.0f;
     p.fuelCapacity = 100.0f;
     return p;
 }
@@ -142,10 +143,12 @@ void UpdatePlaneControls(PlaneState &plane, const PlaneParams &params, const Fli
         if (plane.position.y <= minY && plane.airTime > kMinAirTimeForLanding) {
             float sinkRate = SinkRate(plane);
             bool gentle = sinkRate <= params.landingMaxSinkRate && plane.speed <= params.landingMaxSpeed &&
-                          plane.pitch <= params.liftoffPitch && plane.pitch >= -params.landingMaxNoseDown && fabsf(plane.roll) <= params.landingMaxRoll;
+                          plane.pitch <= params.landingMaxNoseUp && plane.pitch >= -params.landingMaxNoseDown && fabsf(plane.roll) <= params.landingMaxRoll;
             if (gentle) {
                 plane.landing = LandingResult::Safe;
                 plane.airborne = false;
+                // A flared touchdown would otherwise lift straight off again.
+                plane.pitch = fminf(plane.pitch, params.liftoffPitch * 0.5f);
                 plane.fallSpeed = 0.0f;
                 plane.position.y = groundHeight + params.wheelHeight;
             } else {
