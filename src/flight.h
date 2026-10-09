@@ -20,7 +20,7 @@ struct PlaneParams {
     float controlSpeed;  // m/s at which control authority reaches 1
     float pitchRate;     // deg/sec at full authority
     float rollRate;
-    float yawRate;          // deg/sec rudder-only yaw at full authority, small on purpose
+    float yawRate;          // deg/sec rudder-only yaw at full authority
     float taxiTurnRadius;   // m, tightest ground turn; taxi yaw rate = speed / radius so it never spins in place
     float taxiMaxTurnRate;  // deg/sec cap on taxi steering
     float stallDropRate;  // deg/sec nose-drop at zero airspeed
@@ -60,7 +60,7 @@ struct PlaneState {
 
 // Advances the plane's orientation, speed and position by dt seconds from
 // the given input (airborne, bank angle turns the plane at g*tan(bank)/v and
-// costs vertical lift by cos(bank); rudder only adds a small yaw; grounded,
+// costs vertical lift by cos(bank); rudder yaws the plane flat, without bank; grounded,
 // steering rate is proportional to ground speed). input.throttle changes
 // plane.enginePower, which stays put; thrust = power * params.accel and
 // never brakes in the air. Control authority scales with airspeed squared,

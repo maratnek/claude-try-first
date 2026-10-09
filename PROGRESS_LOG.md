@@ -12,6 +12,13 @@ owner can skim what happened without digging through git log. Format:
 - PR: <link or branch, if one was opened>
 ```
 
+## 2026-10-08 09:20 UTC — day run
+- Did: P0 "A/D (rudder) turning feels dead" (branch agents/2026-10-08-0920-rudder-turn): `yawRate` 8 -> 22 deg/s and new `rudderBank` = 25 deg; with A/D held and no arrow input the plane eases into a bank toward the rudder side at `rollRate * authority`, and levels as before on release. Grounded taxi and the bank-turn formula are untouched. New flight test for A/D-only turns at 25 and 35 m/s. Radius 25 m/s: 179 m -> 44.8 m; 35 m/s: 250 m -> 68.7 m. Time for a 90 deg turn: 11.25 s -> 2.82 s (25 m/s), 11.25 s -> 3.10 s (35 m/s). Peak bank 0 -> 25 deg, altitude loss over the turn under 1 m. Release-relevant (feel).
+- Why: top open P0 item that is one small PR; CI autoplay (listed above it) is a 2-3 PR chain and needs this turn behaviour pinned first.
+- Verified: real run under Xvfb (raylib 5.5 built from source, game built by hand with -DFLIGHT_DEBUG, real xdotool key input, screenshots): A/D at standstill does nothing, takeoff works, D alone and A alone give a clear banked turn and level on release, arrows-only bank still reaches 80 deg. FlightTests built with g++ and pass. code-reviewer: no blockers. Not run: the Conan/CMake build (CI is its first run); no numeric heading readout exists, so turn rate in the real game was judged from screenshots only.
+- Open: the owner decides by flying it (feel of the 0.3 s bank-in, 25 deg auto-bank with the biplane model, whether A/D alone drifts into obstacles too easily). Touch controls have no rudder channel, so mobile gets none of this. Test gaps: no explicit test of roll levelling after A/D release.
+- PR: PR into dev from agents/2026-10-08-0920-rudder-turn
+
 ## 2026-10-08 05:10 UTC — night run (63)
 - Did: Backlog 4, third iteration (branch agents/2026-10-08-0510-level-start-terrain): plane start position (x, z, height above ground) and the level-specific terrain shape (grid size, world size, max hill height, flat corridor half width, edge fade) now live in `LevelDef` (`TerrainDef`), read by `main.cpp` and `GenerateWorld`. Level 1 numbers are identical (the 0.12 edge fade was a literal in `ComputeRawHeight`). `LevelDefTests` pins the new values and checks that checkpoints and obstacles lie inside the flat corridor. Hill sine formula, scatter, clouds, distance markers and level selection stay in code. Not release-relevant.
 - Why: P0 effects polish is with an interactive session, owner items wait on him; this is the next open P1 piece (Backlog 4) and brings level 2 closer to being content, not code.

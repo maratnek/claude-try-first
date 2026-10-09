@@ -37,7 +37,7 @@ PlaneParams BiplaneParams() {
     p.controlSpeed = 25.0f;
     p.pitchRate = 60.0f;
     p.rollRate = 90.0f;
-    p.yawRate = 8.0f;
+    p.yawRate = 22.0f;
     p.taxiTurnRadius = 15.0f;
     p.taxiMaxTurnRate = 35.0f;
     p.stallDropRate = 70.0f;
