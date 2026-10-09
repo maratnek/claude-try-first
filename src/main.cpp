@@ -295,6 +295,21 @@ void UpdateFrame(Game &g) {
                          plane.speed, plane.position.y, (int)roundf(plane.enginePower * 100.0f), plane.airborne ? "AIRBORNE" : "ON GROUND - raise power (W), pull up to take off; brake: power 0, then S");
     DrawText(statusText, ox, 35 + oy, FitFontSize(statusText, 20, hudWidth), DARKGRAY);
     DrawLevelHUD(level, plane.damaged);
+    if (g.screen == Screen::Playing && plane.airborne) {
+        float agl = plane.position.y - g.planeParams.wheelHeight - GetGroundHeight(world, plane.position.x, plane.position.z);
+        float sink = SinkRate(plane);
+        GroundWarning warning = GetGroundWarning(agl, sink, g.planeParams);
+        if (warning != GroundWarning::None) {
+            Color color = warning == GroundWarning::Danger ? RED : (warning == GroundWarning::Caution ? ORANGE : RAYWHITE);
+            const char *altText = TextFormat("GROUND %d m", (int)fmaxf(agl, 0.0f));
+            const char *sinkText = TextFormat("sinking %.1f m/s", sink);
+            int cx = GetScreenWidth() / 2, y = (int)(GetScreenHeight() * 0.70f);
+            DrawText(altText, cx - MeasureText(altText, 48) / 2 + 2, y + 2, 48, (Color){0, 0, 0, 150});
+            DrawText(altText, cx - MeasureText(altText, 48) / 2, y, 48, color);
+            DrawText(sinkText, cx - MeasureText(sinkText, 26) / 2 + 1, y + 55, 26, (Color){0, 0, 0, 150});
+            DrawText(sinkText, cx - MeasureText(sinkText, 26) / 2, y + 54, 26, color);
+        }
+    }
     if (plane.landing == LandingResult::Hard) {
         DrawText("Hard landing!", ox, 150 + oy, 30, MAROON);
     } else if (HasLandedSafely(plane)) {
