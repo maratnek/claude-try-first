@@ -36,3 +36,7 @@ struct LevelDef {
 };
 
 const LevelDef &Level1Def();
+
+// True when the segment from (ax,ay,az) to (bx,by,bz) crosses the ring plane z = cz
+// at a point closer than holeRadius to the ring centre (cx,cy).
+bool CrossesRingHole(float ax, float ay, float az, float bx, float by, float bz, float cx, float cy, float cz, float holeRadius);

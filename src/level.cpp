@@ -9,6 +9,8 @@ namespace {
 constexpr int kStarsFinished = 1;
 constexpr int kStarsCleanOrAllCheckpoints = 2;
 constexpr int kStarsPerfect = 3;
+constexpr float kRingTube = 0.07f;        // tube radius as a fraction of the ring radius
+constexpr float kPlaneHalfWidth = 0.5f;    // m kept clear of the rim so clipping the edge does not count
 
 void DrawStar(Vector2 c, float r, Color color) {
     Vector2 pts[10];
@@ -70,7 +72,7 @@ void InitLevel(LevelState &level) {
         level.checkpoints.push_back({(Vector3){s.x + c.x, s.y + c.y, s.z + c.z}, c.radius});
     }
 
-    Mesh ringMesh = GenMeshTorus(0.5f, 5.5f, 12, 24);
+    Mesh ringMesh = GenMeshTorus(kRingTube, 2.0f, 12, 32);
     level.checkpointModel = LoadModelFromMesh(ringMesh);
 }
 
@@ -86,11 +88,18 @@ void UpdateLevel(LevelState &level, Vector3 planePosition, float dt) {
         level.gateCrossed = true;
     }
 
-    for (Checkpoint &cp : level.checkpoints) {
-        if (!cp.passed && Vector3Distance(planePosition, cp.position) < cp.radius) {
-            cp.passed = true;
+    if (level.hasLastPlanePosition) {
+        Vector3 a = level.lastPlanePosition;
+        for (Checkpoint &cp : level.checkpoints) {
+            float hole = cp.radius * (1.0f - kRingTube) - kPlaneHalfWidth;
+            if (!cp.passed && CrossesRingHole(a.x, a.y, a.z, planePosition.x, planePosition.y, planePosition.z,
+                                              cp.position.x, cp.position.y, cp.position.z, hole)) {
+                cp.passed = true;
+            }
         }
     }
+    level.lastPlanePosition = planePosition;
+    level.hasLastPlanePosition = true;
 }
 
 bool IsRunFinished(const LevelState &level, bool airborne, float speed) {
@@ -138,9 +147,8 @@ void DrawFinishGate(const LevelState &level) {
 void DrawCheckpoints(const LevelState &level) {
     for (const Checkpoint &cp : level.checkpoints) {
         Color tint = cp.passed ? (Color){80, 200, 100, 160} : (Color){255, 165, 0, 255};
-        // Torus defaults to lying flat (hole facing up); tip it 90 degrees
-        // around X so the hole faces the flight direction like a hoop.
-        DrawModelEx(level.checkpointModel, cp.position, (Vector3){1.0f, 0.0f, 0.0f}, 90.0f, (Vector3){1.0f, 1.0f, 1.0f}, tint);
+        // GenMeshTorus already lies in the XY plane, so the hole faces the flight direction (+Z) unrotated.
+        DrawModelEx(level.checkpointModel, cp.position, (Vector3){0.0f, 1.0f, 0.0f}, 0.0f, (Vector3){cp.radius, cp.radius, cp.radius}, tint);
     }
 }
 
@@ -242,6 +250,7 @@ void ResetLevelProgress(LevelState &level) {
     for (Checkpoint &cp : level.checkpoints) {
         cp.passed = false;
     }
+    level.hasLastPlanePosition = false;
 }
 
 void UnloadLevel(LevelState &level) {
