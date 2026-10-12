@@ -103,7 +103,8 @@ priority. Skip items marked "owner" (waiting on his decision) or
 | P0 | Landing too hard for players | done 2026-10-09: forgiving limits + flare, hidden assist after repeated hard landings | owner flew it |
 | P0 | Rings counted on touch; red floating obstacles | done 2026-10-09: upright hoops counted only through the hole; hard obstacles are 16 m pines | owner flew it |
 | P1 | Engine and exhaust: a visible radial engine (as in `assets/models/biplane-1920-v2.glb`) and exhaust smoke from the exhaust pipes, thicker with engine power, puffs at start-up; reuse `src/objects/sprites.*`; preset-switchable | open — owner request 2026-10-12; model update by the owner in Claude Design | owner flies it |
-| P1 | Weather that matches the season: snow over green summer grass breaks immersion | open — owner request 2026-10-12 | "Weather and season" |
+| P0 | Weather that matches the season: snow over green summer grass breaks immersion (owner raised it twice) | open — owner request 2026-10-12 | "Weather and season" |
+| P1 | Shadows and lighting: the plane's shadow is only a round blob; cast a plane-shaped shadow and give the plane and world a proper sun light | open — owner request 2026-10-12, world-art routine | "World art track" |
 | P1 | Brakes: a dedicated wheel-brake key (Space/B) on the ground at any power, a BRAKE touch button after touchdown, HUD hint; today braking needs power 0 + S | open — owner request 2026-10-09 | owner flies it |
 | P1 | Menu look: 1920s cartoon main menu with key art and a side panel of what the game offers | waiting for the owner's generated art (`asset-requests/pending/menu-*.md`); layout and fonts can start | "Art direction" |
 | P0 | Effects polish part 1: smoke, fireball, snow → soft sprites | done, merged 2026-10-09 | "Next up" below |
@@ -286,6 +287,11 @@ screenshots from a real run, each new look behind an A1 preset/toggle
 3. **Ground:** procedural detail texture (grass noise, subtle variation,
    tiling with distance blending), softer colour palette, darker valleys /
    lighter ridges; must also make height and speed easier to read.
+3b. **Shadows and sun light (owner, 2026-10-12):** the plane's shadow is a
+   plain round blob; draw a plane-shaped shadow (the model's silhouette
+   flattened onto the terrain along the sun direction, or a shadow map on
+   High), and one consistent sun direction for the sky's sun, the shading of
+   the plane, trees and terrain. Low keeps a cheap silhouette shadow.
 4. **Plane look:** lighting and shading on the plane, procedural or small
    textures so fabric/wood reads as wood and metal as metal; ask
    asset-planner for a detailed, textured biplane model with the same
