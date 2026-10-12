@@ -24,6 +24,13 @@ owner can skim what happened without digging through git log. Format:
 - Open: owner to open the `FlightGame-autoplay` artifact and look at the last PNGs. The script is open-loop: a future physics or terrain change may need its numbers retuned. The rollout screenshot shows the results overlay (gate already crossed).
 - PR: awaiting owner review, branch agents/2026-10-12-1513-autoplay-landing
 
+## 2026-10-12 19:10 UTC — evening run
+- Did: P0 CI autoplay, restart slice (branch agents/2026-10-12-1910-autoplay-restart, stacked on #107 and #106). The script presses R after the rollout, then holds `after_restart` for 0.5 s. The run fails if the plane is not back grounded at the level start, not still, with rings reset to 0 and the landing result cleared. New AutoplayTests cases for each failure. Debug-only; no gameplay change. Not release-relevant.
+- Why: last open piece of the top board item (restart step); the rest of the chain is open PRs, so this stacks on them.
+- Verified: real run, raylib 5.5 from source, game with FLIGHT_DEBUG under Xvfb: exit 0, RESULT PASS; rollout ended at z=1214 m, restart/after_restart at (0, 1.98, 0), speed 0, rings=0. Mutation (restart press disabled) exits 1 with three ASSERT FAIL lines. 7/7 ctest; FLIGHT_DEBUG=OFF build compiles. game-tester viewed the rollout/restart/after_restart screenshots: fine. code-reviewer: no blockers. CI status: see PR.
+- Open: yaw/pitch reset not asserted (reviewer nit); scripted R only, not a physical key press. Awaiting owner review.
+- PR: PR into dev from agents/2026-10-12-1910-autoplay-restart, stacked on #107 (merge #106, #107 first)
+
 ## 2026-10-08 09:20 UTC — day run
 - Did: P0 "A/D (rudder) turning feels dead" (branch agents/2026-10-08-0920-rudder-turn): `yawRate` 8 -> 22 deg/s and new `rudderBank` = 25 deg; with A/D held and no arrow input the plane eases into a bank toward the rudder side at `rollRate * authority`, and levels as before on release. Grounded taxi and the bank-turn formula are untouched. New flight test for A/D-only turns at 25 and 35 m/s. Radius 25 m/s: 179 m -> 44.8 m; 35 m/s: 250 m -> 68.7 m. Time for a 90 deg turn: 11.25 s -> 2.82 s (25 m/s), 11.25 s -> 3.10 s (35 m/s). Peak bank 0 -> 25 deg, altitude loss over the turn under 1 m. Release-relevant (feel).
 - Why: top open P0 item that is one small PR; CI autoplay (listed above it) is a 2-3 PR chain and needs this turn behaviour pinned first.
