@@ -23,6 +23,7 @@ struct AutoplayStep {
     const char *name;
     float seconds;
     float throttle, pitch, roll, yaw;
+    bool restart;
 };
 
 // Signs follow FlightInput: pitch +1 nose up, roll +1 left, yaw +1 = A key (left).
@@ -40,6 +41,8 @@ constexpr AutoplayStep kScript[] = {
     {"descend", 4.0f, -1, 0, 0, 0},
     {"flare", 1.5f, -1, 0.1f, 0, 0},
     {"rollout", 6.0f, -1, 0, 0, 0},
+    {"restart", kAutoplayDt, 0, 0, 0, 0, true},
+    {"after_restart", 0.5f, 0, 0, 0, 0},
 };
 static_assert(sizeof(kScript) / sizeof(kScript[0]) == kStepCount);
 
@@ -105,6 +108,14 @@ std::vector<std::string> CheckAutoplayResults(const AutoplaySnapshot *ends, int 
         else if (end.speed > kMaxRolloutEndSpeed) Fail(out, "rollout ended at %.1f m/s, need at most %.1f", end.speed, kMaxRolloutEndSpeed);
         if (end.checkpointsPassed < kFirstCheckpointCount) Fail(out, "checkpoint 1 not passed by the end of the script");
     }
+    if (endCount == kStepCount && !ends[kStepRollout].crashed && !ends[kStepAfterRestart].crashed) {
+        const AutoplaySnapshot &r = ends[kStepAfterRestart];
+        float off = Vector3Distance(r.position, expectedStart);
+        if (off > kStartPositionTolerance || r.airborne || r.speed > kStartMaxSpeed)
+            Fail(out, "bad restart: %.2f m from level start, airborne=%d, speed=%.2f", off, r.airborne ? 1 : 0, r.speed);
+        if (r.checkpointsPassed != 0) Fail(out, "restart left %d checkpoint(s) passed", r.checkpointsPassed);
+        if (r.landing != LandingResult::None) Fail(out, "restart left a landing result");
+    }
     CheckHeadingChange(out, ends, endCount, kStepRudderD, "rudder D", -1.0f, kMinRudderHeadingChange);
     CheckHeadingChange(out, ends, endCount, kStepRudderA, "rudder A", 1.0f, kMinRudderHeadingChange);
     CheckHeadingChange(out, ends, endCount, kStepBankLeft, "bank left", 1.0f, kMinBankHeadingChange);
@@ -143,6 +154,7 @@ void AutoplayInput(const AutoplayState &state, FlightInput &input) {
     input.pitch = s.pitch;
     input.roll = s.roll;
     input.yaw = s.yaw;
+    input.restart = s.restart;
 }
 
 const char *AutoplayAdvance(AutoplayState &state, const PlaneState &plane, bool crashed, int checkpointsPassed) {

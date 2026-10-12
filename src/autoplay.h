@@ -19,6 +19,8 @@ enum AutoplayStepId {
     kStepDescend,
     kStepFlare,
     kStepRollout,
+    kStepRestart,
+    kStepAfterRestart,
     kStepCount,
 };
 
