@@ -97,9 +97,9 @@ priority. Skip items marked "owner" (waiting on his decision) or
 
 | Pri | Task | Status | Details |
 | --- | --- | --- | --- |
-| P0 | CI autoplay: the game runs itself in CI and fails on broken start/controls/flight | open — 2-3 PRs | "CI autoplay" |
+| P0 | CI autoplay: the game runs itself in CI and fails on broken start/controls/flight | done 2026-10-12: autoplay harness + assertions (PRs #81, #87) and web smoke in headless Chromium (#91) | "CI autoplay" |
 | P0 | A/D (rudder) turning feels dead since blocker 2 | done — flat 22 deg/s yaw, owner flew it, merged 2026-10-09 | "Owner feedback 2026-10-08" |
-| P0 | Altitude awareness: the player can't tell the ground is close in a dive | (a) HUD ground warning done 2026-10-09; (b) beep, (c) shadow open | "Owner feedback 2026-10-08" |
+| P0 | Altitude awareness: the player can't tell the ground is close in a dive | done: (a) HUD ground warning 2026-10-09; (b) beep below 10 m (#86) and (c) shadow darker when low (#89) 2026-10-12 | "Owner feedback 2026-10-08" |
 | P0 | Landing too hard for players | done 2026-10-09: forgiving limits + flare, hidden assist after repeated hard landings | owner flew it |
 | P0 | Rings counted on touch; red floating obstacles | done 2026-10-09: upright hoops counted only through the hole; hard obstacles are 16 m pines | owner flew it |
 | P1 | Engine and exhaust: a visible radial engine (as in `assets/models/biplane-1920-v2.glb`) and exhaust smoke from the exhaust pipes, thicker with engine power, puffs at start-up; reuse `src/objects/sprites.*`; preset-switchable | open — owner request 2026-10-12; model update by the owner in Claude Design | owner flies it |
