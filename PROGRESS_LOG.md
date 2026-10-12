@@ -11,6 +11,12 @@ owner can skim what happened without digging through git log. Format:
 - Open: <anything waiting on the human, e.g. a pending asset request>
 - PR: <link or branch, if one was opened>
 ```
+## 2026-10-12 17:10 UTC — evening run
+- Did: P0 "CI autoplay" assertions, checkpoint slice (branch agents/2026-10-12-1710-autoplay-checkpoint, stacked on #106). The autoplay snapshot records the passed-ring count and the run fails with `ASSERT FAIL: checkpoint 1 not passed by the end of the script` if no ring was flown through. The old script crossed the ring plane at x=0, 33 m up and missed; rotate/cruise/rudder_d inputs were nudged (gentler pitch, a short A then D yaw) so it crosses at about x=9.8, y=15.7 (ring centre 10, 17, hole radius 5.1). Results log lines gain `rings=N`. No gameplay, physics or level data changed; debug-only code. Not release-relevant.
+- Why: next open slice of the top P0 board item; guards against a broken ring or start position passing CI.
+- Verified: real run, raylib 5.5 from source, FLIGHT_DEBUG build under Xvfb: exit 0, RESULT: PASS, results log identical across two runs, rings=0 after rotate and 1 from cruise; 7/7 ctest; screenshots viewed (ring ahead at rotate, Checkpoints 1/4 at cruise, safe landing at the end); mutation (yaw 0 in rotate/cruise) exits 1 with the checkpoint failure; build without FLIGHT_DEBUG compiles; normal launch has no errors beyond missing audio. code-reviewer: no blockers.
+- Open: the check is "at least one ring passed", not ring 1 specifically (equivalent on the current layout). Restart step is still not in the script. Heading-change margins after the script nudge were not separately measured (assertions pass).
+- PR: stacked on #106, merge that first; awaiting owner review.
 ## 2026-10-12 15:13 UTC — day run
 - Did: P0 "CI autoplay" assertions, next slice (branch agents/2026-10-12-1513-autoplay-landing): the debug-only autoplay script now ends with level_out, descend, flare and rollout, and the run fails if the plane crashes, is still airborne at the end, has no safe landing recorded (`LandingResult::Safe`), or is faster than 15 m/s at the end of rollout. New AutoplayTests cases for each failure. Touchdown in the scripted run: sink about 2.9 m/s (limit 7), speed about 26 m/s (limit 40). No gameplay, physics, controls or visuals changed. Not release-relevant.
 - Why: top open P0 item not covered by an open PR; a landing that is judged hard (or a plane that cannot come down) would now turn CI red. Still open in this item: checkpoint 1 reachable, restart step.
