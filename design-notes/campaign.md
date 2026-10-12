@@ -5,7 +5,7 @@ Status: DESIGN for the owner's decision of 2026-10-09 (CLAUDE.md "Campaign"). It
 Inputs: `PLAYER_FEEDBACK.md` is empty (no players yet), so this is designed against the niche (chill/arcade low-poly flight, comps A Short Hike / Sky Rogue) and the owner's two rules: a new player learns the controls before anything hard, and locked levels are visible and tease. Revisit after the first itch.io feedback; the likeliest thing to change is tutorial length.
 
 ## Design rules
-- Unlock = finish the previous level (reach its last stage), any stars. Never gate by stars: nobody gets stuck, which suits a chill game and the 60%-positive Web goal. Stars and medals are optional replay value.
+- Unlock = finish the previous level (reach its last stage; for tutorial level 1 that is the landing, for level 2 the gate), any stars. Never gate by stars: nobody gets stuck, which suits a chill game and the 60%-positive Web goal. Stars and medals are optional replay value.
 - Every stage says in one short line what to do, shown at stage start and kept small on the HUD ("Stage 2/4: Climb. Hold up arrow, reach 60 m"). Hints are text only, no voice, no pause.
 - A crash restarts at the start of the current stage in tutorial levels (1-2) and at the level start in 3-5. One flag on the level, not two code paths.
 - Hard difficulty comes from layout, never from stricter landing/damage rules (those were just relaxed for the owner).
@@ -27,7 +27,7 @@ Start on the runway at the world origin like level 1 does today. Each stage ends
 1. Takeoff: hint "Hold W for full throttle, then ease the nose up with the up arrow (touch: drag up)". Done when airborne above 5 m AGL.
 2. Climb: two large rings (radius 14 m) straight ahead at y = 25 m and y = 50 m, 150 m apart. Hint "Keep the nose up and climb". Rings are not required, the stage ends at 50 m AGL.
 3. Approach: a line of 5 flat marker rings (radius 12 m, centred on a 4 degree glide path to the runway threshold, spacing 80 m) so a player can fly the descent by following rings. Hint "Reduce throttle (S) and glide down through the rings".
-4. Runway landing: hint "Touch down gently and roll out". The runway is the existing landing zone type (300 x 24 m). Level ends on a safe touchdown plus stopped/rolling slow.
+4. Runway landing: hint "Touch down gently and roll out". The runway is the existing landing zone type (300 x 40 m today, `landingZoneWidth`). Level ends on a safe touchdown plus stopped/rolling slow.
 The level is one straight line: the runway for the landing lies about 700 m ahead of the start, so the approach is a long straight descent. No turning in level 1 on purpose.
 
 ### Level 2 Slalom Field (about 2 min)
@@ -69,6 +69,7 @@ struct StageDef {
     float endZ;                  // stage completes when plane z passes this, unless the type has its own rule
     bool requiredRings;          // false = rings are optional (stars only)
     float minSpeed, maxSpeed;    // 0 = no band, otherwise a ring counts only inside the band
+    float zoneZ, zoneLength, zoneWidth; // landing stages only; today the zone is drawn from the gate z, so a placeable zone position is new data
     std::vector<CheckpointDef> checkpoints;
 };
 ```
@@ -97,12 +98,12 @@ Reuse `menu.cpp`'s entry list; a level card is a menu entry kind. Results screen
 ## What is saved (`src/progress.*`)
 No new file format needed; everything fits `ProgressData` as it is:
 - Per level `LevelRecord{id, bestTime, stars}`. Medal is not stored: it is derived from `bestTime` against the level's `medalGold/Silver/Bronze` (so retuning medal times never invalidates saves). Tutorial levels 1-2 have no medals, only stars and finished.
-- `unlocks` string list: `level:mountains`, `level:lake`, `plane:seaplane`. Unlock is written when the previous level is finished (`AddUnlock`), then `SaveProgress` once, on the results screen only (never mid-flight). A level counts as unlocked if its `unlockedBy` is finished or the flag exists; level 1 is always unlocked. Storing the flag means a later rebalance cannot re-lock a player.
-- Level 1's stars are credited from stage rings only if all required stages finished; a crash never writes.
+- `unlocks` string list: `level_mountains`, `level_lake`, `plane_seaplane` (`ValidId` in `progress.cpp` only allows letters, digits, `_` and `-` and `AddUnlock` silently drops other ids, so no colons). Unlock is written when the previous level is finished (`AddUnlock`), then `SaveProgress` once, on the results screen only (never mid-flight). A level counts as unlocked if its `unlockedBy` is finished or the flag exists; level 1 is always unlocked. Storing the flag means a later rebalance cannot re-lock a player.
+- Level 3's (`level1`) stars are credited from stage rings only if all required stages finished; a crash never writes.
 - Selected plane per level: not saved for the first release (default plane is used). When the hangar exists, add one key `plane.<levelid>=<planeid>` as a new unknown-key-safe line; `ParseProgress` already skips unknown keys, so old builds are not harmed.
 - Settings (`volume`, `preset`) are already in `ProgressData`.
 - Web uses `localStorage` already; if storage is blocked inside the itch.io iframe, play continues from memory and everything unlocked before is simply lost on reload, a known limitation to put in the page text.
-- Test-only unlock: the existing `--crash-test` style debug hook gets `--unlock-all` so testers can reach levels 4-5 without playing.
+- Test-only unlock: the existing `--crash-test` style debug hook gets `--unlock-all`, compiled only under `FLIGHT_DEBUG` like `--crash-test` so the shipped Web build cannot unlock everything, so testers can reach levels 4-5 without playing.
 
 ## Planes per level
 - Levels 1-4: the biplane (`assets/models/biplane-1920.glb`, `BiplaneParams`). Level 4 is deliberately flyable with the biplane's climb rate: ridges are tall but the pass floor is level, so no plane swap is needed to finish it.
@@ -113,8 +114,8 @@ No new file format needed; everything fits `ProgressData` as it is:
 ## Suggested PR order
 Each PR is one behaviour change, small, and ends with the game still starting, level 3 identical, CI autoplay green.
 
-1. Stage system as data (no visible change). `StageType`, `StageDef`, `UpdateStage`, level 3 (`level1`) wrapped as stages, HUD stage title line; `LevelDefTests` extended. Includes the `CampaignLevels()` registry with only level 3 in it.
-2. Level select with locked teasers and saved unlocks. Level cards, silhouettes from `terrainKind`, unlock flags in `ProgressData`, results Next/Retry. Levels 1, 2, 4, 5 appear as "Coming soon" teasers (no content). Add `--unlock-all`.
+1. Stage system as data (no visible change, but not small inside: `Level1Def()` is hard-wired in `level.cpp`, `level.h` and `main.cpp`, so a `LevelDef` must be passed through all of them). `StageType`, `StageDef`, `UpdateStage`, level 3 (`level1`) wrapped as stages, HUD stage title line; `LevelDefTests` extended. Includes the `CampaignLevels()` registry with only level 3 in it.
+2. Level select with locked teasers and saved unlocks. Level cards, silhouettes from `terrainKind`, unlock flags in `ProgressData`, results Next/Retry. Levels 1, 2, 4, 5 appear as "Coming soon" teasers (no content). Add `--unlock-all` (`FLIGHT_DEBUG` only).
 3. Tutorial level 1 (First Wings): takeoff/climb/approach/landing stages, hints, restart at stage. Needs a one-time layout check by flying it.
 4. Tutorial level 2 (Slalom Field): rings with speed bands, optional rings, the two turn stages.
 
@@ -125,6 +126,6 @@ Each PR is one behaviour change, small, and ends with the game still starting, l
 7. Plane choice (hangar row) only when a level allows two planes; depends on aircraft configs and is not needed for the Web release.
 
 ## Open questions for the owner
-1. Is "reach the last stage" the right finish for unlocking, or should the tutorials demand the landing too? (Proposed: yes, landing, because it is the skill taught.)
+1. Level 2 unlocks at the gate with no landing (level 1 already teaches landing). Should level 2 also demand a landing? (Proposed: no.)
 2. Seaplane on land: crash-landing is simplest; a wheeled-plus-floats "amphibian" would be friendlier but needs more rules. OK to start simple?
 3. May level 1 and 2 hints be shown as English text only for the first Web build? (No localization planned.)
