@@ -29,6 +29,7 @@ struct AutoplaySnapshot {
     bool airborne = false;
     bool crashed = false;
     LandingResult landing = LandingResult::None;
+    int checkpointsPassed = 0;
 };
 
 struct AutoplayState {
@@ -53,5 +54,5 @@ std::vector<std::string> CheckAutoplayResults(const AutoplaySnapshot *ends, int 
 int AutoplayExitCode(const AutoplayState &state);
 bool AutoplayWantsPlay(const AutoplayState &state);
 void AutoplayInput(const AutoplayState &state, FlightInput &input);
-const char *AutoplayAdvance(AutoplayState &state, const PlaneState &plane, bool crashed);
+const char *AutoplayAdvance(AutoplayState &state, const PlaneState &plane, bool crashed, int checkpointsPassed);
 void SaveScreenshot(const char *path);

@@ -27,6 +27,7 @@ void GoodRun(AutoplaySnapshot ends[kStepCount]) {
     ends[kStepRollout].airborne = false;
     ends[kStepRollout].landing = LandingResult::Safe;
     ends[kStepRollout].speed = 8.0f;
+    ends[kStepRollout].checkpointsPassed = 1;
     for (int i = kStepCruise; i < kStepRudderD; i++) ends[i].yaw = 0.0f;
 }
 
@@ -105,6 +106,14 @@ int main() {
     GoodRun(ends);
     ends[kStepRollout].speed = 30.0f;
     Expect("rollout too fast", Fails(ends, kStepCount, 0, "rollout ended"));
+
+    GoodRun(ends);
+    ends[kStepRollout].checkpointsPassed = 0;
+    Expect("checkpoint 1 missed", Fails(ends, kStepCount, 0, "checkpoint 1 not passed"));
+
+    GoodRun(ends);
+    ends[kStepRollout].checkpointsPassed = 4;
+    Expect("extra checkpoints are fine", CheckAutoplayResults(ends, kStepCount, kStart, 0).empty());
 
     GoodRun(ends);
     ends[kStepFlare].crashed = true;
