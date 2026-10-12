@@ -151,6 +151,7 @@ jobs:
         run: |
           test -f build-ios/Release-iphonesimulator/FlightGame.app/assets/models/biplane-1920.glb
           test -f build-ios/Release-iphonesimulator/FlightGame.app/assets/models/biplane-1920.break.txt
+          test -f build-ios/Release-iphonesimulator/FlightGame.app/assets/models/biplane-1920.flight.txt
 
       - name: Check Info.plist orientation and launch screen
         run: |
