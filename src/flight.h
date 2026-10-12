@@ -42,6 +42,10 @@ struct PlaneParams {
 
 PlaneParams BiplaneParams();
 
+// Reads key=value lines (PlaneParams field names, '#' comments) over BiplaneParams(); an unknown key or
+// unparsable value returns false and leaves `out` untouched.
+bool LoadPlaneParams(PlaneParams &out, const char *path);
+
 enum class LandingResult { None, Safe, Hard };
 
 struct PlaneState {

@@ -1,6 +1,9 @@
 #include "flight.h"
 #include "raymath.h"
 #include <cmath>
+#include <cstdlib>
+#include <fstream>
+#include <string>
 
 namespace {
 
@@ -56,6 +59,55 @@ PlaneParams BiplaneParams() {
     p.landingMaxNoseUp = 12.0f;
     p.fuelCapacity = 100.0f;
     return p;
+}
+
+bool LoadPlaneParams(PlaneParams &out, const char *path) {
+    struct Field { const char *name; float PlaneParams::*member; };
+    static const Field kFields[] = {
+        {"maxSpeed", &PlaneParams::maxSpeed}, {"accel", &PlaneParams::accel},
+        {"throttleRate", &PlaneParams::throttleRate}, {"levelPower", &PlaneParams::levelPower},
+        {"glideRatio", &PlaneParams::glideRatio}, {"gravity", &PlaneParams::gravity},
+        {"liftDamping", &PlaneParams::liftDamping}, {"groundDrag", &PlaneParams::groundDrag},
+        {"brakeDecel", &PlaneParams::brakeDecel}, {"dragLinear", &PlaneParams::dragLinear},
+        {"dragQuad", &PlaneParams::dragQuad}, {"stallSpeed", &PlaneParams::stallSpeed},
+        {"liftoffSpeed", &PlaneParams::liftoffSpeed}, {"liftoffPitch", &PlaneParams::liftoffPitch},
+        {"controlSpeed", &PlaneParams::controlSpeed}, {"pitchRate", &PlaneParams::pitchRate},
+        {"rollRate", &PlaneParams::rollRate}, {"yawRate", &PlaneParams::yawRate},
+        {"taxiTurnRadius", &PlaneParams::taxiTurnRadius}, {"taxiMaxTurnRate", &PlaneParams::taxiMaxTurnRate},
+        {"stallDropRate", &PlaneParams::stallDropRate}, {"stallAuthority", &PlaneParams::stallAuthority},
+        {"stallPitchFloor", &PlaneParams::stallPitchFloor}, {"maxTurnRate", &PlaneParams::maxTurnRate},
+        {"maxPitch", &PlaneParams::maxPitch}, {"maxRoll", &PlaneParams::maxRoll},
+        {"levelRate", &PlaneParams::levelRate}, {"wheelHeight", &PlaneParams::wheelHeight},
+        {"minAltitudeAboveGround", &PlaneParams::minAltitudeAboveGround},
+        {"landingMaxSinkRate", &PlaneParams::landingMaxSinkRate}, {"landingMaxSpeed", &PlaneParams::landingMaxSpeed},
+        {"landingMaxRoll", &PlaneParams::landingMaxRoll}, {"landingMaxNoseDown", &PlaneParams::landingMaxNoseDown},
+        {"landingMaxNoseUp", &PlaneParams::landingMaxNoseUp}, {"fuelCapacity", &PlaneParams::fuelCapacity},
+    };
+
+    std::ifstream file(path);
+    if (!file) return false;
+    PlaneParams parsed = BiplaneParams();
+    std::string line;
+    while (std::getline(file, line)) {
+        size_t start = line.find_first_not_of(" \t\r");
+        if (start == std::string::npos || line[start] == '#') continue;
+        size_t eq = line.find('=', start);
+        if (eq == std::string::npos) return false;
+        std::string key = line.substr(start, eq - start);
+        key.erase(key.find_last_not_of(" \t") + 1);
+        std::string value = line.substr(eq + 1);
+        const Field *field = nullptr;
+        for (const Field &f : kFields) if (key == f.name) field = &f;
+        if (!field) return false;
+        char *end = nullptr;
+        float number = strtof(value.c_str(), &end);
+        if (end == value.c_str() || !std::isfinite(number)) return false;
+        while (*end == ' ' || *end == '\t' || *end == '\r') end++;
+        if (*end != '\0') return false;
+        parsed.*field->member = number;
+    }
+    out = parsed;
+    return true;
 }
 
 void UpdatePlaneControls(PlaneState &plane, const PlaneParams &params, const FlightInput &input, float dt, float groundHeight, float groundSlopeDeg) {

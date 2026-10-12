@@ -1,0 +1,50 @@
+# Flight parameters for biplane-1920.glb, one `key=value` per line, keys are the PlaneParams field names in src/flight.h.
+# Units: metres, seconds, degrees. Loaded by LoadPlaneParams; an unknown key or unparsable value rejects the whole file
+# and the game falls back to BiplaneParams() in src/flight.cpp (keep the two identical).
+#
+# Reference aircraft: Sopwith Camel F.1 (1917). Figures quoted from memory of published specs, all approx:
+#   top speed ~113 mph = ~50 m/s (at altitude); gross weight ~1450 lb = ~660 kg; wing area ~231 sq ft = ~21.5 m^2
+#   wing loading ~6.3 lb/sq ft = ~31 kg/m^2; climb to 10000 ft in ~10 min (~5 m/s average); service ceiling ~21000 ft.
+# No glide ratio, stall speed, roll rate or fuel figure is quoted: none is known with confidence, so they are tuning.
+#
+# Pure game-feel tuning (not derived from the Camel): everything else, notably accel, throttleRate, levelPower,
+# glideRatio, liftDamping, controlSpeed, pitchRate, rollRate, yawRate, taxiTurnRadius, taxiMaxTurnRate,
+# stallDropRate, stallAuthority, stallPitchFloor, maxTurnRate, maxPitch, maxRoll, levelRate, the landing limits and
+# fuelCapacity. maxSpeed (60) is deliberately above the Camel's ~50 m/s so full-throttle dives have headroom;
+# stallSpeed, liftoffSpeed and gravity (9.81, physical) are chosen for a short arcade takeoff run.
+
+maxSpeed=60
+accel=12
+throttleRate=2
+levelPower=0.2
+glideRatio=9
+gravity=9.81
+liftDamping=3
+groundDrag=0.8
+brakeDecel=6
+dragLinear=0.01
+dragQuad=0.0031
+stallSpeed=14
+liftoffSpeed=18
+liftoffPitch=5
+controlSpeed=25
+pitchRate=60
+rollRate=90
+yawRate=22
+taxiTurnRadius=15
+taxiMaxTurnRate=35
+stallDropRate=70
+stallAuthority=0.4
+stallPitchFloor=20
+maxTurnRate=55
+maxPitch=60
+maxRoll=75
+levelRate=50
+wheelHeight=0.3
+minAltitudeAboveGround=1
+landingMaxSinkRate=7
+landingMaxSpeed=40
+landingMaxRoll=20
+landingMaxNoseDown=25
+landingMaxNoseUp=12
+fuelCapacity=100

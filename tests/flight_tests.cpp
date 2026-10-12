@@ -2,6 +2,8 @@
 #include "level_def.h"
 #include <cmath>
 #include <cstdio>
+#include <cstring>
+#include <fstream>
 
 namespace {
 
@@ -344,11 +346,39 @@ void TestRollClamp(const PlaneParams &p) {
     }
 }
 
+bool SameParams(const PlaneParams &a, const PlaneParams &b) {
+    return memcmp(&a, &b, sizeof(PlaneParams)) == 0;
+}
+
+void TestPlaneParamsFile(const char *shippedPath, const char *scratchPath) {
+    PlaneParams loaded = BiplaneParams();
+    loaded.maxSpeed = -1.0f;
+    Expect("shipped flight file loads", LoadPlaneParams(loaded, shippedPath));
+    Expect("shipped flight file equals BiplaneParams", SameParams(loaded, BiplaneParams()));
+
+    const char *bad[] = {"notAKey=1\n", "maxSpeed=fast\n", "maxSpeed=12x\n", "maxSpeed\n", "maxSpeed=\n", "maxSpeed=nan\n"};
+    for (const char *content : bad) {
+        { std::ofstream(scratchPath) << content; }
+        PlaneParams untouched = BiplaneParams();
+        untouched.accel = 99.0f;
+        PlaneParams copy = untouched;
+        bool ok = LoadPlaneParams(copy, scratchPath);
+        Expect(content, !ok && SameParams(copy, untouched));
+    }
+    { std::ofstream(scratchPath) << "# comment\n\n  accel = 7.5 \n"; }
+    PlaneParams partial;
+    Expect("partial file loads", LoadPlaneParams(partial, scratchPath));
+    Expect("partial file overrides listed key only", partial.accel == 7.5f && partial.maxSpeed == BiplaneParams().maxSpeed);
+    Expect("missing file rejected", !LoadPlaneParams(partial, "/nonexistent/flight.txt"));
+    remove(scratchPath);
+}
+
 }  // namespace
 
 int main(int argc, char **argv) {
     g_verbose = argc > 1;
     PlaneParams p = BiplaneParams();
+    TestPlaneParamsFile(FLIGHT_PARAMS_FILE, FLIGHT_PARAMS_SCRATCH);
     TestLiftoff(p);
     TestGateTime(p);
     TestGlide(p);
