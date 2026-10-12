@@ -104,7 +104,7 @@ priority. Skip items marked "owner" (waiting on his decision) or
 | P0 | Rings counted on touch; red floating obstacles | done 2026-10-09: upright hoops counted only through the hole; hard obstacles are 16 m pines | owner flew it |
 | P1 | Menu look: modern menu style and proper fonts | open — interactive session collects references for the owner to pick first | owner picks the style |
 | P0 | Effects polish part 1: smoke, fireball, snow → soft sprites | done, merged 2026-10-09 | "Next up" below |
-| P1 | Aircraft configs: each aircraft's flight parameters in its own data file, sourced from real specs | open | "Aircraft configs" |
+| P1 | Aircraft configs: each aircraft's flight parameters in its own data file, sourced from real specs | done, awaiting owner review | "Aircraft configs" |
 | P1 | World art track: sky, then ground (look like 2000s today) | open — world-artist agent, small PRs | "World art track" |
 | P1 | Code split: world look (render) separate from world gameplay | open — first PR of the world art track, no visual change | "World art track" |
 | P1 | Effects polish part 2: rain, speed streaks, debris dust (one PR, reusing `src/objects/sprites.*`); clouds separately if they read as blocks | open | "Next up" below |
