@@ -14,6 +14,8 @@ constexpr float kStartPositionTolerance = 0.05f;
 constexpr float kStartMaxSpeed = 0.5f;
 constexpr float kMinRudderHeadingChange = 12.0f;
 constexpr float kMinBankHeadingChange = 22.0f;
+constexpr float kMaxRolloutEndSpeed = 15.0f;
+constexpr int kFirstCheckpointCount = 1;
 
 std::atomic<int> g_logErrors{0};
 
@@ -21,19 +23,26 @@ struct AutoplayStep {
     const char *name;
     float seconds;
     float throttle, pitch, roll, yaw;
+    bool restart;
 };
 
 // Signs follow FlightInput: pitch +1 nose up, roll +1 left, yaw +1 = A key (left).
 constexpr AutoplayStep kScript[] = {
     {"menu", 0.5f, 0, 0, 0, 0},
     {"ground_roll", 3.0f, 1, 0, 0, 0},
-    {"rotate", 2.0f, 1, 0.3f, 0, 0},
-    {"cruise", 3.0f, 0.5f, 0, 0, 0},
-    {"rudder_d", 3.0f, 0.5f, 0, 0, -1},
+    {"rotate", 2.0f, 1, 0.15f, 0, 0.15f},
+    {"cruise", 3.0f, 0.5f, 0, 0, -0.15f},
+    {"rudder_d", 3.0f, 0.5f, 0.06f, 0, -1},
     {"rudder_a", 3.0f, 0.5f, 0, 0, 1},
     {"bank_left", 3.0f, 0.5f, 0, 0.35f, 0},
     {"wings_level", 2.0f, 0.5f, 0, 0, 0},
     {"bank_right", 3.0f, 0.5f, 0, -0.35f, 0},
+    {"level_out", 1.5f, -1, 0.1f, 0, 0},
+    {"descend", 4.0f, -1, 0, 0, 0},
+    {"flare", 1.5f, -1, 0.1f, 0, 0},
+    {"rollout", 6.0f, -1, 0, 0, 0},
+    {"restart", kAutoplayDt, 0, 0, 0, 0, true},
+    {"after_restart", 0.5f, 0, 0, 0, 0},
 };
 static_assert(sizeof(kScript) / sizeof(kScript[0]) == kStepCount);
 
@@ -46,8 +55,8 @@ void CountingTraceLog(int level, const char *text, va_list args) {
     if (level >= LOG_ERROR) g_logErrors++;
 }
 
-AutoplaySnapshot Snapshot(const PlaneState &plane, bool crashed) {
-    return {plane.position, plane.yaw, plane.speed, plane.airborne, crashed};
+AutoplaySnapshot Snapshot(const PlaneState &plane, bool crashed, int checkpointsPassed) {
+    return {plane.position, plane.yaw, plane.speed, plane.airborne, crashed, plane.landing, checkpointsPassed};
 }
 
 void Fail(std::vector<std::string> &out, const char *format, ...) {
@@ -67,11 +76,11 @@ void CheckHeadingChange(std::vector<std::string> &out, const AutoplaySnapshot *e
     if (change < minimum) Fail(out, "%s turned %.2f deg, need at least %.2f deg toward the expected side", label, change, minimum);
 }
 
-void LogState(const AutoplayState &state, const char *event, const PlaneState &plane) {
+void LogState(const AutoplayState &state, const char *event, const PlaneState &plane, int checkpointsPassed) {
     float dyaw = plane.yaw - (state.step > 0 ? state.ends[state.step - 1].yaw : plane.yaw);
-    fprintf(state.log, "%-5s %-12s t=%6.2f pos=(%8.2f,%7.2f,%8.2f) yaw=%7.2f dyaw=%7.2f pitch=%6.2f roll=%6.2f speed=%5.1f alt=%6.2f airborne=%d\n",
+    fprintf(state.log, "%-5s %-12s t=%6.2f pos=(%8.2f,%7.2f,%8.2f) yaw=%7.2f dyaw=%7.2f pitch=%6.2f roll=%6.2f speed=%5.1f alt=%6.2f airborne=%d rings=%d\n",
             event, kScript[state.step].name, state.totalTime, plane.position.x, plane.position.y, plane.position.z,
-            plane.yaw, dyaw, plane.pitch, plane.roll, plane.speed, plane.position.y, plane.airborne ? 1 : 0);
+            plane.yaw, dyaw, plane.pitch, plane.roll, plane.speed, plane.position.y, plane.airborne ? 1 : 0, checkpointsPassed);
     fflush(state.log);
 }
 
@@ -92,6 +101,21 @@ std::vector<std::string> CheckAutoplayResults(const AutoplaySnapshot *ends, int 
         Fail(out, "no liftoff by the end of rotate");
     if (endCount < kStepCount && (endCount == 0 || !ends[endCount - 1].crashed))
         Fail(out, "script ended early after %d of %d steps", endCount, kStepCount);
+    if (endCount == kStepCount && !ends[kStepRollout].crashed) {
+        const AutoplaySnapshot &end = ends[kStepRollout];
+        if (end.airborne) Fail(out, "still airborne at the end of rollout");
+        else if (end.landing != LandingResult::Safe) Fail(out, "no safe landing recorded by the end of rollout");
+        else if (end.speed > kMaxRolloutEndSpeed) Fail(out, "rollout ended at %.1f m/s, need at most %.1f", end.speed, kMaxRolloutEndSpeed);
+        if (end.checkpointsPassed < kFirstCheckpointCount) Fail(out, "checkpoint 1 not passed by the end of the script");
+    }
+    if (endCount == kStepCount && !ends[kStepRollout].crashed && !ends[kStepAfterRestart].crashed) {
+        const AutoplaySnapshot &r = ends[kStepAfterRestart];
+        float off = Vector3Distance(r.position, expectedStart);
+        if (off > kStartPositionTolerance || r.airborne || r.speed > kStartMaxSpeed)
+            Fail(out, "bad restart: %.2f m from level start, airborne=%d, speed=%.2f", off, r.airborne ? 1 : 0, r.speed);
+        if (r.checkpointsPassed != 0) Fail(out, "restart left %d checkpoint(s) passed", r.checkpointsPassed);
+        if (r.landing != LandingResult::None) Fail(out, "restart left a landing result");
+    }
     CheckHeadingChange(out, ends, endCount, kStepRudderD, "rudder D", -1.0f, kMinRudderHeadingChange);
     CheckHeadingChange(out, ends, endCount, kStepRudderA, "rudder A", 1.0f, kMinRudderHeadingChange);
     CheckHeadingChange(out, ends, endCount, kStepBankLeft, "bank left", 1.0f, kMinBankHeadingChange);
@@ -130,16 +154,17 @@ void AutoplayInput(const AutoplayState &state, FlightInput &input) {
     input.pitch = s.pitch;
     input.roll = s.roll;
     input.yaw = s.yaw;
+    input.restart = s.restart;
 }
 
-const char *AutoplayAdvance(AutoplayState &state, const PlaneState &plane, bool crashed) {
+const char *AutoplayAdvance(AutoplayState &state, const PlaneState &plane, bool crashed, int checkpointsPassed) {
     if (!state.active || state.finished) return nullptr;
     state.stepTime += kAutoplayDt;
     state.totalTime += kAutoplayDt;
     if (!crashed && state.stepTime < kScript[state.step].seconds) return nullptr;
 
-    LogState(state, crashed ? "CRASH" : "end", plane);
-    state.ends[state.step] = Snapshot(plane, crashed);
+    LogState(state, crashed ? "CRASH" : "end", plane, checkpointsPassed);
+    state.ends[state.step] = Snapshot(plane, crashed, checkpointsPassed);
     state.endCount = state.step + 1;
     const char *path = TextFormat("%s/%s-%02d-%s.png", state.dir, state.prefix, state.step, kScript[state.step].name);
     state.stepTime = 0.0f;

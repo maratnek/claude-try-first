@@ -11,6 +11,25 @@ owner can skim what happened without digging through git log. Format:
 - Open: <anything waiting on the human, e.g. a pending asset request>
 - PR: <link or branch, if one was opened>
 ```
+## 2026-10-12 17:10 UTC — evening run
+- Did: P0 "CI autoplay" assertions, checkpoint slice (branch agents/2026-10-12-1710-autoplay-checkpoint, stacked on #106). The autoplay snapshot records the passed-ring count and the run fails with `ASSERT FAIL: checkpoint 1 not passed by the end of the script` if no ring was flown through. The old script crossed the ring plane at x=0, 33 m up and missed; rotate/cruise/rudder_d inputs were nudged (gentler pitch, a short A then D yaw) so it crosses at about x=9.8, y=15.7 (ring centre 10, 17, hole radius 5.1). Results log lines gain `rings=N`. No gameplay, physics or level data changed; debug-only code. Not release-relevant.
+- Why: next open slice of the top P0 board item; guards against a broken ring or start position passing CI.
+- Verified: real run, raylib 5.5 from source, FLIGHT_DEBUG build under Xvfb: exit 0, RESULT: PASS, results log identical across two runs, rings=0 after rotate and 1 from cruise; 7/7 ctest; screenshots viewed (ring ahead at rotate, Checkpoints 1/4 at cruise, safe landing at the end); mutation (yaw 0 in rotate/cruise) exits 1 with the checkpoint failure; build without FLIGHT_DEBUG compiles; normal launch has no errors beyond missing audio. code-reviewer: no blockers.
+- Open: the check is "at least one ring passed", not ring 1 specifically (equivalent on the current layout). Restart step is still not in the script. Heading-change margins after the script nudge were not separately measured (assertions pass).
+- PR: stacked on #106, merge that first; awaiting owner review.
+## 2026-10-12 15:13 UTC — day run
+- Did: P0 "CI autoplay" assertions, next slice (branch agents/2026-10-12-1513-autoplay-landing): the debug-only autoplay script now ends with level_out, descend, flare and rollout, and the run fails if the plane crashes, is still airborne at the end, has no safe landing recorded (`LandingResult::Safe`), or is faster than 15 m/s at the end of rollout. New AutoplayTests cases for each failure. Touchdown in the scripted run: sink about 2.9 m/s (limit 7), speed about 26 m/s (limit 40). No gameplay, physics, controls or visuals changed. Not release-relevant.
+- Why: top open P0 item not covered by an open PR; a landing that is judged hard (or a plane that cannot come down) would now turn CI red. Still open in this item: checkpoint 1 reachable, restart step.
+- Verified: real run under Xvfb (raylib 5.5 from source, FLIGHT_DEBUG build): `--autoplay` RESULT: PASS, exit 0, results log byte-identical across two runs; 7/7 ctest; a hard-dive mutation of the descend step fails with exit 1; build without FLIGHT_DEBUG compiles. Screenshots of descend, flare and rollout viewed by the tester. code-reviewer: no blockers. CI: see PR.
+- Open: owner to open the `FlightGame-autoplay` artifact and look at the last PNGs. The script is open-loop: a future physics or terrain change may need its numbers retuned. The rollout screenshot shows the results overlay (gate already crossed).
+- PR: awaiting owner review, branch agents/2026-10-12-1513-autoplay-landing
+
+## 2026-10-12 19:10 UTC — evening run
+- Did: P0 CI autoplay, restart slice (branch agents/2026-10-12-1910-autoplay-restart, stacked on #107 and #106). The script presses R after the rollout, then holds `after_restart` for 0.5 s. The run fails if the plane is not back grounded at the level start, not still, with rings reset to 0 and the landing result cleared. New AutoplayTests cases for each failure. Debug-only; no gameplay change. Not release-relevant.
+- Why: last open piece of the top board item (restart step); the rest of the chain is open PRs, so this stacks on them.
+- Verified: real run, raylib 5.5 from source, game with FLIGHT_DEBUG under Xvfb: exit 0, RESULT PASS; rollout ended at z=1214 m, restart/after_restart at (0, 1.98, 0), speed 0, rings=0. Mutation (restart press disabled) exits 1 with three ASSERT FAIL lines. 7/7 ctest; FLIGHT_DEBUG=OFF build compiles. game-tester viewed the rollout/restart/after_restart screenshots: fine. code-reviewer: no blockers. CI status: see PR.
+- Open: yaw/pitch reset not asserted (reviewer nit); scripted R only, not a physical key press. Awaiting owner review.
+- PR: PR into dev from agents/2026-10-12-1910-autoplay-restart, stacked on #107 (merge #106, #107 first)
 
 ## 2026-10-08 09:20 UTC — day run
 - Did: P0 "A/D (rudder) turning feels dead" (branch agents/2026-10-08-0920-rudder-turn): `yawRate` 8 -> 22 deg/s and new `rudderBank` = 25 deg; with A/D held and no arrow input the plane eases into a bank toward the rudder side at `rollRate * authority`, and levels as before on release. Grounded taxi and the bank-turn formula are untouched. New flight test for A/D-only turns at 25 and 35 m/s. Radius 25 m/s: 179 m -> 44.8 m; 35 m/s: 250 m -> 68.7 m. Time for a 90 deg turn: 11.25 s -> 2.82 s (25 m/s), 11.25 s -> 3.10 s (35 m/s). Peak bank 0 -> 25 deg, altitude loss over the turn under 1 m. Release-relevant (feel).

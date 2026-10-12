@@ -97,7 +97,7 @@ priority. Skip items marked "owner" (waiting on his decision) or
 
 | Pri | Task | Status | Details |
 | --- | --- | --- | --- |
-| P0 | CI autoplay: the game runs itself in CI and fails on broken start/controls/flight | open — 2-3 PRs | "CI autoplay" |
+| P0 | CI autoplay: the game runs itself in CI and fails on broken start/controls/flight | open — harness, assertions, landing, ring and restart slices are in open PRs | "CI autoplay" |
 | P0 | A/D (rudder) turning feels dead since blocker 2 | done — flat 22 deg/s yaw, owner flew it, merged 2026-10-09 | "Owner feedback 2026-10-08" |
 | P0 | Altitude awareness: the player can't tell the ground is close in a dive | (a) HUD ground warning done 2026-10-09; (b) beep, (c) shadow open | "Owner feedback 2026-10-08" |
 | P0 | Landing too hard for players | done 2026-10-09: forgiving limits + flare, hidden assist after repeated hard landings | owner flew it |
