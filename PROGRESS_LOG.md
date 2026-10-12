@@ -12,6 +12,12 @@ owner can skim what happened without digging through git log. Format:
 - PR: <link or branch, if one was opened>
 ```
 
+## 2026-10-12 23:07 UTC — night run
+- Did: P1 "Stage system" (campaign PR 1, branch agents/2026-10-12-2307-stage-system, stacked on the campaign note PR #111): `LevelDef` gets id, name and an ordered stage list (Takeoff, Rings, Gate, Landing) derived from the existing level 1 fields; `CampaignLevels()`/`FindLevel()` registry with level 1 only; `LevelState` tracks the current stage (`UpdateStage`); HUD line "Stage N/M: Title". Level 1 rules, stars and medals are untouched.
+- Why: every P0 is covered by an open PR; the stage system is the next board item on the road to the 3-level first release and everything after it (level select, tutorials) depends on it.
+- Verified: raylib 5.5 built from source, 7/7 ctest; real run under Xvfb with real key input and screenshots (HUD shows Stage 1/4..4/4, no overlap at 1280x720 and 800x450); autoplay results file byte-identical to dev. code-reviewer: no blockers. Not covered: the autoplay never reaches the gate, so gate time/stars/medal equality rests on the unit tests; landing/results screen not flown in the real run.
+- Open: only `level.cpp` reads `level.def`; `main.cpp`, `world.cpp` and `ComputeMedal` still call `Level1Def()`, so "level 2 is just data" is not true yet (next PR). The Rings stage ends by z distance, not by rings flown. Owner: fly level 1 and look at the new HUD line.
+- PR: PR into dev from agents/2026-10-12-2307-stage-system, stacked on #111, awaiting owner review
 ## 2026-10-12 20:06 UTC — night run
 - Did: P1 "Campaign design note" (branch agents/2026-10-12-2006-campaign-note): `design-notes/campaign.md` with five levels (two flying tutorials, today's level 1 as Valley Run, mountains, water/seaplane), stage types as `LevelDef` data, locked teaser look, what is saved via `src/progress.*`, plane per level, and a PR order. Smallest set for the itch.io Web build: stage system, level select with teasers, two tutorial levels. `progression.md` points to it. Design only, no code.
 - Why: every P0 item is covered by an open PR; this is the first uncovered board item, it touches no code file, and the stage system, level select and tutorials all wait for it.

@@ -33,8 +33,8 @@ struct StageDef {
 };
 
 struct LevelDef {
-    const char *id;
-    const char *name;
+    const char *id = "";
+    const char *name = "";
     float startX, startZ;
     float startHeightAboveGround;
     TerrainDef terrain;
