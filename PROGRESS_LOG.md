@@ -12,6 +12,13 @@ owner can skim what happened without digging through git log. Format:
 - PR: <link or branch, if one was opened>
 ```
 
+## 2026-10-12 18:45 UTC — art run (world art track, step 4: horizon haze)
+- Did: Horizon haze (branch agents/2026-10-12-1845-art-horizon-haze, stacked on #92): `DrawHorizonHaze` in `src/render/sky.cpp` draws a translucent horizon-coloured band around the camera's horizon line, after terrain/trees/gate and before the plane and effects (main.cpp ends and restarts the 3D mode around it). New toggle `gfx.horizonHaze` (on in all presets). `docs/ARCHITECTURE.md` updated. No gameplay, physics or controls touched.
+- Why: step 4 of the world art track; the hard seam between flat ground and sky was the most 2000s-looking part left.
+- Verified: raylib 5.5 built from source, game built in a scratch copy, run under Xvfb on High and Low with --crash-test, same view before/after. Distant trees and the ground edge fade into the horizon colour; plane unaffected. Low cost: two gradient rectangles per frame. CI status: see PR.
+- Open: awaiting owner review; merge #85, #88, #92 first. Next art step: ground detail texture.
+- PR: PR into dev from agents/2026-10-12-1845-art-horizon-haze
+
 ## 2026-10-09 00:45 UTC — art run (world art track, step 3: sun disc)
 - Did: Sun disc with soft glow (branch agents/2026-10-09-0045-art-sun-disc, stacked on #88): `DrawSun` in `src/render/sky.cpp` projects a fixed sun direction and draws a radial-gradient glow plus a core disc; skipped when the sun is out of view. New toggle `gfx.sunDisc` (on in all presets). `docs/ARCHITECTURE.md` updated. No gameplay, physics or controls touched.
 - Why: step 3 of the world art track.

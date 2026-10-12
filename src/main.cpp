@@ -256,6 +256,9 @@ void UpdateFrame(Game &g) {
     DrawWorldObject(world, g.gfx, plane.position);
     DrawFinishGate(level);
     DrawCheckpoints(level);
+    EndMode3D();
+    DrawHorizonHaze(camera, g.gfx);
+    BeginMode3D(camera);
     if (g.gfx.blobShadow) DrawBlobShadow(world, plane.position, plane.yaw);
     DrawPlaneObject(planeModel, g.planeAnim, plane.position, plane.yaw, plane.pitch, plane.roll, g.gfx.propBlur, DebrisDetachedParts(g.debris), DebrisDetachedGroups(g.debris), plane.damaged && g.gfx.damageVisuals);
     DrawDebris(g.debris, planeModel);

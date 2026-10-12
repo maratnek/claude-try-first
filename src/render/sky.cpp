@@ -6,6 +6,9 @@ namespace {
 const Color kSkyZenith = {58, 120, 200, 255};
 const Color kSkyHorizon = {190, 220, 240, 255};
 const Vector3 kSunDir = {0.25f, 0.08f, 0.96f};
+const float kHazeAbove = 0.06f;
+const float kHazeBelow = 0.14f;
+const unsigned char kHazeAlpha = 150;
 const Color kSunCore = {255, 250, 225, 255};
 const Color kSunGlowInner = {255, 240, 190, 150};
 const Color kSunGlowOuter = {255, 240, 190, 0};
@@ -27,6 +30,15 @@ void DrawSun(const Camera3D &camera) {
     DrawCircle(x, y, unit * 3.2f, kSunCore);
 }
 
+int HorizonScreenY(const Camera3D &camera) {
+    Vector3 forward = {camera.target.x - camera.position.x, 0.0f, camera.target.z - camera.position.z};
+    float len = std::sqrt(forward.x * forward.x + forward.z * forward.z);
+    forward = {forward.x / len, 0.0f, forward.z / len};
+    // GetWorldToScreen does no clipping, so a point far beyond the far plane still lands on the horizon line.
+    Vector3 far = {camera.position.x + forward.x * 20000.0f, camera.position.y, camera.position.z + forward.z * 20000.0f};
+    return static_cast<int>(GetWorldToScreen(far, camera).y);
+}
+
 }  // namespace
 
 void DrawSky(const Camera3D &camera, const GraphicsSettings &gfx) {
@@ -36,13 +48,7 @@ void DrawSky(const Camera3D &camera, const GraphicsSettings &gfx) {
         return;
     }
 
-    Vector3 forward = {camera.target.x - camera.position.x, 0.0f, camera.target.z - camera.position.z};
-    float len = std::sqrt(forward.x * forward.x + forward.z * forward.z);
-    forward = {forward.x / len, 0.0f, forward.z / len};
-    // GetWorldToScreen does no clipping, so a point far beyond the far plane still lands on the horizon line.
-    Vector3 far = {camera.position.x + forward.x * 20000.0f, camera.position.y, camera.position.z + forward.z * 20000.0f};
-    int horizonY = static_cast<int>(GetWorldToScreen(far, camera).y);
-
+    int horizonY = HorizonScreenY(camera);
     int w = GetScreenWidth();
     int h = GetScreenHeight();
     if (horizonY > 0) {
@@ -54,4 +60,18 @@ void DrawSky(const Camera3D &camera, const GraphicsSettings &gfx) {
         DrawRectangle(0, from, w, h - from, kSkyHorizon);
     }
     if (gfx.sunDisc) DrawSun(camera);
+}
+
+void DrawHorizonHaze(const Camera3D &camera, const GraphicsSettings &gfx) {
+    if (!gfx.horizonHaze) return;
+    int w = GetScreenWidth();
+    int h = GetScreenHeight();
+    int horizonY = HorizonScreenY(camera);
+    int above = static_cast<int>(h * kHazeAbove);
+    int below = static_cast<int>(h * kHazeBelow);
+    if (horizonY + below < 0 || horizonY - above > h) return;
+    Color clear = {kSkyHorizon.r, kSkyHorizon.g, kSkyHorizon.b, 0};
+    Color dense = {kSkyHorizon.r, kSkyHorizon.g, kSkyHorizon.b, kHazeAlpha};
+    DrawRectangleGradientV(0, horizonY - above, w, above, clear, dense);
+    DrawRectangleGradientV(0, horizonY, w, below, dense, clear);
 }

@@ -21,6 +21,7 @@ struct GraphicsSettings {
     bool terrainColors = true;
     bool skyGradient = true;
     bool sunDisc = true;
+    bool horizonHaze = true;
     float scatterDensity = 1.0f;
     int cloudCount = 30;
     int smokePuffs = 64;
