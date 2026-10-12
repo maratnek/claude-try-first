@@ -12,6 +12,12 @@ owner can skim what happened without digging through git log. Format:
 - PR: <link or branch, if one was opened>
 ```
 
+## 2026-10-12 20:06 UTC — night run
+- Did: P1 "Campaign design note" (branch agents/2026-10-12-2006-campaign-note): `design-notes/campaign.md` with five levels (two flying tutorials, today's level 1 as Valley Run, mountains, water/seaplane), stage types as `LevelDef` data, locked teaser look, what is saved via `src/progress.*`, plane per level, and a PR order. Smallest set for the itch.io Web build: stage system, level select with teasers, two tutorial levels. `progression.md` points to it. Design only, no code.
+- Why: every P0 item is covered by an open PR; this is the first uncovered board item, it touches no code file, and the stage system, level select and tutorials all wait for it.
+- Verified: code-reviewer checked the note against `level_def.*`, `progress.*`, `level.cpp`, `menu.cpp`. It found that saved unlock ids with colons would be silently dropped by `ValidId`, a wrong landing-zone width, a missing landing-zone position, an inconsistent tutorial-unlock rule, a missing note that the stage-system PR is large, and a missing debug-only note for `--unlock-all`; all fixed in a second commit. Not run in game (no code changed).
+- Open: owner answers the three questions at the end of the note (tutorial unlock rule, seaplane on land, English-only hints). Then the stage-system PR can start. CI: see PR.
+- PR: PR into dev from agents/2026-10-12-2006-campaign-note, awaiting owner review
 ## 2026-10-08 09:20 UTC — day run
 - Did: P0 "A/D (rudder) turning feels dead" (branch agents/2026-10-08-0920-rudder-turn): `yawRate` 8 -> 22 deg/s and new `rudderBank` = 25 deg; with A/D held and no arrow input the plane eases into a bank toward the rudder side at `rollRate * authority`, and levels as before on release. Grounded taxi and the bank-turn formula are untouched. New flight test for A/D-only turns at 25 and 35 m/s. Radius 25 m/s: 179 m -> 44.8 m; 35 m/s: 250 m -> 68.7 m. Time for a 90 deg turn: 11.25 s -> 2.82 s (25 m/s), 11.25 s -> 3.10 s (35 m/s). Peak bank 0 -> 25 deg, altitude loss over the turn under 1 m. Release-relevant (feel).
 - Why: top open P0 item that is one small PR; CI autoplay (listed above it) is a 2-3 PR chain and needs this turn behaviour pinned first.
