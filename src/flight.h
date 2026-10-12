@@ -89,6 +89,10 @@ enum class GroundWarning { None, Info, Caution, Danger };
 // How loudly to warn about the ground: only below warnAltitude and while sinking;
 // Caution/Danger by seconds to impact, or Caution when sinking faster than a safe landing allows.
 GroundWarning GetGroundWarning(float heightAboveGround, float sinkRate, const PlaneParams &params);
+
+// Seconds between ground-proximity beeps, or 0 for silence: only below 10 m, sinking at least 2 m/s,
+// with a Caution/Danger warning; beeps come faster as impact nears.
+float GroundBeepInterval(float heightAboveGround, float sinkRate, const PlaneParams &params);
 // Landing limits widened after repeated hard landings so a struggling player can still finish:
 // nothing changes for the first two failures, the limits grow until about the tenth.
 PlaneParams WithLandingAssist(const PlaneParams &params, int hardLandingsInARow);

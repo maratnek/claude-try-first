@@ -176,6 +176,15 @@ GroundWarning GetGroundWarning(float heightAboveGround, float sinkRate, const Pl
     return GroundWarning::Info;
 }
 
+float GroundBeepInterval(float heightAboveGround, float sinkRate, const PlaneParams &params) {
+    constexpr float kBeepHeight = 10.0f;
+    constexpr float kBeepMinSink = 2.0f;
+    if (heightAboveGround >= kBeepHeight || sinkRate < kBeepMinSink) return 0.0f;
+    GroundWarning w = GetGroundWarning(heightAboveGround, sinkRate, params);
+    if (w != GroundWarning::Caution && w != GroundWarning::Danger) return 0.0f;
+    return Clamp(0.15f + 0.1f * heightAboveGround / sinkRate, 0.15f, 0.4f);
+}
+
 PlaneParams WithLandingAssist(const PlaneParams &params, int hardLandingsInARow) {
     constexpr int kFreeFailures = 2;
     constexpr int kFullAssistAt = 10;

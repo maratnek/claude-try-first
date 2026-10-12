@@ -193,6 +193,14 @@ void TestGroundWarning(const PlaneParams &p) {
     Report("sink rate from a 10 deg dive @30", SinkRate(level), 5.1f, 5.3f);
 }
 
+void TestGroundBeep(const PlaneParams &p) {
+    Expect("beep silent above 10 m", GroundBeepInterval(12.0f, 8.0f, p) == 0.0f);
+    Expect("beep silent on a gentle approach", GroundBeepInterval(5.0f, 1.5f, p) == 0.0f);
+    Expect("beep silent when climbing", GroundBeepInterval(5.0f, -3.0f, p) == 0.0f);
+    Report("beep interval 8 m at 4 m/s", GroundBeepInterval(8.0f, 4.0f, p), 0.34f, 0.36f);
+    Report("beep interval 3 m at 10 m/s", GroundBeepInterval(3.0f, 10.0f, p), 0.15f, 0.19f);
+}
+
 void TestLandingAssist(const PlaneParams &p) {
     Expect("assist off after 2 hard landings", TouchDown(WithLandingAssist(p, 2), 45.0f, 0.0f, 0.0f, 1.0f) == LandingResult::Hard);
     Report("assist speed limit after 6", WithLandingAssist(p, 6).landingMaxSpeed, 51.0f, 53.0f);
@@ -348,6 +356,7 @@ int main(int argc, char **argv) {
     TestRudderTurn(p);
     TestGroundWarning(p);
     TestLandingAssist(p);
+    TestGroundBeep(p);
     TestStandstill(p);
     TestStallFall(p);
     TestStallSpeed(p);

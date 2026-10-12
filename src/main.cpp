@@ -82,6 +82,7 @@ struct Game {
     AutoplayState autoplay;
 #endif
     int hardLandingsInARow = 0;
+    float groundBeepTimer = 0.0f;
 };
 
 int FitFontSize(const char *text, int size, int maxWidth) {
@@ -268,7 +269,19 @@ void UpdateFrame(Game &g) {
     if (g.screen == Screen::Playing) {
         UpdateEngineAudio(engineAudio, plane.enginePower, plane.speed / g.planeParams.maxSpeed);
         UpdateWindAudio(engineAudio, plane.speed / g.planeParams.maxSpeed, plane.airborne);
+        float agl = plane.position.y - g.planeParams.wheelHeight - GetGroundHeight(world, plane.position.x, plane.position.z);
+        float beepInterval = plane.airborne ? GroundBeepInterval(agl, SinkRate(plane), g.planeParams) : 0.0f;
+        if (beepInterval <= 0.0f) {
+            g.groundBeepTimer = 0.0f;
+        } else {
+            g.groundBeepTimer -= dt;
+            if (g.groundBeepTimer <= 0.0f) {
+                PlayAglBeepSound(engineAudio);
+                g.groundBeepTimer = beepInterval;
+            }
+        }
     } else {
+        g.groundBeepTimer = 0.0f;
         StopEngineAudio(engineAudio);
         StopWindAudio(engineAudio);
     }
