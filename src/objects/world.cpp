@@ -125,6 +125,8 @@ ObstacleHit CheckObstacleHit(const WorldState &world, Vector3 planePosition, flo
 }
 
 void UnloadWorld(WorldState &world) {
+    // The material would unload the detail texture too; detach it so it is freed once, below.
+    world.terrainModel.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture.id = rlGetTextureIdDefault();
     UnloadModel(world.terrainModel);
     if (world.groundDetail.id != 0) UnloadTexture(world.groundDetail);
 }
