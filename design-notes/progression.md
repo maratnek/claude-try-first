@@ -1,3 +1,5 @@
+> Decision 2026-10-09: the owner chose a linear campaign with stages and teaser levels; see `design-notes/campaign.md`, which replaces the open loop choice below. The text below is kept as background.
+
 # Progression proposal (release blocker 4)
 
 Status: PROPOSAL, AWAITING OWNER CHOICE. Do not build any of it until the owner picks a loop (or a mix).
