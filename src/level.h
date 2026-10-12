@@ -10,6 +10,8 @@ struct Checkpoint {
 };
 
 struct LevelState {
+    const LevelDef *def = &Level1Def();
+    int stageIndex = 0;
     Vector3 startPosition = {0.0f, 0.0f, 0.0f};
     float targetDistance = Level1Def().gateDistance;
     float distanceFlown = 0.0f;
@@ -33,6 +35,10 @@ void InitLevel(LevelState &level);
 // plane's position; a ring counts only when the plane crosses its plane through the hole, and hasFlown latches once
 // the plane has been airborne. The clock freezes at the gate. Does nothing once crashed.
 void UpdateLevel(LevelState &level, Vector3 planePosition, bool airborne, float dt);
+
+// Advances stageIndex through the level's stages: Takeoff when airborne, Rings when the plane's z (relative to the start) reaches endZ, Gate when the gate is crossed.
+// The last stage never advances: a landing stage ends with IsRunFinished, which needs the speed that UpdateLevel does not get.
+void UpdateStage(LevelState &level, Vector3 planePosition, bool airborne);
 
 // Number of checkpoint rings flown through so far.
 int CountPassed(const LevelState &level);
@@ -61,7 +67,7 @@ void DrawCrashScreen(const LevelState &level, bool touchUsed);
 // Dimmed overlay with stars, medal, time, delta vs best, a Finished/All rings/Clean checklist and the next medal target; layout scales with screen height. The Restart/Menu buttons (mouse and touch) are drawn by DrawTouchOverlay.
 void DrawResultsScreen(const LevelState &level, bool damaged);
 
-// Clears progress (distance, gateCrossed, crashed, hasFlown, elapsed, passed checkpoints) so the
+// Clears progress (distance, stageIndex, gateCrossed, crashed, hasFlown, elapsed, passed checkpoints) so the
 // level can be retried. Keeps the loaded model and the session best time.
 void ResetLevelProgress(LevelState &level);
 

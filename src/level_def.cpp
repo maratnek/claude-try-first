@@ -5,6 +5,8 @@ namespace {
 
 LevelDef MakeLevel1() {
     LevelDef d;
+    d.id = "level1";
+    d.name = "Valley Run";
     d.startX = 0.0f;
     d.startZ = 0.0f;
     d.startHeightAboveGround = 0.3f;
@@ -35,6 +37,12 @@ LevelDef MakeLevel1() {
         {6.0f, 420.0f, 14.0f, 2.5f},
         {-5.0f, 620.0f, 10.0f, 2.5f},
     };
+    d.stages = {
+        {StageType::Takeoff, "Takeoff", 0.0f},
+        {StageType::Rings, "Rings", d.checkpoints.back().z},
+        {StageType::Gate, "Gate", d.gateDistance},
+    };
+    if (d.requireLanding) d.stages.push_back({StageType::RunwayLanding, "Landing", 0.0f});
     return d;
 }
 
@@ -43,6 +51,18 @@ LevelDef MakeLevel1() {
 const LevelDef &Level1Def() {
     static const LevelDef def = MakeLevel1();
     return def;
+}
+
+const std::vector<const LevelDef *> &CampaignLevels() {
+    static const std::vector<const LevelDef *> levels = {&Level1Def()};
+    return levels;
+}
+
+const LevelDef *FindLevel(const std::string &id) {
+    for (const LevelDef *def : CampaignLevels()) {
+        if (id == def->id) return def;
+    }
+    return nullptr;
 }
 
 bool CrossesRingHole(float ax, float ay, float az, float bx, float by, float bz, float cx, float cy, float cz, float holeRadius) {

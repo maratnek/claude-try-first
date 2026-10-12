@@ -1,6 +1,7 @@
 #include "level_def.h"
 #include <cmath>
 #include <cstdio>
+#include <string>
 
 namespace {
 
@@ -92,6 +93,21 @@ int main() {
         if (o.z <= 0.0f || o.z >= d.gateDistance) obstaclesInside = false;
     }
     Expect("obstacles inside gate distance", obstaclesInside);
+
+    Expect("level identity", std::string(d.id) == "level1" && std::string(d.name) == "Valley Run");
+    Expect("stage count", d.stages.size() == 4);
+    if (d.stages.size() == 4) {
+        Expect("stage types", d.stages[0].type == StageType::Takeoff && d.stages[1].type == StageType::Rings &&
+                                  d.stages[2].type == StageType::Gate && d.stages[3].type == StageType::RunwayLanding);
+        Expect("stage titles", std::string(d.stages[0].title) == "Takeoff" && std::string(d.stages[1].title) == "Rings" &&
+                                   std::string(d.stages[2].title) == "Gate" && std::string(d.stages[3].title) == "Landing");
+        Expect("rings stage ends at the last checkpoint", Near(d.stages[1].endZ, d.checkpoints.back().z));
+        Expect("gate stage ends at the gate distance", Near(d.stages[2].endZ, d.gateDistance));
+    }
+
+    Expect("registry holds level 1 only", CampaignLevels().size() == 1 && CampaignLevels()[0] == &d);
+    Expect("FindLevel level1", FindLevel("level1") == &d);
+    Expect("FindLevel unknown id", FindLevel("level9") == nullptr);
 
     if (g_failures == 0) printf("All level definition checks passed\n");
     return g_failures == 0 ? 0 : 1;
