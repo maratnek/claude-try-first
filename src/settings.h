@@ -26,6 +26,7 @@ struct GraphicsSettings {
     bool explosionFire = true;
     int explosionSmoke = 64;
     int speedStreaks = 40;
+    int dustPuffs = 24;
     int rainDrops = 200;
     int snowFlakes = 200;
 };
