@@ -4,7 +4,7 @@
 #
 # Reference aircraft: Sopwith Camel F.1 (1917). Figures quoted from memory of published specs, all approx:
 #   top speed ~113 mph = ~50 m/s (at altitude); gross weight ~1450 lb = ~660 kg; wing area ~231 sq ft = ~21.5 m^2
-#   wing loading ~6.3 lb/sq ft = ~31 kg/m^2; climb to 10000 ft in ~10 min (~5 m/s average); service ceiling ~21000 ft.
+#   wing loading ~6.3 lb/sq ft = ~31 kg/m^2; climb to 10000 ft in ~10 min (~5 m/s average).
 # No glide ratio, stall speed, roll rate or fuel figure is quoted: none is known with confidence, so they are tuning.
 #
 # Pure game-feel tuning (not derived from the Camel): everything else, notably accel, throttleRate, levelPower,

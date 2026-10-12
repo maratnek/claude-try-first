@@ -34,7 +34,7 @@ either split it in the model or mark it `@L`/`@R` in the sidecar.
 ## Flight config (required for every aircraft)
 
 Each aircraft request must also include its flight parameters as a sidecar
-`<name>.flight.txt` next to the model (`key=value` per line, `#` comments,
+`<name>.flight.txt` next to the model (`key=value` per line, `#` comments on their own lines,
 keys are the `PlaneParams` field names in `src/flight.h`; loaded by
 `LoadPlaneParams`, see `assets/models/biplane-1920.flight.txt`). The file
 header names the reference real aircraft and quotes only the specs known with
