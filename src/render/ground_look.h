@@ -13,3 +13,9 @@ void ApplyTerrainColors(WorldState &world, const GraphicsSettings &gfx);
 
 // Huge flat backdrop so the ground reaches the horizon in every direction, even past the edge of the detailed heightmap.
 void DrawGroundBackdrop();
+
+// Generates a tileable grass-noise texture, tiles the terrain UVs over it and applies it per gfx.groundDetail.
+void BuildGroundDetail(WorldState &world, Mesh &terrainMesh);
+
+// Swaps the terrain detail texture on/off to match gfx.groundDetail; no-op when already current.
+void ApplyGroundDetail(WorldState &world, const GraphicsSettings &gfx);

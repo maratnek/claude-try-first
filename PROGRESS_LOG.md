@@ -12,6 +12,13 @@ owner can skim what happened without digging through git log. Format:
 - PR: <link or branch, if one was opened>
 ```
 
+## 2026-10-12 21:45 UTC — art run (world art track, step 5: ground detail texture)
+- Did: Ground detail (branch agents/2026-10-12-2145-art-ground-detail, stacked on #109): a 128x128 tileable grass-noise texture generated in code (`BuildGroundDetail` in `src/render/ground_look.cpp`), terrain UVs tiled every 24 m, texture multiplies the vertex colours. New toggle `gfx.groundDetail` (on in Medium/High, off in Low). `docs/ARCHITECTURE.md` updated. No gameplay, physics or controls touched.
+- Why: step 5 of the world art track; flat colour gave no sense of height or speed near the ground.
+- Verified: raylib 5.5 built from source, game built in a scratch copy, --crash-test under Xvfb on High and Low, same view before/after; ctest 5/5. High: patchy mottled grass that streams past; Low: unchanged flat colour. Texture is slightly darker than the old flat green (about 0.85x). Not verified: in-flight motion feel, device performance. CI status: see PR.
+- Open: awaiting owner review; merge #85, #88, #92, #109 first. Next art step: softer palette, valleys/ridges shading.
+- PR: PR into dev from agents/2026-10-12-2145-art-ground-detail
+
 ## 2026-10-12 18:45 UTC — art run (world art track, step 4: horizon haze)
 - Did: Horizon haze (branch agents/2026-10-12-1845-art-horizon-haze, stacked on #92): `DrawHorizonHaze` in `src/render/sky.cpp` draws a translucent horizon-coloured band around the camera's horizon line, after terrain/trees/gate and before the plane and effects (main.cpp ends and restarts the 3D mode around it). New toggle `gfx.horizonHaze` (on in all presets). `docs/ARCHITECTURE.md` updated. No gameplay, physics or controls touched.
 - Why: step 4 of the world art track; the hard seam between flat ground and sky was the most 2000s-looking part left.

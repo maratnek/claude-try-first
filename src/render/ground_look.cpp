@@ -1,5 +1,6 @@
 #include "ground_look.h"
 #include "raymath.h"
+#include "rlgl.h"
 #include <cmath>
 
 namespace {
@@ -30,6 +31,49 @@ Color TerrainVertexColor(float heightNorm, Vector3 normal) {
     c.g = (unsigned char)fminf(c.g * shade, 255.0f);
     c.b = (unsigned char)fminf(c.b * shade, 255.0f);
     return c;
+}
+
+float Hash2(int x, int y, int seed) {
+    unsigned h = (unsigned)x * 374761393u + (unsigned)y * 668265263u + (unsigned)seed * 2246822519u;
+    h = (h ^ (h >> 13)) * 1274126177u;
+    return ((h ^ (h >> 16)) & 0xffff) / 65535.0f;
+}
+
+// Value noise that wraps every `period` cells, so the texture tiles without seams.
+float TileNoise(float x, float y, int period, int seed) {
+    int xi = (int)floorf(x), yi = (int)floorf(y);
+    float fx = SmoothStep01(x - xi), fy = SmoothStep01(y - yi);
+    auto at = [&](int ix, int iy) { return Hash2(((ix % period) + period) % period, ((iy % period) + period) % period, seed); };
+    float a = at(xi, yi) + (at(xi + 1, yi) - at(xi, yi)) * fx;
+    float b = at(xi, yi + 1) + (at(xi + 1, yi + 1) - at(xi, yi + 1)) * fx;
+    return a + (b - a) * fy;
+}
+
+const int kDetailSize = 128;
+const float kDetailTileMetres = 24.0f;
+
+// Mid-grey-ish values: the texture multiplies the vertex colour, so it only darkens/varies and never changes the base hue.
+Texture2D MakeGroundDetailTexture() {
+    Image img = GenImageColor(kDetailSize, kDetailSize, WHITE);
+    Color *px = (Color *)img.data;
+    for (int y = 0; y < kDetailSize; y++) {
+        for (int x = 0; x < kDetailSize; x++) {
+            float u = (float)x / kDetailSize, v = (float)y / kDetailSize;
+            float patch = TileNoise(u * 4, v * 4, 4, 1) * 0.6f + TileNoise(u * 8, v * 8, 8, 2) * 0.4f;
+            float blades = TileNoise(u * 64, v * 16, 16, 3);
+            float speck = Hash2(x, y, 7);
+            float shade = 0.78f + 0.14f * patch + 0.08f * blades + 0.05f * speck;
+            if (speck > 0.96f) shade *= 0.88f;
+            unsigned char g = (unsigned char)(Clamp(shade, 0.0f, 1.0f) * 255.0f);
+            px[y * kDetailSize + x] = (Color){g, g, g, 255};
+        }
+    }
+    Texture2D tex = LoadTextureFromImage(img);
+    UnloadImage(img);
+    GenTextureMipmaps(&tex);
+    SetTextureFilter(tex, TEXTURE_FILTER_TRILINEAR);
+    SetTextureWrap(tex, TEXTURE_WRAP_REPEAT);
+    return tex;
 }
 
 }  // namespace
@@ -65,4 +109,18 @@ void ApplyTerrainColors(WorldState &world, const GraphicsSettings &gfx) {
 
 void DrawGroundBackdrop() {
     DrawPlane((Vector3){0.0f, -0.05f, 0.0f}, (Vector2){50000.0f, 50000.0f}, kGroundGrass);
+}
+
+void BuildGroundDetail(WorldState &world, Mesh &terrainMesh) {
+    float repeats = world.worldSize / kDetailTileMetres;
+    for (int i = 0; i < terrainMesh.vertexCount * 2; i++) terrainMesh.texcoords[i] *= repeats;
+    world.groundDetail = MakeGroundDetailTexture();
+    world.groundDetailOn = false;
+}
+
+void ApplyGroundDetail(WorldState &world, const GraphicsSettings &gfx) {
+    if (world.groundDetailOn == gfx.groundDetail || world.groundDetail.id == 0) return;
+    Texture2D tex = gfx.groundDetail ? world.groundDetail : (Texture2D){rlGetTextureIdDefault(), 1, 1, 1, PIXELFORMAT_UNCOMPRESSED_R8G8B8A8};
+    world.terrainModel.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = tex;
+    world.groundDetailOn = gfx.groundDetail;
 }

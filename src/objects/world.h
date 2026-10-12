@@ -26,6 +26,8 @@ struct WorldState {
     std::vector<unsigned char> terrainShadedColors;  // RGBA per vertex
     std::vector<unsigned char> terrainFlatColors;
     bool terrainColored = false;
+    Texture2D groundDetail{};
+    bool groundDetailOn = false;
     std::vector<Obstacle> obstacles;
     ScatterState scatter;
     CloudsState clouds;

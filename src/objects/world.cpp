@@ -70,10 +70,12 @@ void GenerateWorld(WorldState &world, const GraphicsSettings &gfx) {
     terrainMesh.vboId = nullptr;
 
     BuildTerrainColors(world, terrainMesh, gfx);
+    BuildGroundDetail(world, terrainMesh);
     UploadMesh(&terrainMesh, false);
 
     world.terrainModel = LoadModelFromMesh(terrainMesh);
     world.terrainModel.materials[0].maps[MATERIAL_MAP_DIFFUSE].color = WHITE;
+    ApplyGroundDetail(world, gfx);
 
     world.obstacles.clear();
     for (const ObstacleDef &o : Level1Def().hardObstacles) AddHardObstacle(world, o.x, o.z, o.height, o.radius);
@@ -124,6 +126,7 @@ ObstacleHit CheckObstacleHit(const WorldState &world, Vector3 planePosition, flo
 
 void UnloadWorld(WorldState &world) {
     UnloadModel(world.terrainModel);
+    if (world.groundDetail.id != 0) UnloadTexture(world.groundDetail);
 }
 
 void AdvanceWeather(WorldState &world) {

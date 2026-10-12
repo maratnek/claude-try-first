@@ -119,6 +119,7 @@ void UpdateFrame(Game &g) {
     if (IsKeyPressed(KEY_F1) || input.cycleGraphics) {
         CycleGraphicsPreset(g.gfx);
         ApplyTerrainColors(world, g.gfx);
+        ApplyGroundDetail(world, g.gfx);
         SaveGraphicsSettings(g.gfx);
     }
 
