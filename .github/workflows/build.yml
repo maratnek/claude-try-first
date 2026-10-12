@@ -51,6 +51,48 @@ jobs:
           path: web-dist/**
           if-no-files-found: error
 
+  autoplay:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake ninja-build libgl1-mesa-dev libglu1-mesa-dev xorg-dev libasound2-dev libxkbcommon-dev xvfb libgl1-mesa-dri
+
+      - name: Build raylib 5.5
+        run: |
+          git clone --depth 1 --branch 5.5 https://github.com/raysan5/raylib "$RUNNER_TEMP/raylib-src"
+          cmake -S "$RUNNER_TEMP/raylib-src" -B "$RUNNER_TEMP/raylib-build" -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_EXAMPLES=OFF -DCMAKE_INSTALL_PREFIX="$RUNNER_TEMP/raylib-prefix"
+          cmake --build "$RUNNER_TEMP/raylib-build"
+          cmake --install "$RUNNER_TEMP/raylib-build"
+
+      - name: Configure
+        run: >
+          cmake -S . -B build-autoplay -G Ninja -DCMAKE_BUILD_TYPE=Release
+          -DFLIGHT_DEBUG=ON -DFLIGHT_SYSTEM_RAYLIB=ON
+          -DCMAKE_PREFIX_PATH="$RUNNER_TEMP/raylib-prefix"
+
+      - name: Build
+        run: cmake --build build-autoplay
+
+      - name: Test
+        run: ctest --test-dir build-autoplay --output-on-failure
+
+      - name: Autoplay
+        run: |
+          mkdir autoplay-out
+          FLIGHT_AUTOPLAY_DIR="$PWD/autoplay-out" timeout 180 xvfb-run -a -s "-screen 0 1280x720x24" ./build-autoplay/FlightGame --autoplay
+          cat autoplay-out/autoplay-results.txt
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: FlightGame-autoplay
+          path: autoplay-out/**
+          if-no-files-found: error
+
   ios-sim:
     # Spike: must never turn dev red while the iOS toolchain is still being worked out.
     continue-on-error: true

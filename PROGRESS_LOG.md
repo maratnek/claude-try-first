@@ -12,6 +12,13 @@ owner can skim what happened without digging through git log. Format:
 - PR: <link or branch, if one was opened>
 ```
 
+## 2026-10-12 10:15 UTC — day run (redo of #81 on current dev)
+- Did: P0 CI autoplay, PR 1 (branch agents/2026-10-12-1015-ci-autoplay, redone from #81 on current dev): debug-only `--autoplay` (FLIGHT_DEBUG) replays a timed input script (takeoff, cruise, A/D alone, arrow banks) through the normal input path at a fixed 1/60 s step, saves a screenshot per step and writes a results log. New `autoplay` Linux job in build.yml builds raylib 5.5 from source, runs the game under Xvfb and uploads shots and log. New CMake option `FLIGHT_SYSTEM_RAYLIB` (default OFF) skips Conan for that job. Screenshots now flush the 2D batch so the HUD is captured (also for --crash-test). Not release-relevant (debug only).
+- Why: top open P0 on the task board not covered by an open PR; the A/D rudder P0 is with an interactive session. No assertions yet (PR 2).
+- Verified: real run: raylib 5.5 from source, game with FLIGHT_DEBUG under Xvfb, exit 0, 8 screenshots viewed, results log identical across two runs; all 5 ctest targets pass; build without FLIGHT_DEBUG has no autoplay symbols; --crash-test still works. code-reviewer: no blockers. CI status: see PR.
+- Open: the script has no restart/landing step and does not assert anything yet (PR 2). HUD showed Power 100% in the 0.5-throttle steps, so the script's throttle value probably acts as a rate; check when assertions are added. Screenshots are not byte-identical between runs (particles); flight numbers are.
+- PR: redo of #81 (conflicted with dev) from agents/2026-10-12-1015-ci-autoplay; awaiting owner review
+
 ## 2026-10-08 09:20 UTC — day run
 - Did: P0 "A/D (rudder) turning feels dead" (branch agents/2026-10-08-0920-rudder-turn): `yawRate` 8 -> 22 deg/s and new `rudderBank` = 25 deg; with A/D held and no arrow input the plane eases into a bank toward the rudder side at `rollRate * authority`, and levels as before on release. Grounded taxi and the bank-turn formula are untouched. New flight test for A/D-only turns at 25 and 35 m/s. Radius 25 m/s: 179 m -> 44.8 m; 35 m/s: 250 m -> 68.7 m. Time for a 90 deg turn: 11.25 s -> 2.82 s (25 m/s), 11.25 s -> 3.10 s (35 m/s). Peak bank 0 -> 25 deg, altitude loss over the turn under 1 m. Release-relevant (feel).
 - Why: top open P0 item that is one small PR; CI autoplay (listed above it) is a 2-3 PR chain and needs this turn behaviour pinned first.
