@@ -25,6 +25,6 @@ std::string SerializeProgress(const ProgressData &data);
 // Unknown keys and malformed lines are skipped; an empty or unversioned text gives defaults.
 ProgressData ParseProgress(const std::string &text);
 
-// Desktop: progress.cfg next to the executable. Web: localStorage. iOS: no-op stub.
+// Desktop: progress.cfg next to the executable. Web: localStorage. iOS: $HOME/Documents/progress.cfg.
 ProgressData LoadProgress();
 void SaveProgress(const ProgressData &data);
