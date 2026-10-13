@@ -34,7 +34,7 @@ enum class Season { Summer, Autumn, Winter };
 enum class Weather { Clear, Rain, Snow };
 
 struct LevelDef {
-    Season season;
+    Season season = Season::Summer;
     std::vector<Weather> allowedWeathers;
     float startX, startZ;
     float startHeightAboveGround;

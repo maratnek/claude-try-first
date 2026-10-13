@@ -12,6 +12,12 @@ owner can skim what happened without digging through git log. Format:
 - PR: <link or branch, if one was opened>
 ```
 
+## 2026-10-13 18:15 UTC — evening run
+- Did: P0 "Weather that matches the season" (branch agents/2026-10-13-1815-weather-season): `LevelDef` now has `season` and `allowedWeathers`; level 1 is summer with {Clear, Rain}. `AdvanceWeather` picks the next entry per run (`PickWeather`), logs `WEATHER: season=... weather=...`. `WorldState::snowRun` is gone. Behaviour change: level 1 runs alternate clear/rain (before: rain/snow); snow has no level yet. Not done: season-dependent world look (green vs snowy ground) - world-art track. Release-relevant (fixes the immersion break the owner raised twice).
+- Why: top-priority board item no open PR or session/* branch covers.
+- Verified: see PR (real run result and CI written there). LevelDefTests cover every allowed weather fitting its season.
+- Open: owner to look at rain/clear on level 1. `AdvanceWeather` still reads `Level1Def()`; it needs a level argument once level select picks other levels.
+- PR: PR into dev from agents/2026-10-13-1815-weather-season, awaiting owner review
 ## 2026-10-08 09:20 UTC — day run
 - Did: P0 "A/D (rudder) turning feels dead" (branch agents/2026-10-08-0920-rudder-turn): `yawRate` 8 -> 22 deg/s and new `rudderBank` = 25 deg; with A/D held and no arrow input the plane eases into a bank toward the rudder side at `rollRate * authority`, and levels as before on release. Grounded taxi and the bank-turn formula are untouched. New flight test for A/D-only turns at 25 and 35 m/s. Radius 25 m/s: 179 m -> 44.8 m; 35 m/s: 250 m -> 68.7 m. Time for a 90 deg turn: 11.25 s -> 2.82 s (25 m/s), 11.25 s -> 3.10 s (35 m/s). Peak bank 0 -> 25 deg, altitude loss over the turn under 1 m. Release-relevant (feel).
 - Why: top open P0 item that is one small PR; CI autoplay (listed above it) is a 2-3 PR chain and needs this turn behaviour pinned first.
