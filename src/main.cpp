@@ -350,7 +350,8 @@ void UpdateFrame(Game &g) {
     DrawLevelHUD(level, plane.damaged);
     if (g.planeParams.fuelBurnEnabled) {
         float fuel = FuelFraction(plane, g.planeParams);
-        DrawText(TextFormat("Fuel: %d%%", (int)ceilf(fuel * 100.0f)), ox, 85 + oy, 20, fuel < 0.15f ? MAROON : DARKGRAY);
+        const char *fuelText = TextFormat("Fuel: %d%%", (int)ceilf(fuel * 100.0f));
+        DrawText(fuelText, ox, 115 + oy, FitFontSize(fuelText, 20, hudWidth), fuel < 0.15f ? MAROON : DARKGRAY);
     }
     if (g.screen == Screen::Playing && plane.airborne) {
         float agl = plane.position.y - g.planeParams.wheelHeight - GetGroundHeight(world, plane.position.x, plane.position.z);
