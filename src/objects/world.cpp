@@ -134,13 +134,15 @@ void UnloadWorld(WorldState &world) {
 }
 
 void AdvanceWeather(WorldState &world) {
-    world.snowRun = !world.snowRun;
+    const LevelDef &level = Level1Def();
+    world.weather = PickWeather(level, world.runCount++);
+    TraceLog(LOG_INFO, "WEATHER: season=%s weather=%s", SeasonName(level.season), WeatherName(world.weather));
 }
 
 int ActiveRainDrops(const WorldState &world, const GraphicsSettings &gfx) {
-    return (world.snowRun && gfx.snowFlakes > 0) ? 0 : gfx.rainDrops;
+    return world.weather == Weather::Rain ? gfx.rainDrops : 0;
 }
 
 int ActiveSnowFlakes(const WorldState &world, const GraphicsSettings &gfx) {
-    return (world.snowRun || gfx.rainDrops <= 0) ? gfx.snowFlakes : 0;
+    return world.weather == Weather::Snow ? gfx.snowFlakes : 0;
 }

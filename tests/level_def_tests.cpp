@@ -26,6 +26,26 @@ bool Matches(const ObstacleDef &o, float x, float z, float h, float r) {
 }  // namespace
 
 int main() {
+    {
+        const LevelDef &l = Level1Def();
+        Expect("weather: level 1 is summer", l.season == Season::Summer);
+        Expect("weather: level 1 has allowed weathers", !l.allowedWeathers.empty());
+        bool allFit = true;
+        for (Weather w : l.allowedWeathers) allFit = allFit && WeatherFitsSeason(l.season, w);
+        Expect("weather: every allowed weather fits the season", allFit);
+        bool picksFit = true;
+        for (int i = 0; i < 20; i++) picksFit = picksFit && WeatherFitsSeason(l.season, PickWeather(l, i));
+        Expect("weather: no run picks a weather the season forbids", picksFit);
+        Expect("weather: no snow in summer", !WeatherFitsSeason(Season::Summer, Weather::Snow));
+        Expect("weather: no snow in autumn", !WeatherFitsSeason(Season::Autumn, Weather::Snow));
+        Expect("weather: no rain in winter", !WeatherFitsSeason(Season::Winter, Weather::Rain));
+        Expect("weather: snow in winter", WeatherFitsSeason(Season::Winter, Weather::Snow));
+        Expect("weather: clear fits every season", WeatherFitsSeason(Season::Winter, Weather::Clear) && WeatherFitsSeason(Season::Summer, Weather::Clear));
+        Expect("weather: runs cycle through the list", PickWeather(l, 0) != PickWeather(l, 1));
+        LevelDef empty = l;
+        empty.allowedWeathers.clear();
+        Expect("weather: empty list means clear", PickWeather(empty, 3) == Weather::Clear);
+    }
     Expect("ring: straight through the centre counts", CrossesRingHole(0, 15, 140, 0, 15, 160, 0, 15, 150, 5.0f));
     Expect("ring: 4 m off centre counts", CrossesRingHole(4, 15, 149, 4, 15, 151, 0, 15, 150, 5.0f));
     Expect("ring: clipping the rim does not count", !CrossesRingHole(5.5f, 15, 149, 5.5f, 15, 151, 0, 15, 150, 5.0f));

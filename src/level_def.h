@@ -30,7 +30,12 @@ struct TerrainDef {
     HillDef hill;
 };
 
+enum class Season { Summer, Autumn, Winter };
+enum class Weather { Clear, Rain, Snow };
+
 struct LevelDef {
+    Season season = Season::Summer;
+    std::vector<Weather> allowedWeathers;
     float startX, startZ;
     float startHeightAboveGround;
     TerrainDef terrain;
@@ -44,6 +49,14 @@ struct LevelDef {
     std::vector<ObstacleDef> hardObstacles;
     std::vector<ObstacleDef> softObstacles;
 };
+
+bool WeatherFitsSeason(Season season, Weather weather);
+
+// Cycles through the level's allowed weathers by run number, so a run never gets weather the season forbids.
+Weather PickWeather(const LevelDef &level, int runIndex);
+
+const char *SeasonName(Season season);
+const char *WeatherName(Weather weather);
 
 float HillHeight01(const HillDef &hill, float x, float z);
 

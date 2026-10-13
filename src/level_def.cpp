@@ -6,10 +6,32 @@ float HillHeight01(const HillDef &hill, float x, float z) {
            hill.ampXZ * sinf(x * hill.freqXZx + z * hill.freqXZz);
 }
 
+bool WeatherFitsSeason(Season season, Weather weather) {
+    if (weather == Weather::Snow) return season == Season::Winter;
+    if (weather == Weather::Rain) return season != Season::Winter;
+    return true;
+}
+
+Weather PickWeather(const LevelDef &level, int runIndex) {
+    if (level.allowedWeathers.empty()) return Weather::Clear;
+    int n = (int)level.allowedWeathers.size();
+    return level.allowedWeathers[((runIndex % n) + n) % n];
+}
+
+const char *SeasonName(Season season) {
+    return season == Season::Summer ? "summer" : season == Season::Autumn ? "autumn" : "winter";
+}
+
+const char *WeatherName(Weather weather) {
+    return weather == Weather::Clear ? "clear" : weather == Weather::Rain ? "rain" : "snow";
+}
+
 namespace {
 
 LevelDef MakeLevel1() {
     LevelDef d;
+    d.season = Season::Summer;
+    d.allowedWeathers = {Weather::Clear, Weather::Rain};
     d.startX = 0.0f;
     d.startZ = 0.0f;
     d.startHeightAboveGround = 0.3f;
