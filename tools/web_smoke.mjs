@@ -23,6 +23,12 @@ await new Promise((r) => server.listen(0, '127.0.0.1', r));
 const url = `http://127.0.0.1:${server.address().port}/`;
 
 const PIXEL_DELTA = 48;
+const PLAY_SETTLE_MS = 2000;
+const THROTTLE_HOLD_MS = 6000;
+const PITCH_HOLD_MS = 5000;
+const FLIGHT_SETTLE_MS = 1000;
+const MIN_PLAY_CHANGE = 0.05;
+const MIN_FLIGHT_CHANGE = 0.01;
 
 const failures = [];
 const browser = await chromium.launch({
@@ -81,6 +87,31 @@ await page.screenshot({ path: menuShot });
 const menuFrame = await sampleFrame(menuShot);
 console.log(`distinct colours in menu frame: ${menuFrame.colours}`);
 if (menuFrame.colours < 12) failures.push(`menu frame looks blank (${menuFrame.colours} distinct colours)`);
+
+await page.click('#canvas');
+await page.keyboard.press('Enter');
+await page.waitForTimeout(PLAY_SETTLE_MS);
+const playShot = path.join(outDir, 'play-start.png');
+await page.screenshot({ path: playShot });
+const playFrame = await sampleFrame(playShot);
+const playChange = changedFraction(menuFrame, playFrame);
+console.log(`menu -> play-start changed pixels: ${(playChange * 100).toFixed(1)}%`);
+if (playChange < MIN_PLAY_CHANGE) failures.push(`frame after Enter barely differs from the menu (${(playChange * 100).toFixed(1)}% changed, need ${MIN_PLAY_CHANGE * 100}%)`);
+
+await page.keyboard.down('w');
+await page.waitForTimeout(THROTTLE_HOLD_MS);
+await page.screenshot({ path: path.join(outDir, 'flight-throttle.png') });
+await page.keyboard.down('ArrowDown');
+await page.waitForTimeout(PITCH_HOLD_MS);
+await page.keyboard.up('ArrowDown');
+await page.keyboard.up('w');
+await page.waitForTimeout(FLIGHT_SETTLE_MS);
+const flightShot = path.join(outDir, 'flight.png');
+await page.screenshot({ path: flightShot });
+const flightFrame = await sampleFrame(flightShot);
+const flightChange = changedFraction(playFrame, flightFrame);
+console.log(`play-start -> flight changed pixels: ${(flightChange * 100).toFixed(1)}%`);
+if (flightChange < MIN_FLIGHT_CHANGE) failures.push(`flight frame barely differs from play-start (${(flightChange * 100).toFixed(1)}% changed, need ${MIN_FLIGHT_CHANGE * 100}%); game looks frozen`);
 
 fs.writeFileSync(path.join(outDir, 'console.txt'), log.join('\n') + '\n');
 await browser.close();
