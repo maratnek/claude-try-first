@@ -1,6 +1,6 @@
 #include "streaks.h"
 #include "raymath.h"
-#include "rlgl.h"
+#include "sprites.h"
 
 namespace {
 const float kFadeStart = 0.6f;
@@ -10,6 +10,7 @@ const float kAheadMax = 50.0f;
 const float kRadiusMin = 3.0f;
 const float kRadiusMax = 12.0f;
 const float kMaxLength = 7.0f;
+const float kStreakWidth = 0.08f;
 
 float RandomRange(float lo, float hi) {
     return lo + (hi - lo) * (float)GetRandomValue(0, 1000) / 1000.0f;
@@ -64,19 +65,13 @@ void DrawStreaks(const StreakState &streaks) {
     float length = kMaxLength * (0.4f + 0.6f * streaks.intensity);
     unsigned char alpha = (unsigned char)(140.0f * streaks.intensity);
 
-    rlDisableDepthMask();
+    BillboardAxes axes = CurrentBillboardAxes();
+    BeginSprites(SpriteKind::Streak, false);
     for (int i = 0; i < kMaxSpeedStreaks; i++) {
         if (!streaks.alive[i]) continue;
-        rlCheckRenderBatchLimit(2);
-        rlBegin(RL_LINES);
         Vector3 a = streaks.positions[i];
         Vector3 b = Vector3Add(a, Vector3Scale(streaks.direction, length));
-        rlColor4ub(255, 255, 255, 0);
-        rlVertex3f(a.x, a.y, a.z);
-        rlColor4ub(255, 255, 255, alpha);
-        rlVertex3f(b.x, b.y, b.z);
-        rlEnd();
+        DrawStreakSprite(axes, a, b, kStreakWidth, {255, 255, 255, 0}, {255, 255, 255, alpha});
     }
-    rlDrawRenderBatchActive();
-    rlEnableDepthMask();
+    EndSprites();
 }
