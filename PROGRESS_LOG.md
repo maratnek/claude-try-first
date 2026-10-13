@@ -12,6 +12,12 @@ owner can skim what happened without digging through git log. Format:
 - PR: <link or branch, if one was opened>
 ```
 
+## 2026-10-13 03:30 UTC — night run
+- Did: P1 "Effects polish part 2" (branch agents/2026-10-13-0310-rain-streak-sprites): rain and speed streaks were 1 px GL_LINES, almost invisible on hi-DPI/Web. They are now soft, tapered, camera-facing quads (new `SpriteKind::Streak` + `DrawStreakSprite` in `src/objects/sprites.*`, 16x4 texture generated in code, width 0.08 m, alpha fades tail to head; rain head alpha 110 -> 150 to compensate for the soft edge). Counts, update logic, trail direction and A1 presets unchanged; Low still draws nothing. Docs and backlog row updated. Debris dust is a separate PR (#114); clouds still open. Not release-relevant.
+- Why: all P0 items are covered by open PRs; this is the next open board item and no open PR touches rain/streaks/sprites.
+- Verified: real run under Xvfb (raylib 5.5 built from source, -DFLIGHT_DEBUG): CI autoplay script RESULT: PASS on Low/Medium/High, also with rain forced on, ctest 7/7, before/after screenshots show no artifacts and HUD/menu/plane unchanged. code-reviewer: no blockers (nits: normalise the direction before the degenerate check; world-space width thins distant drops). Not run: Web/GLES2 and iOS builds, a real hi-DPI display, motion/feel.
+- Open: owner to judge the look in flight (High preset, rain run is every second run; width/alpha are `kDropWidth`, `kAlpha`, `kStreakWidth`). Possible follow-up: bolder width if still too subtle.
+- PR: PR into dev from agents/2026-10-13-0310-rain-streak-sprites (awaiting owner review)
 ## 2026-10-08 09:20 UTC — day run
 - Did: P0 "A/D (rudder) turning feels dead" (branch agents/2026-10-08-0920-rudder-turn): `yawRate` 8 -> 22 deg/s and new `rudderBank` = 25 deg; with A/D held and no arrow input the plane eases into a bank toward the rudder side at `rollRate * authority`, and levels as before on release. Grounded taxi and the bank-turn formula are untouched. New flight test for A/D-only turns at 25 and 35 m/s. Radius 25 m/s: 179 m -> 44.8 m; 35 m/s: 250 m -> 68.7 m. Time for a 90 deg turn: 11.25 s -> 2.82 s (25 m/s), 11.25 s -> 3.10 s (35 m/s). Peak bank 0 -> 25 deg, altitude loss over the turn under 1 m. Release-relevant (feel).
 - Why: top open P0 item that is one small PR; CI autoplay (listed above it) is a 2-3 PR chain and needs this turn behaviour pinned first.
