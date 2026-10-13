@@ -122,7 +122,7 @@ void DebugEndOfFrame(Game &g, float dt) {
         }
     }
     if (g.autoplay.active) {
-        if (const char *shot = AutoplayAdvance(g.autoplay, g.plane, g.screen == Screen::Crashed)) SaveScreenshot(shot);
+        if (const char *shot = AutoplayAdvance(g.autoplay, g.plane, g.screen == Screen::Crashed, CountPassed(g.level))) SaveScreenshot(shot);
         if (g.autoplay.finished) g.quitRequested = true;
     }
 }

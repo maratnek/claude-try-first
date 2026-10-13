@@ -24,6 +24,10 @@ void GoodRun(AutoplaySnapshot ends[kStepCount]) {
     ends[kStepBankLeft].yaw = 45.0f;
     ends[kStepWingsLevel].yaw = 59.0f;
     ends[kStepBankRight].yaw = 14.0f;
+    ends[kStepRollout].airborne = false;
+    ends[kStepRollout].landing = LandingResult::Safe;
+    ends[kStepRollout].speed = 8.0f;
+    ends[kStepRollout].checkpointsPassed = 1;
     for (int i = kStepCruise; i < kStepRudderD; i++) ends[i].yaw = 0.0f;
 }
 
@@ -86,6 +90,36 @@ int main() {
     GoodRun(ends);
     ends[kStepBankRight].yaw = ends[kStepWingsLevel].yaw - 3.0f;
     Expect("weak bank right", Fails(ends, kStepCount, 0, "bank right"));
+
+    GoodRun(ends);
+    ends[kStepRollout].airborne = true;
+    Expect("still airborne at the end", Fails(ends, kStepCount, 0, "still airborne"));
+
+    GoodRun(ends);
+    ends[kStepRollout].landing = LandingResult::None;
+    Expect("no landing recorded", Fails(ends, kStepCount, 0, "no safe landing"));
+
+    GoodRun(ends);
+    ends[kStepRollout].landing = LandingResult::Hard;
+    Expect("hard landing", Fails(ends, kStepCount, 0, "no safe landing"));
+
+    GoodRun(ends);
+    ends[kStepRollout].speed = 30.0f;
+    Expect("rollout too fast", Fails(ends, kStepCount, 0, "rollout ended"));
+
+    GoodRun(ends);
+    ends[kStepRollout].checkpointsPassed = 0;
+    Expect("checkpoint 1 missed", Fails(ends, kStepCount, 0, "checkpoint 1 not passed"));
+
+    GoodRun(ends);
+    ends[kStepRollout].checkpointsPassed = 4;
+    Expect("extra checkpoints are fine", CheckAutoplayResults(ends, kStepCount, kStart, 0).empty());
+
+    GoodRun(ends);
+    ends[kStepFlare].crashed = true;
+    ends[kStepFlare].airborne = true;
+    Expect("crash in landing steps", Fails(ends, kStepFlare + 1, 0, "crashed in step flare"));
+    Expect("landing crash is not also a landing failure", !Fails(ends, kStepFlare + 1, 0, "landing"));
 
     GoodRun(ends);
     ends[kStepCruise].crashed = true;
