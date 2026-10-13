@@ -344,6 +344,56 @@ void TestRollClamp(const PlaneParams &p) {
     }
 }
 
+void TestFuel(const PlaneParams &base) {
+    PlaneParams off = base;
+    PlaneState a = Airborne(40.0f, 20000.0f, 1.0f);
+    a.fuel = off.fuelCapacity;
+    FlightInput in;
+    for (int i = 0; i < 60 * 60; i++) UpdatePlaneControls(a, off, in, kDt, 0.0f, 0.0f);
+    Report("fuel off: fuel after 60 s full", a.fuel, off.fuelCapacity, off.fuelCapacity);
+    Report("fuel off: power kept", a.enginePower, 1.0f, 1.0f);
+
+    PlaneParams on = base;
+    on.fuelBurnEnabled = true;
+    PlaneState s = Airborne(40.0f, 20000.0f, 1.0f);
+    s.fuel = on.fuelCapacity;
+    bool monotonic = true, negative = false;
+    float prev = s.fuel, burnPerMinute = 0.0f, emptyAt = -1.0f, speedAtEmpty = 0.0f, yAtEmpty = 0.0f;
+    bool thrustZeroWhenEmpty = true;
+    int steps = 60 * 700;
+    for (int i = 0; i < steps; i++) {
+        UpdatePlaneControls(s, on, in, kDt, 0.0f, 0.0f);
+        if (s.fuel > prev) monotonic = false;
+        if (s.fuel < 0.0f) negative = true;
+        prev = s.fuel;
+        if (i == 60 * 60 - 1) burnPerMinute = on.fuelCapacity - s.fuel;
+        if (s.fuel <= 0.0f) {
+            if (emptyAt < 0.0f) { emptyAt = (i + 1) * kDt; speedAtEmpty = s.speed; yAtEmpty = s.position.y; }
+            if (s.enginePower != 0.0f) thrustZeroWhenEmpty = false;
+        }
+    }
+    Report("fuel on: burn per minute at full", burnPerMinute, 9.9f, 10.1f);
+    Report("fuel on: seconds to empty from full", emptyAt, 590.0f, 610.0f);
+    Expect("fuel on: monotonic decrease", monotonic);
+    Expect("fuel on: never negative", !negative);
+    Report("fuel on: exactly 0 at end", s.fuel, 0.0f, 0.0f);
+    Expect("fuel on: power 0 when empty", thrustZeroWhenEmpty);
+    Report("fuel on: speed lost since empty", speedAtEmpty - s.speed, 5.0f, 100.0f);
+    Expect("fuel on: sinks after empty", s.position.y < yAtEmpty);
+
+    PlaneState t = Airborne(40.0f, 20000.0f, 0.0f);
+    t.fuel = 0.0f;
+    in.throttle = 1.0f;
+    for (int i = 0; i < 60 * 5; i++) UpdatePlaneControls(t, on, in, kDt, 0.0f, 0.0f);
+    Report("fuel on: throttle ignored when empty", t.enginePower, 0.0f, 0.0f);
+
+    PlaneState u = Airborne(40.0f, 20000.0f, 0.0f);
+    u.fuel = on.fuelCapacity;
+    FlightInput idle;
+    for (int i = 0; i < 60 * 60; i++) UpdatePlaneControls(u, on, idle, kDt, 0.0f, 0.0f);
+    Report("fuel on: idle burn per minute", on.fuelCapacity - u.fuel, 0.55f, 0.65f);
+}
+
 }  // namespace
 
 int main(int argc, char **argv) {
@@ -364,6 +414,7 @@ int main(int argc, char **argv) {
     TestLanding(p);
     TestRollClamp(p);
     TestRollout(p);
+    TestFuel(p);
     if (g_failures) printf("%d check(s) failed\n", g_failures);
     else printf("all flight checks passed\n");
     return g_failures ? 1 : 0;

@@ -38,6 +38,9 @@ struct PlaneParams {
     float landingMaxNoseDown;   // deg
     float landingMaxNoseUp;     // deg; a flare up to this is fine, the nose is lowered on touchdown so it can't re-lift
     float fuelCapacity;         // units, about 1 l each
+    bool fuelBurnEnabled = false;  // off: fuel never changes, so levels that don't use it fly as before
+    float fuelBurnFull = 0.0f;     // units/s at engine power 1
+    float fuelBurnIdle = 0.0f;     // units/s at engine power 0
 };
 
 PlaneParams BiplaneParams();
@@ -54,7 +57,7 @@ struct PlaneState {
     float fallSpeed = 0.0f;    // m/s downward from lost lift, on top of motion along the nose
     bool airborne = false;
     bool damaged = false;
-    float fuel = 0.0f;  // units; nothing burns it yet, so it only sets the crash explosion size
+    float fuel = 0.0f;  // units; sets the crash explosion size, and is burned by engine power when params.fuelBurnEnabled
     float airTime = 0.0f;  // seconds since liftoff
     LandingResult landing = LandingResult::None;
 };
@@ -76,7 +79,8 @@ struct PlaneState {
 // both for ground-rolling and as a soft floor once airborne. When the
 // airborne plane reaches the ground, plane.landing becomes Safe (plane
 // returns to ground-rolling) or Hard (caller should treat it as a crash); it
-// resets on the next liftoff.
+// resets on the next liftoff. With params.fuelBurnEnabled, fuel burns with engine
+// power each step; at zero fuel the engine power is forced to 0 and stays there.
 void UpdatePlaneControls(PlaneState &plane, const PlaneParams &params, const FlightInput &input, float dt, float groundHeight, float groundSlopeDeg);
 
 float FuelFraction(const PlaneState &plane, const PlaneParams &params);
