@@ -24,7 +24,6 @@ struct ExhaustState {
     unsigned seed = 0x7e3a1u;
 };
 
-// Puffs per second for a live-puff budget; the start-up burst uses the full budget, steady running about 60% of it.
 float ExhaustEmitRate(float enginePower, bool burst, int puffBudget);
 
 void UpdateExhaust(ExhaustState &exhaust, const PlaneState &plane, bool engineRunning, int puffBudget, float dt);
