@@ -44,6 +44,11 @@ page.on('pageerror', (e) => failures.push(`page error: ${e.message}`));
 page.on('requestfailed', (r) => failures.push(`request failed: ${r.url()}`));
 page.on('response', (r) => { if (r.status() >= 400) failures.push(`HTTP ${r.status()}: ${r.url()}`); });
 
+await page.addInitScript(() => {
+  window.__frames = 0;
+  const tick = () => { window.__frames++; requestAnimationFrame(tick); };
+  requestAnimationFrame(tick);
+});
 await page.goto(url);
 try {
   await page.waitForFunction(() => document.getElementById('loading').hidden, null, { timeout: 90000 });
@@ -88,9 +93,12 @@ const menuFrame = await sampleFrame(menuShot);
 console.log(`distinct colours in menu frame: ${menuFrame.colours}`);
 if (menuFrame.colours < 12) failures.push(`menu frame looks blank (${menuFrame.colours} distinct colours)`);
 
+const frames = () => page.evaluate(() => window.__frames);
+console.log(`animation frames before Enter: ${await frames()}`);
 await page.click('#canvas');
 await page.keyboard.press('Enter');
 await page.waitForTimeout(PLAY_SETTLE_MS);
+console.log(`animation frames after Enter: ${await frames()}`);
 const playShot = path.join(outDir, 'play-start.png');
 await page.screenshot({ path: playShot });
 const playFrame = await sampleFrame(playShot);
@@ -106,6 +114,7 @@ await page.waitForTimeout(PITCH_HOLD_MS);
 await page.keyboard.up('ArrowDown');
 await page.keyboard.up('w');
 await page.waitForTimeout(FLIGHT_SETTLE_MS);
+console.log(`animation frames after flight: ${await frames()}`);
 const flightShot = path.join(outDir, 'flight.png');
 await page.screenshot({ path: flightShot });
 const flightFrame = await sampleFrame(flightShot);
