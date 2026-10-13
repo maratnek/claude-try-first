@@ -27,8 +27,10 @@ struct LevelState {
     Model checkpointModel{};
 };
 
-// Sets up checkpoints and loads the reusable checkpoint ring model. Call
-// once at startup, after startPosition is known.
+// Rebuilds targetDistance and the checkpoint rings from level.def at level.startPosition; no GPU work, safe to call on every level switch.
+void BuildCheckpoints(LevelState &level);
+
+// BuildCheckpoints plus loading the reusable checkpoint ring model. Call once at startup, after startPosition is known.
 void InitLevel(LevelState &level);
 
 // Updates elapsed time, distanceFlown, gateCrossed and checkpoint-passed flags from the
@@ -51,8 +53,8 @@ int ComputeStars(const LevelState &level, bool damaged);
 
 enum class Medal { None, Bronze, Silver, Gold };
 
-// Time medal for a finished run from the gate time: gold <= 24 s, silver <= 30 s, bronze <= 40 s.
-Medal ComputeMedal(float elapsed);
+// Time medal for a finished run from the gate time against the def's gold/silver/bronze limits.
+Medal ComputeMedal(const LevelDef &def, float elapsed);
 
 // Stores the elapsed time as the best when it beats the previous one; main.cpp seeds bestTime from saved progress and saves after a finish.
 void RecordFinish(LevelState &level);

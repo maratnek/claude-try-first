@@ -64,14 +64,17 @@ int CountPassed(const LevelState &level) {
     return n;
 }
 
-void InitLevel(LevelState &level) {
+void BuildCheckpoints(LevelState &level) {
     level.targetDistance = level.def->gateDistance;
     Vector3 s = level.startPosition;
     level.checkpoints.clear();
     for (const CheckpointDef &c : level.def->checkpoints) {
         level.checkpoints.push_back({(Vector3){s.x + c.x, s.y + c.y, s.z + c.z}, c.radius});
     }
+}
 
+void InitLevel(LevelState &level) {
+    BuildCheckpoints(level);
     Mesh ringMesh = GenMeshTorus(kRingTube, 2.0f, 12, 32);
     level.checkpointModel = LoadModelFromMesh(ringMesh);
 }
@@ -135,10 +138,10 @@ int ComputeStars(const LevelState &level, bool damaged) {
     return kStarsFinished;
 }
 
-Medal ComputeMedal(float elapsed) {
-    if (elapsed <= Level1Def().medalGold) return Medal::Gold;
-    if (elapsed <= Level1Def().medalSilver) return Medal::Silver;
-    if (elapsed <= Level1Def().medalBronze) return Medal::Bronze;
+Medal ComputeMedal(const LevelDef &def, float elapsed) {
+    if (elapsed <= def.medalGold) return Medal::Gold;
+    if (elapsed <= def.medalSilver) return Medal::Silver;
+    if (elapsed <= def.medalBronze) return Medal::Bronze;
     return Medal::None;
 }
 
@@ -233,7 +236,7 @@ void DrawResultsScreen(const LevelState &level, bool damaged) {
                  i < stars ? GOLD : (Color){120, 120, 120, 255});
     }
 
-    Medal medal = ComputeMedal(level.elapsed);
+    Medal medal = ComputeMedal(*level.def, level.elapsed);
     float medalX = cx + 170.0f * s;
     DrawCircle((int)medalX, y(95), 22.0f * s, MedalColor(medal));
     DrawCentered(MedalName(medal), (int)medalX, y(125), sz(20), MedalColor(medal));

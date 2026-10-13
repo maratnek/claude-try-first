@@ -1,4 +1,5 @@
 #pragma once
+#include "level_def.h"
 #include "raylib.h"
 #include "settings.h"
 #include "scatter.h"
@@ -35,8 +36,8 @@ struct WorldState {
     bool snowRun = false;
 };
 
-// Builds the terrain heightmap (shape from the level definition) and obstacle layout. Call once at startup.
-void GenerateWorld(WorldState &world, const GraphicsSettings &gfx);
+// Builds the terrain heightmap and obstacle layout from the level definition. To switch levels call UnloadWorld first.
+void GenerateWorld(WorldState &world, const LevelDef &def, const GraphicsSettings &gfx);
 
 // Swaps the terrain vertex colours to match gfx.terrainColors; no-op when already current.
 void ApplyTerrainColors(WorldState &world, const GraphicsSettings &gfx);

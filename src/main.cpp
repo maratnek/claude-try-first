@@ -40,8 +40,6 @@
 namespace {
 enum class Screen { Menu, LevelSelect, Playing, Crashed, Finished };
 
-constexpr const char *kLevel1Id = "level1";
-
 #ifdef FLIGHT_DEBUG
 // Debug-only crash harness: --crash-test dives into the ground from FLIGHT_SPEED, saves PNGs named
 // "<FLIGHT_SHOT_PREFIX>-<seconds after impact>.png" and quits. FLIGHT_FUEL (0..1) and FLIGHT_PRESET (0..2) also apply.
@@ -64,6 +62,7 @@ struct Game {
     PlaneModel planeModel;
     PlaneAnim planeAnim;
     WorldState world;
+    const LevelDef *worldDef = nullptr;
     SmokeState smoke;
     SmokeState crashSmoke;
     ExplosionState explosion;
@@ -108,6 +107,20 @@ const char *AssetPath(const char *relative) {
 #else
     return TextFormat("%sassets/%s", GetApplicationDirectory(), relative);
 #endif
+}
+
+void SelectLevel(Game &g, const LevelDef &def) {
+    if (g.worldDef != &def) {
+        UnloadWorld(g.world);
+        GenerateWorld(g.world, def, g.gfx);
+        g.worldDef = &def;
+    }
+    g.planeStart.position = (Vector3){def.startX, GetGroundHeight(g.world, def.startX, def.startZ) + def.startHeightAboveGround, def.startZ};
+    g.level.def = &def;
+    g.level.startPosition = g.planeStart.position;
+    BuildCheckpoints(g.level);
+    g.level.bestTime = -1.0f;
+    if (LevelRecord *record = FindLevelRecord(g.progress, def.id)) g.level.bestTime = record->bestTime;
 }
 
 #ifdef FLIGHT_DEBUG
@@ -208,6 +221,11 @@ void UpdateFrame(Game &g) {
         g.screen = Screen::Menu;
     } else if (startLevel) {
         SetExitKey(KEY_ESCAPE);
+        const LevelDef *chosen = FindLevel(SelectedCard(g.levelSelect).id);
+#ifdef FLIGHT_DEBUG
+        if (debugStart) chosen = &Level1Def();
+#endif
+        SelectLevel(g, *chosen);
         resetRun();
         AdvanceWeather(world);
         g.screen = Screen::Playing;
@@ -268,8 +286,8 @@ void UpdateFrame(Game &g) {
             SpawnDebris(g.debris, planeModel, plane, impact, g.gfx.debrisPieces);
         } else if (IsRunFinished(level, plane.airborne, plane.speed)) {
             RecordFinish(level);
-            RecordLevelResult(g.progress, kLevel1Id, level.elapsed, ComputeStars(level, plane.damaged));
-            UnlockNextLevel(g.progress, g.levelSelect.cards, kLevel1Id);
+            RecordLevelResult(g.progress, level.def->id, level.elapsed, ComputeStars(level, plane.damaged));
+            UnlockNextLevel(g.progress, g.levelSelect.cards, level.def->id);
             SaveProgress(g.progress);
             g.screen = Screen::Finished;
         }
@@ -458,10 +476,11 @@ int main() {
 #ifdef FLIGHT_DEBUG
     if (const char *preset = getenv("FLIGHT_PRESET")) ApplyGraphicsPreset(game.gfx, static_cast<GraphicsPreset>(atoi(preset) % 3));
 #endif
-    GenerateWorld(game.world, game.gfx);
-
     const LevelDef &levelDef = Level1Def();
-    game.planeStart.position = (Vector3){levelDef.startX, GetGroundHeight(game.world, levelDef.startX, levelDef.startZ) + levelDef.startHeightAboveGround, levelDef.startZ};
+    GenerateWorld(game.world, levelDef, game.gfx);
+    game.worldDef = &levelDef;
+    game.progress = LoadProgress();
+    SelectLevel(game, levelDef);
     game.planeStart.fuel = game.planeParams.fuelCapacity;
 #ifdef FLIGHT_DEBUG
     if (const char *fuel = getenv("FLIGHT_FUEL")) game.planeStart.fuel = game.planeParams.fuelCapacity * (float)atof(fuel);
@@ -476,10 +495,7 @@ int main() {
 #endif
     game.plane = game.planeStart;
 
-    game.level.startPosition = game.planeStart.position;
     InitLevel(game.level);
-    game.progress = LoadProgress();
-    if (LevelRecord *record = FindLevelRecord(game.progress, kLevel1Id)) game.level.bestTime = record->bestTime;
 
 #ifdef __EMSCRIPTEN__
     emscripten_set_main_loop_arg(UpdateFrameCallback, &game, 0, 1);
