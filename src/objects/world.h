@@ -3,6 +3,7 @@
 #include "settings.h"
 #include "scatter.h"
 #include "clouds.h"
+#include "level_def.h"
 #include "rain.h"
 #include "snow.h"
 #include <vector>
@@ -32,7 +33,8 @@ struct WorldState {
     CloudsState clouds;
     RainState rain;
     SnowState snow;
-    bool snowRun = false;
+    Weather weather = Weather::Clear;
+    int runCount = 0;
 };
 
 // Builds the terrain heightmap (shape from the level definition) and obstacle layout. Call once at startup.
@@ -50,7 +52,7 @@ void AddSoftObstacle(WorldState &world, float x, float z, float height, float ra
 // Hard wins over soft when the plane overlaps both.
 ObstacleHit CheckObstacleHit(const WorldState &world, Vector3 planePosition, float planeRadius);
 
-// Rain and snow are mutually exclusive: when both counts are > 0 the run's weather alternates (see AdvanceWeather); a count of 0 disables that kind.
+// The run's weather comes from the level's allowed list (LevelDef::allowedWeathers), one step per run.
 void AdvanceWeather(WorldState &world);
 int ActiveRainDrops(const WorldState &world, const GraphicsSettings &gfx);
 int ActiveSnowFlakes(const WorldState &world, const GraphicsSettings &gfx);
