@@ -12,6 +12,12 @@ owner can skim what happened without digging through git log. Format:
 - PR: <link or branch, if one was opened>
 ```
 
+## 2026-10-13 00:07 UTC — night run
+- Did: Backlog 7 (P2), branch agents/2026-10-13-0007-aerobatics-detect: `src/aerobatics.*` recognises loop, barrel roll and Immelmann by accumulating pitch, roll and heading travel from an unbounded attitude sample; `AerobaticsTests` (synthetic sequences, false-positive cases, timeout, single reporting). Not wired into the game or the FlightGame target. Not release-relevant.
+- Why: every P0/P1 board item is already covered by an open PR (autoplay chain, aircraft configs, campaign note, stage system, art); this was the first uncovered item and touches no file an open PR touches.
+- Verified: raylib 5.5 built from source, game + 8 ctest targets pass (FLIGHT_DEBUG on and off), `--autoplay` under Xvfb exits 0 with RESULT: PASS. code-reviewer found a latch bug (half loop stayed "done" after being undone to a non-level pitch); fixed in one pass with a test, mutation-checked. The detector is not reachable in the game, so no in-game run applies. CI status: see PR.
+- Open: `BiplaneParams` clamps pitch to 60 and roll to 75, so no trick can fire until the flight model allows full rotations; real wiring needs an unwrapped attitude source (Euler flips past 90 deg pitch); tolerances are untuned; BarrelRoll means any full roll; a stale partial manoeuvre stays in progress up to 20 s.
+- PR: PR into dev from agents/2026-10-13-0007-aerobatics-detect, awaiting owner review
 ## 2026-10-08 09:20 UTC — day run
 - Did: P0 "A/D (rudder) turning feels dead" (branch agents/2026-10-08-0920-rudder-turn): `yawRate` 8 -> 22 deg/s and new `rudderBank` = 25 deg; with A/D held and no arrow input the plane eases into a bank toward the rudder side at `rollRate * authority`, and levels as before on release. Grounded taxi and the bank-turn formula are untouched. New flight test for A/D-only turns at 25 and 35 m/s. Radius 25 m/s: 179 m -> 44.8 m; 35 m/s: 250 m -> 68.7 m. Time for a 90 deg turn: 11.25 s -> 2.82 s (25 m/s), 11.25 s -> 3.10 s (35 m/s). Peak bank 0 -> 25 deg, altitude loss over the turn under 1 m. Release-relevant (feel).
 - Why: top open P0 item that is one small PR; CI autoplay (listed above it) is a 2-3 PR chain and needs this turn behaviour pinned first.

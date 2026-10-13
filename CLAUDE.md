@@ -123,7 +123,7 @@ priority. Skip items marked "owner" (waiting on his decision) or
 | P1 | Game name + itch.io page, going public | owner | rollout plan |
 | P2 | Fuel consumption behind a flag | open | Backlog 5 |
 | P2 | Low-preset performance pass | open | Backlog 6 |
-| P2 | Aerobatics detection prototype | open | Backlog 7 |
+| P2 | Aerobatics detection prototype | prototype done: src/aerobatics.*, branch agents/2026-10-13-0007-aerobatics-detect (not wired in; flight model clamps pitch/roll so tricks are unreachable today) | Backlog 7 |
 | P2 | iOS simulator readiness | open | Backlog 8 |
 | P2 | World improvements pick | owner | `design-notes/world-improvements.md` |
 | P2 | Monetization direction | owner | `design-notes/monetization.md` |
