@@ -14,12 +14,20 @@ struct ObstacleDef {
     float radius;
 };
 
+struct HillDef {
+    float base;
+    float ampX, freqX;
+    float ampZ, freqZ;
+    float ampXZ, freqXZx, freqXZz;
+};
+
 struct TerrainDef {
     int gridSize;
     float worldSize;
     float maxHeight;
     float flatHalfWidth;
     float edgeFade;
+    HillDef hill;
 };
 
 struct LevelDef {
@@ -36,6 +44,8 @@ struct LevelDef {
     std::vector<ObstacleDef> hardObstacles;
     std::vector<ObstacleDef> softObstacles;
 };
+
+float HillHeight01(const HillDef &hill, float x, float z);
 
 const LevelDef &Level1Def();
 
