@@ -50,6 +50,7 @@ struct LevelDef {
     std::vector<StageDef> stages;
 };
 
+const LevelDef &TutTakeoffDef();
 const LevelDef &Level1Def();
 
 const std::vector<const LevelDef *> &CampaignLevels();

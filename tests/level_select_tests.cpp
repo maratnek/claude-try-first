@@ -31,7 +31,7 @@ int main() {
     Expect("campaign order", orderOk);
     Expect("names", cards[0].name == "First Wings" && cards[1].name == "Slalom Field" && cards[2].name == "Valley Run" &&
                         cards[3].name == "Ridge Pass" && cards[4].name == "Blue Lagoon");
-    Expect("only level1 has content", !cards[2].comingSoon && cards[0].comingSoon && cards[1].comingSoon && cards[3].comingSoon && cards[4].comingSoon);
+    Expect("tutorial and level1 have content", !cards[0].comingSoon && !cards[2].comingSoon && cards[1].comingSoon && cards[3].comingSoon && cards[4].comingSoon);
     bool taglines = true;
     for (const LevelCard &c : cards) taglines = taglines && !c.tagline.empty();
     Expect("every card has a tagline", taglines);
@@ -45,7 +45,7 @@ int main() {
     Expect("lake locked on fresh save", !IsUnlocked(lake, fresh));
     Expect("level1 condition empty", UnlockConditionText(level1, cards, fresh).empty());
     Expect("teaser says coming soon", UnlockConditionText(mountains, cards, fresh) == "Coming soon");
-    Expect("first card says coming soon", UnlockConditionText(cards[0], cards, fresh) == "Coming soon");
+    Expect("first card playable from the start", IsOpenable(cards[0], fresh) && UnlockConditionText(cards[0], cards, fresh).empty());
 
     ProgressData finished;
     RecordLevelResult(finished, "level1", 30.0f, 2);

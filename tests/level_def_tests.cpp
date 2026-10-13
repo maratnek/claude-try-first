@@ -105,7 +105,46 @@ int main() {
         Expect("gate stage ends at the gate distance", Near(d.stages[2].endZ, d.gateDistance));
     }
 
-    Expect("registry holds level 1 only", CampaignLevels().size() == 1 && CampaignLevels()[0] == &d);
+    const LevelDef &t = TutTakeoffDef();
+    Expect("registry holds tutorial then level 1", CampaignLevels().size() == 2 && CampaignLevels()[0] == &t && CampaignLevels()[1] == &d);
+    Expect("campaign ids unique", [&] {
+        for (size_t i = 0; i < CampaignLevels().size(); i++)
+            for (size_t j = i + 1; j < CampaignLevels().size(); j++)
+                if (std::string(CampaignLevels()[i]->id) == CampaignLevels()[j]->id) return false;
+        return true;
+    }());
+    Expect("FindLevel tut_takeoff", FindLevel("tut_takeoff") == &t && std::string(t.name) == "First Wings");
+    Expect("tut: landing rules", t.requireLanding && Near(t.gateDistance, 700.0f) && t.landingZoneLength > 0.0f);
+    Expect("tut: no obstacles", t.hardObstacles.empty() && t.softObstacles.empty());
+    Expect("tut: terrain nearly flat", t.terrain.maxHeight <= 1.0f);
+    Expect("tut: medals ordered", t.medalGold < t.medalSilver && t.medalSilver < t.medalBronze);
+    Expect("tut: seven rings", t.checkpoints.size() == 7);
+    if (t.checkpoints.size() == 7) {
+        Expect("tut: climb rings", Matches(t.checkpoints[0], 0.0f, 25.0f, 100.0f, 14.0f) &&
+                                       Matches(t.checkpoints[1], 0.0f, 50.0f, 250.0f, 14.0f));
+        bool ordered = true, inCorridor = true, spaced = true, descending = true;
+        for (size_t i = 0; i < t.checkpoints.size(); i++) {
+            const CheckpointDef &c = t.checkpoints[i];
+            if (i > 0 && c.z <= t.checkpoints[i - 1].z) ordered = false;
+            if (std::fabs(c.x) + c.radius >= t.terrain.flatHalfWidth) inCorridor = false;
+            if (i >= 3 && !Near(c.z - t.checkpoints[i - 1].z, 80.0f)) spaced = false;
+            if (i >= 2 && (c.radius != 12.0f || (i > 2 && c.y >= t.checkpoints[i - 1].y))) descending = false;
+        }
+        Expect("tut: rings sorted by z", ordered);
+        Expect("tut: rings inside flat corridor", inCorridor);
+        Expect("tut: approach rings 80 m apart", spaced);
+        Expect("tut: glide-path ring heights decrease", descending);
+        bool glide = true;
+        for (size_t i = 2; i < 7; i++) {
+            float deg = std::atan2(t.checkpoints[i].y, t.gateDistance - t.checkpoints[i].z) * 57.29578f;
+            if (std::fabs(deg - 4.0f) > 0.1f) glide = false;
+        }
+        Expect("tut: approach rings follow a 4 degree glide path", glide);
+        Expect("tut: landing zone beyond last ring", t.gateDistance > t.checkpoints.back().z + t.checkpoints.back().radius);
+    }
+    Expect("tut: stages", t.stages.size() == 4 && t.stages[0].type == StageType::Takeoff && t.stages[1].type == StageType::Rings &&
+                              t.stages[2].type == StageType::Rings && t.stages[3].type == StageType::RunwayLanding &&
+                              Near(t.stages[1].endZ, 250.0f) && Near(t.stages[2].endZ, t.checkpoints.back().z));
     Expect("FindLevel level1", FindLevel("level1") == &d);
     Expect("FindLevel unknown id", FindLevel("level9") == nullptr);
 
