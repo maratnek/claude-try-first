@@ -107,7 +107,7 @@ priority. Skip items marked "owner" (waiting on his decision) or
 | P1 | Aircraft configs: each aircraft's flight parameters in its own data file, sourced from real specs | open | "Aircraft configs" |
 | P1 | World art track: sky, then ground (look like 2000s today) | open — world-artist agent, small PRs | "World art track" |
 | P1 | Code split: world look (render) separate from world gameplay | open — first PR of the world art track, no visual change | "World art track" |
-| P1 | Effects polish part 2: rain, speed streaks, debris dust (one PR, reusing `src/objects/sprites.*`); clouds separately if they read as blocks | open | "Next up" below |
+| P1 | Effects polish part 2: rain, speed streaks, debris dust (one PR, reusing `src/objects/sprites.*`); clouds separately if they read as blocks | rain + speed streaks done (soft stretched `SpriteKind::Streak` quads); debris dust separate PR; clouds open | "Next up" below |
 | P2 | Effects v3: richer detail — real snowflake shapes, detailed fire (flicker, embers, heat colours), raindrops/splashes — as far as each preset allows | open, after part 2 | "Next up" below |
 | P0 | Release blockers 1–3 (throttle/gravity, turns, visible damage) | done, in `release` | "Current priority" |
 | P1 | Known small bugs and polish (window title, menu title, loading indicator, touch settings, rollout, dead code) | open | Backlog 1 |
