@@ -21,7 +21,6 @@ bool RecordLevelResult(ProgressData &data, const std::string &id, float time, in
 bool HasUnlock(const ProgressData &data, const std::string &id);
 void AddUnlock(ProgressData &data, const std::string &id);
 
-// Empty when there is no record (bestTime < 0).
 std::string FormatRecordLine(float bestTime, int stars);
 
 std::string SerializeProgress(const ProgressData &data);

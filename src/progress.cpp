@@ -101,7 +101,7 @@ ProgressData ParseProgress(const std::string &text) {
 }
 
 std::string FormatRecordLine(float bestTime, int stars) {
-    if (bestTime < 0.0f) return "";
+    if (!(bestTime >= 0.0f) || !std::isfinite(bestTime) || bestTime > 599940.0f) return "";
     int tenths = (int)(bestTime * 10.0f + 0.5f);
     if (stars < 0) stars = 0;
     if (stars > 3) stars = 3;
