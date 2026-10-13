@@ -72,8 +72,9 @@ struct PlaneState {
 // so slope alone never lifts the plane off). While grounded, the plane rolls
 // along the ground on its heading only and needs enough speed and nose-up
 // pitch to lift off; input.brake brakes the wheels at any
-// engine power (never in the air), and so does holding throttle-down at power zero. groundHeight is the terrain height directly under the plane, used
-// both for ground-rolling and as a soft floor once airborne. When the
+// engine power (never in the air), and so does holding throttle-down at
+// power zero. groundHeight is the terrain height directly under the plane,
+// used both for ground-rolling and as a soft floor once airborne. When the
 // airborne plane reaches the ground, plane.landing becomes Safe (plane
 // returns to ground-rolling) or Hard (caller should treat it as a crash); it
 // resets on the next liftoff.

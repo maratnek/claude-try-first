@@ -372,7 +372,7 @@ void UpdateFrame(Game &g) {
         DrawText("Landed safely - take off again", ox, 150 + oy, 30, DARKGREEN);
     }
     if (g.screen == Screen::Playing && level.gateCrossed && g.inputState.touchUsed) {
-        DrawText("Power to zero, then hold - to brake after landing (Space/B = brake)", ox, 215 + oy, 24, DARKGRAY);
+        DrawText("Power to zero, then hold - to brake after landing", ox, 215 + oy, 24, DARKGRAY);
     }
     DrawFPS(ox, 60 + oy);
     DrawText(TextFormat("Graphics: %s (F1)", GraphicsPresetName(g.gfx)), ox + 100, 60 + oy, 20, DARKGRAY);
