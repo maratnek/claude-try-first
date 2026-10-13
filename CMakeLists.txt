@@ -141,6 +141,9 @@ if(NOT EMSCRIPTEN AND NOT CMAKE_SYSTEM_NAME STREQUAL "iOS")
     enable_testing()
     add_executable(FlightTests tests/flight_tests.cpp src/flight.cpp src/level_def.cpp)
     target_include_directories(FlightTests PRIVATE src)
+    target_compile_definitions(FlightTests PRIVATE
+        FLIGHT_PARAMS_FILE="${CMAKE_SOURCE_DIR}/assets/models/biplane-1920.flight.txt"
+        FLIGHT_PARAMS_SCRATCH="${CMAKE_BINARY_DIR}/flight_params_scratch.txt")
     target_link_libraries(FlightTests PRIVATE raylib)
     add_test(NAME FlightTests COMMAND FlightTests)
 

@@ -33,3 +33,15 @@ behind the engine), and the weakest-first failure order. Use node names
 exactly as they appear in the GLB. The file format is documented in
 `design-notes/breakup-v2.md`. If a node spans both sides (a one-piece wing),
 either split it in the model or mark it `@L`/`@R` in the sidecar.
+
+## Flight config (required for every aircraft)
+
+Each aircraft request must also include its flight parameters as a sidecar
+`<name>.flight.txt` next to the model (`key=value` per line, `#` comments on their own lines,
+keys are the `PlaneParams` field names in `src/flight.h`; loaded by
+`LoadPlaneParams`, see `assets/models/biplane-1920.flight.txt`). The file
+header names the reference real aircraft and quotes only the specs known with
+confidence (marked approx): top speed, stall speed, climb rate, roll rate,
+glide ratio, mass, wing loading. It also lists which values are pure
+game-feel tuning (for example `yawRate`, `maxTurnRate`, `controlSpeed`).
+Unknown keys or unparsable values make the loader reject the whole file.

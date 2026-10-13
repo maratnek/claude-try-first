@@ -428,6 +428,9 @@ int main() {
     game.camera.projection = CAMERA_PERSPECTIVE;
 
     LoadPlaneModel(game.planeModel, AssetPath("models/biplane-1920.glb"));
+    if (!LoadPlaneParams(game.planeParams, AssetPath("models/biplane-1920.flight.txt"))) {
+        TraceLog(LOG_WARNING, "flight params file missing or invalid, using built-in biplane values");
+    }
 
     InitMenu(game.menu);
     EnterMenu(game.menu);

@@ -12,6 +12,12 @@ owner can skim what happened without digging through git log. Format:
 - PR: <link or branch, if one was opened>
 ```
 
+## 2026-10-12 21:10 UTC — night run
+- Did: P1 "Aircraft configs" (branch agents/2026-10-12-2110-aircraft-config): all 35 `PlaneParams` values now live in `assets/models/biplane-1920.flight.txt`, loaded at startup by `LoadPlaneParams` (src/flight.cpp) with `BiplaneParams()` as fallback (warning logged). Values identical, so level 1 flies the same. Header cites Sopwith Camel figures (approx) and lists game-feel values. Flight-config section added to the asset-request template; ARCHITECTURE.md note. Not release-relevant.
+- Why: every P0 item already has an open PR, campaign note is open (#111); this is the next P1 item and unblocks plane choice.
+- Verified: real run. raylib 5.5 built from source, ctest 7/7 (new tests: shipped file equals BiplaneParams, bad input rejected, partial file). Under Xvfb with real key input the branch and origin/dev gave the same liftoff and flight numbers within about 1%; with the file removed the game starts, warns and flies the same. code-reviewer: no blockers; Camel figures checked, the ceiling number was dropped. Not run: Web and iOS builds (CI only). CI status: see PR.
+- Open: owner to review. Touches `flight.cpp`, so it may conflict textually with open #79 (rudder values). Nit not done: no sanity check for zero or negative values in the file.
+- PR: see PR from agents/2026-10-12-2110-aircraft-config
 ## 2026-10-08 09:20 UTC — day run
 - Did: P0 "A/D (rudder) turning feels dead" (branch agents/2026-10-08-0920-rudder-turn): `yawRate` 8 -> 22 deg/s and new `rudderBank` = 25 deg; with A/D held and no arrow input the plane eases into a bank toward the rudder side at `rollRate * authority`, and levels as before on release. Grounded taxi and the bank-turn formula are untouched. New flight test for A/D-only turns at 25 and 35 m/s. Radius 25 m/s: 179 m -> 44.8 m; 35 m/s: 250 m -> 68.7 m. Time for a 90 deg turn: 11.25 s -> 2.82 s (25 m/s), 11.25 s -> 3.10 s (35 m/s). Peak bank 0 -> 25 deg, altitude loss over the turn under 1 m. Release-relevant (feel).
 - Why: top open P0 item that is one small PR; CI autoplay (listed above it) is a 2-3 PR chain and needs this turn behaviour pinned first.

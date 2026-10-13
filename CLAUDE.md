@@ -108,7 +108,7 @@ priority. Skip items marked "owner" (waiting on his decision) or
 | P1 | Brakes: a dedicated wheel-brake key (Space/B) on the ground at any power, a BRAKE touch button after touchdown, HUD hint; today braking needs power 0 + S | open — owner request 2026-10-09 | owner flies it |
 | P1 | Menu look: 1920s cartoon main menu with key art and a side panel of what the game offers | waiting for the owner's generated art (`asset-requests/pending/menu-*.md`); layout and fonts can start | "Art direction" |
 | P0 | Effects polish part 1: smoke, fireball, snow → soft sprites | done, merged 2026-10-09 | "Next up" below |
-| P1 | Aircraft configs: each aircraft's flight parameters in its own data file, sourced from real specs | open | "Aircraft configs" |
+| P1 | Aircraft configs: each aircraft's flight parameters in its own data file, sourced from real specs | done, awaiting owner review | "Aircraft configs" |
 | P1 | World art track: sky, then ground (look like 2000s today) | open — world-artist agent, small PRs | "World art track" |
 | P1 | Code split: world look (render) separate from world gameplay | open — first PR of the world art track, no visual change | "World art track" |
 | P1 | Effects polish part 2: rain, speed streaks, debris dust (one PR, reusing `src/objects/sprites.*`); clouds separately if they read as blocks | open | "Next up" below |
