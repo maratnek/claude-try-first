@@ -24,6 +24,7 @@ struct GraphicsSettings {
     float scatterDensity = 1.0f;
     int cloudCount = 30;
     int smokePuffs = 64;
+    int exhaustPuffs = 32;
     int debrisPieces = 12;
     bool explosionFire = true;
     int explosionSmoke = 64;

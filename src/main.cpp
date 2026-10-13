@@ -15,6 +15,7 @@
 #include "render/sky.h"
 #include "render/world_draw.h"
 #include "objects/smoke.h"
+#include "objects/exhaust.h"
 #include "objects/sprites.h"
 #include "objects/explosion.h"
 #include "objects/streaks.h"
@@ -66,6 +67,7 @@ struct Game {
     PlaneAnim planeAnim;
     WorldState world;
     SmokeState smoke;
+    ExhaustState exhaust;
     SmokeState crashSmoke;
     ExplosionState explosion;
     StreakState streaks;
@@ -174,6 +176,7 @@ void UpdateFrame(Game &g) {
     auto resetRun = [&]() {
         plane = planeStart;
         ClearSmoke(g.smoke);
+        ClearExhaust(g.exhaust);
         ClearSmoke(g.crashSmoke);
         ClearExplosion(g.explosion);
         ClearStreaks(g.streaks);
@@ -265,6 +268,7 @@ void UpdateFrame(Game &g) {
 #endif
 
     UpdateSmoke(g.smoke, plane.position, GetPlaneForward(plane), plane.damaged && g.screen == Screen::Playing, g.gfx.smokePuffs, dt);
+    UpdateExhaust(g.exhaust, plane, g.screen == Screen::Playing && !level.crashed, g.gfx.exhaustPuffs, dt);
     UpdateExplosionSmoke(g.crashSmoke, dt);
     UpdateExplosion(g.explosion, dt);
     UpdateDebris(g.debris, world, dt);
@@ -311,6 +315,7 @@ void UpdateFrame(Game &g) {
     DrawPlaneObject(planeModel, g.planeAnim, plane.position, plane.yaw, plane.pitch, plane.roll, g.gfx.propBlur, DebrisDetachedParts(g.debris), DebrisDetachedGroups(g.debris), plane.damaged && g.gfx.damageVisuals);
     DrawDebris(g.debris, planeModel);
     if (g.gfx.smokePuffs > 0) DrawSmoke(g.smoke, camera);
+    if (g.gfx.exhaustPuffs > 0) DrawExhaust(g.exhaust, camera);
     DrawExplosion(g.explosion, camera);
     DrawSmoke(g.crashSmoke, camera);
     if (g.gfx.speedStreaks > 0) DrawStreaks(g.streaks);
