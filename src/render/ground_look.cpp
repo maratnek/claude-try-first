@@ -118,10 +118,12 @@ void BuildTerrainColors(WorldState &world, Mesh &mesh, const GraphicsSettings &g
     world.terrainShadedColors.assign(colorBytes, 255);
     world.terrainReliefColors.assign(colorBytes, 255);
     world.terrainFlatColors.assign(colorBytes, 255);
+    // Mesh vertices run 0..worldSize; the model is drawn offset by -half, heights are sampled in centred coordinates.
+    float halfSize = world.worldSize * 0.5f;
     for (int v = 0; v < mesh.vertexCount; v++) {
         Vector3 n = {mesh.normals[v * 3], mesh.normals[v * 3 + 1], mesh.normals[v * 3 + 2]};
         Color c = TerrainVertexColor(mesh.vertices[v * 3 + 1] / world.maxHeight, n);
-        Color r = ReliefTint(c, TerrainCurvature(world, mesh.vertices[v * 3], mesh.vertices[v * 3 + 2]));
+        Color r = ReliefTint(c, TerrainCurvature(world, mesh.vertices[v * 3] - halfSize, mesh.vertices[v * 3 + 2] - halfSize));
         unsigned char *shaded = &world.terrainShadedColors[v * 4];
         unsigned char *relief = &world.terrainReliefColors[v * 4];
         unsigned char *flat = &world.terrainFlatColors[v * 4];
