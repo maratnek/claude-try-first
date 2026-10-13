@@ -79,7 +79,10 @@ int main() {
     Expect("clamp at right end", MoveSelection(4, 1, 5) == 4);
     Expect("empty list", MoveSelection(0, 1, 0) == 0);
 
-    Expect("default selection is level1 on fresh save", DefaultSelection(cards, fresh) == 2);
+    Expect("default selection is the first unfinished card on a fresh save", DefaultSelection(cards, fresh) == 0);
+    ProgressData tutDone;
+    RecordLevelResult(tutDone, "tut_takeoff", 40.0f, 1);
+    Expect("default selection moves on after the tutorial is finished", DefaultSelection(cards, tutDone) == 2);
     Expect("best time", CardBestTime(level1, finished) > 29.9f && CardBestTime(level1, ProgressData{}) < 0.0f);
 
     if (g_failures == 0) printf("level select tests passed\n");

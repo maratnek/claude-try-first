@@ -74,11 +74,13 @@ int MoveSelection(int selected, int delta, int count) {
 }
 
 int DefaultSelection(const std::vector<LevelCard> &cards, const ProgressData &data) {
-    int best = 0;
+    int last = 0;
     for (int i = 0; i < (int)cards.size(); i++) {
-        if (IsOpenable(cards[i], data)) best = i;
+        if (!IsOpenable(cards[i], data)) continue;
+        last = i;
+        if (CardBestTime(cards[i], data) < 0.0f) return i;
     }
-    return best;
+    return last;
 }
 
 bool UnlockNextLevel(ProgressData &data, const std::vector<LevelCard> &cards, const std::string &finishedId) {
