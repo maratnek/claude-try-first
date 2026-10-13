@@ -12,6 +12,12 @@ owner can skim what happened without digging through git log. Format:
 - PR: <link or branch, if one was opened>
 ```
 
+## 2026-10-13 01:10 UTC — night run
+- Did: P1 "Level select with locked teaser levels" (campaign PR 2, branch agents/2026-10-13-0110-level-select, stacked on the stage-system PR #115): Play opens a row of five cards (First Wings, Slalom Field, Valley Run, Ridge Pass, Blue Lagoon). Only Valley Run is playable; the others are darkened "Coming soon" teasers that shake when selected. Finishing a level writes the next card's unlock flag next to the existing best-time save. Card and unlock rules are in raylib-free `src/level_select.*` with `LevelSelectTests`; the screen is `src/level_select_screen.*`. Debug autoplay and `--crash-test` skip the screen.
+- Why: the stage system is in review and level select is the next campaign step; it shows players the next levels already in the first itch.io build.
+- Verified: raylib 5.5 built from source, 8/8 ctest, autoplay PASS; real run under Xvfb with xdotool input and screenshots at 1280x720 and 480x800: Play opens the select, arrows move, a teaser does not start, Esc returns to the menu without exiting, Valley Run starts a normal takeoff. code-reviewer: no blockers. Not covered: the shake animation in a screenshot, Web and iOS builds, a real touch device. Silhouette strips, the results Next button and `--unlock-all` are not done.
+- Open: owner: press Play, move across the cards, try a locked one, Esc back, start Valley Run. Merge #111 and #115 first.
+- PR: PR into dev from agents/2026-10-13-0110-level-select, stacked on #115, awaiting owner review
 ## 2026-10-12 23:07 UTC — night run
 - Did: P1 "Stage system" (campaign PR 1, branch agents/2026-10-12-2307-stage-system, stacked on the campaign note PR #111): `LevelDef` gets id, name and an ordered stage list (Takeoff, Rings, Gate, Landing) derived from the existing level 1 fields; `CampaignLevels()`/`FindLevel()` registry with level 1 only; `LevelState` tracks the current stage (`UpdateStage`); HUD line "Stage N/M: Title". Level 1 rules, stars and medals are untouched.
 - Why: every P0 is covered by an open PR; the stage system is the next board item on the road to the 3-level first release and everything after it (level select, tutorials) depends on it.
