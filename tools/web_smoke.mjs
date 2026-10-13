@@ -22,6 +22,14 @@ const server = http.createServer((req, res) => {
 await new Promise((r) => server.listen(0, '127.0.0.1', r));
 const url = `http://127.0.0.1:${server.address().port}/`;
 
+const PIXEL_DELTA = 48;
+const PLAY_SETTLE_MS = 2000;
+const THROTTLE_HOLD_MS = 6000;
+const PITCH_HOLD_MS = 5000;
+const FLIGHT_SETTLE_MS = 1000;
+const MIN_PLAY_CHANGE = 0.05;
+const MIN_FLIGHT_CHANGE = 0.01;
+
 const failures = [];
 const browser = await chromium.launch({
   args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'],
@@ -36,6 +44,11 @@ page.on('pageerror', (e) => failures.push(`page error: ${e.message}`));
 page.on('requestfailed', (r) => failures.push(`request failed: ${r.url()}`));
 page.on('response', (r) => { if (r.status() >= 400) failures.push(`HTTP ${r.status()}: ${r.url()}`); });
 
+await page.addInitScript(() => {
+  window.__frames = 0;
+  const tick = () => { window.__frames++; requestAnimationFrame(tick); };
+  requestAnimationFrame(tick);
+});
 await page.goto(url);
 try {
   await page.waitForFunction(() => document.getElementById('loading').hidden, null, { timeout: 90000 });
@@ -47,24 +60,67 @@ await page.waitForTimeout(3000);
 const loadingText = await page.textContent('#loading-text');
 if (/Failed to load/.test(loadingText)) failures.push(`loading shows: ${loadingText}`);
 
-const shot = path.join(outDir, 'menu.png');
-await page.screenshot({ path: shot });
+async function sampleFrame(file) {
+  const dataUrl = 'data:image/png;base64,' + fs.readFileSync(file).toString('base64');
+  return page.evaluate(async (src) => {
+    const img = new Image();
+    img.src = src;
+    await img.decode();
+    const c = document.createElement('canvas');
+    c.width = 160; c.height = 90;
+    const ctx = c.getContext('2d');
+    ctx.drawImage(img, 0, 0, 160, 90);
+    const d = ctx.getImageData(0, 0, 160, 90).data;
+    const seen = new Set();
+    for (let i = 0; i < d.length; i += 4) seen.add((d[i] >> 4) << 8 | (d[i + 1] >> 4) << 4 | (d[i + 2] >> 4));
+    return { colours: seen.size, pixels: Array.from(d) };
+  }, dataUrl);
+}
+
+function changedFraction(a, b) {
+  let changed = 0;
+  for (let i = 0; i < a.pixels.length; i += 4) {
+    const delta = Math.abs(a.pixels[i] - b.pixels[i]) + Math.abs(a.pixels[i + 1] - b.pixels[i + 1]) + Math.abs(a.pixels[i + 2] - b.pixels[i + 2]);
+    if (delta > PIXEL_DELTA) changed++;
+  }
+  return changed / (a.pixels.length / 4);
+}
+
+const menuShot = path.join(outDir, 'menu.png');
+await page.screenshot({ path: menuShot });
 // The menu draws sky, ground and text, so a drawn frame has many distinct colours; a black or flat canvas has few.
-const colours = await page.evaluate(async (dataUrl) => {
-  const img = new Image();
-  img.src = dataUrl;
-  await img.decode();
-  const c = document.createElement('canvas');
-  c.width = 160; c.height = 90;
-  const ctx = c.getContext('2d');
-  ctx.drawImage(img, 0, 0, 160, 90);
-  const d = ctx.getImageData(0, 0, 160, 90).data;
-  const seen = new Set();
-  for (let i = 0; i < d.length; i += 4) seen.add((d[i] >> 4) << 8 | (d[i + 1] >> 4) << 4 | (d[i + 2] >> 4));
-  return seen.size;
-}, 'data:image/png;base64,' + fs.readFileSync(shot).toString('base64'));
-console.log(`distinct colours in menu frame: ${colours}`);
-if (colours < 12) failures.push(`menu frame looks blank (${colours} distinct colours)`);
+const menuFrame = await sampleFrame(menuShot);
+console.log(`distinct colours in menu frame: ${menuFrame.colours}`);
+if (menuFrame.colours < 12) failures.push(`menu frame looks blank (${menuFrame.colours} distinct colours)`);
+
+const frames = () => page.evaluate(() => window.__frames);
+console.log(`animation frames before Enter: ${await frames()}`);
+await page.click('#canvas');
+await page.keyboard.press('Enter');
+await page.waitForTimeout(PLAY_SETTLE_MS);
+console.log(`animation frames after Enter: ${await frames()}`);
+const playShot = path.join(outDir, 'play-start.png');
+await page.screenshot({ path: playShot });
+const playFrame = await sampleFrame(playShot);
+const playChange = changedFraction(menuFrame, playFrame);
+console.log(`menu -> play-start changed pixels: ${(playChange * 100).toFixed(1)}%`);
+if (playChange < MIN_PLAY_CHANGE) failures.push(`frame after Enter barely differs from the menu (${(playChange * 100).toFixed(1)}% changed, need ${MIN_PLAY_CHANGE * 100}%)`);
+
+await page.keyboard.down('w');
+await page.waitForTimeout(THROTTLE_HOLD_MS);
+await page.screenshot({ path: path.join(outDir, 'flight-throttle.png') });
+await page.keyboard.down('ArrowDown');
+await page.waitForTimeout(PITCH_HOLD_MS);
+await page.keyboard.up('ArrowDown');
+await page.keyboard.up('w');
+await page.waitForTimeout(FLIGHT_SETTLE_MS);
+console.log(`animation frames after flight: ${await frames()}`);
+const flightShot = path.join(outDir, 'flight.png');
+await page.screenshot({ path: flightShot });
+const flightFrame = await sampleFrame(flightShot);
+const flightChange = changedFraction(playFrame, flightFrame);
+console.log(`play-start -> flight changed pixels: ${(flightChange * 100).toFixed(1)}%`);
+if (flightChange < MIN_FLIGHT_CHANGE) failures.push(`flight frame barely differs from play-start (${(flightChange * 100).toFixed(1)}% changed, need ${MIN_FLIGHT_CHANGE * 100}%); game looks frozen`);
 
 fs.writeFileSync(path.join(outDir, 'console.txt'), log.join('\n') + '\n');
 await browser.close();

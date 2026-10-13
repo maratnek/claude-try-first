@@ -12,6 +12,12 @@ owner can skim what happened without digging through git log. Format:
 - PR: <link or branch, if one was opened>
 ```
 
+## 2026-10-13 23:10 UTC — night run
+- Did: P0 release guard (branch agents/2026-10-13-2310-web-smoke-flight): `tools/web_smoke.mjs` now also plays a run in the web build: click the canvas, Enter on the menu, hold W 6 s, add ArrowDown 5 s, with screenshots `play-start.png`, `flight-throttle.png`, `flight.png`. Fails when the frame after Enter barely differs from the menu (under 5% of pixels) or the flight frame barely differs from the start frame (under 1%, a frozen loop), on top of the existing console/page/HTTP error checks. Frame sampling is a shared helper. No game code changed. Release-relevant: guards the itch.io Web build.
+- Why: the web smoke only loaded the menu, so a web build that cannot start a run or freezes in flight would pass CI; no open PR touches this script.
+- Verified: NOT RUN ON THE REAL WEB BUILD (no Emscripten here). Run against stub pages in headless Chromium: healthy stub passes; a stub ignoring Enter, one that freezes after Play and one logging console.error in flight each fail. code-reviewer: no blockers (checked Enter/W/ArrowDown against menu.cpp and input.cpp, no page scroll in web/shell.html). CI status: see PR.
+- Open: the 5% / 1% thresholds are unproven on the real game; the first CI run is the real test (see the printed percentages and the three screenshots in the `FlightGame-web-smoke` artifact). It does not check takeoff.
+- PR: PR into dev from agents/2026-10-13-2310-web-smoke-flight, awaiting owner review
 ## 2026-10-08 09:20 UTC — day run
 - Did: P0 "A/D (rudder) turning feels dead" (branch agents/2026-10-08-0920-rudder-turn): `yawRate` 8 -> 22 deg/s and new `rudderBank` = 25 deg; with A/D held and no arrow input the plane eases into a bank toward the rudder side at `rollRate * authority`, and levels as before on release. Grounded taxi and the bank-turn formula are untouched. New flight test for A/D-only turns at 25 and 35 m/s. Radius 25 m/s: 179 m -> 44.8 m; 35 m/s: 250 m -> 68.7 m. Time for a 90 deg turn: 11.25 s -> 2.82 s (25 m/s), 11.25 s -> 3.10 s (35 m/s). Peak bank 0 -> 25 deg, altitude loss over the turn under 1 m. Release-relevant (feel).
 - Why: top open P0 item that is one small PR; CI autoplay (listed above it) is a 2-3 PR chain and needs this turn behaviour pinned first.
