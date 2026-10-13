@@ -15,6 +15,7 @@
 #include "render/sky.h"
 #include "render/world_draw.h"
 #include "objects/smoke.h"
+#include "objects/dust.h"
 #include "objects/sprites.h"
 #include "objects/explosion.h"
 #include "objects/streaks.h"
@@ -67,6 +68,7 @@ struct Game {
     WorldState world;
     SmokeState smoke;
     SmokeState crashSmoke;
+    DustState dust;
     ExplosionState explosion;
     StreakState streaks;
     DebrisState debris;
@@ -175,6 +177,7 @@ void UpdateFrame(Game &g) {
         plane = planeStart;
         ClearSmoke(g.smoke);
         ClearSmoke(g.crashSmoke);
+        ClearDust(g.dust);
         ClearExplosion(g.explosion);
         ClearStreaks(g.streaks);
         ClearRain(world.rain);
@@ -232,6 +235,7 @@ void UpdateFrame(Game &g) {
         if (CountPassed(level) > passedBefore) PlayChimeSound(engineAudio);
         if (wasAirborne && !plane.airborne && plane.landing == LandingResult::Safe) {
             PlayTouchdownSound(engineAudio);
+            SpawnDust(g.dust, {plane.position.x, groundHeight, plane.position.z}, 0.25f, g.gfx.dustPuffs);
             g.hardLandingsInARow = 0;
         }
 
@@ -253,6 +257,9 @@ void UpdateFrame(Game &g) {
             StartExplosion(g.explosion, tank, s, g.gfx.explosionFire ? (high ? 3 : 1) : 0, high);
             StartExplosionSmoke(g.crashSmoke, tank, s, g.gfx.explosionSmoke);
             SpawnDebris(g.debris, planeModel, plane, impact, g.gfx.debrisPieces);
+            if (plane.landing == LandingResult::Hard) {
+                SpawnDust(g.dust, {plane.position.x, groundHeight, plane.position.z}, impact.speed / 40.0f, g.gfx.dustPuffs);
+            }
         } else if (IsRunFinished(level, plane.airborne, plane.speed)) {
             RecordFinish(level);
             RecordLevelResult(g.progress, kLevel1Id, level.elapsed, ComputeStars(level, plane.damaged));
@@ -266,6 +273,7 @@ void UpdateFrame(Game &g) {
 
     UpdateSmoke(g.smoke, plane.position, GetPlaneForward(plane), plane.damaged && g.screen == Screen::Playing, g.gfx.smokePuffs, dt);
     UpdateExplosionSmoke(g.crashSmoke, dt);
+    UpdateDust(g.dust, dt);
     UpdateExplosion(g.explosion, dt);
     UpdateDebris(g.debris, world, dt);
     UpdatePlaneAnimation(g.planeAnim, plane, input, level.crashed, g.gfx.pilotHead, g.planeParams.maxSpeed, dt);
@@ -313,6 +321,7 @@ void UpdateFrame(Game &g) {
     if (g.gfx.smokePuffs > 0) DrawSmoke(g.smoke, camera);
     DrawExplosion(g.explosion, camera);
     DrawSmoke(g.crashSmoke, camera);
+    DrawDust(g.dust, camera);
     if (g.gfx.speedStreaks > 0) DrawStreaks(g.streaks);
     if (g.gfx.characters) {
         DrawCharacterObject((Vector3){-3.0f, GetGroundHeight(world, -3.0f, 3.0f), 3.0f}, 20.0f, BLUE);

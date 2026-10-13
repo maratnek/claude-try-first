@@ -71,6 +71,7 @@ add_executable(FlightGame
     src/objects/scatter.cpp
     src/objects/clouds.cpp
     src/objects/smoke.cpp
+    src/objects/dust.cpp
     src/objects/sprites.cpp
     src/objects/streaks.cpp
     src/objects/rain.cpp
@@ -171,4 +172,9 @@ if(NOT EMSCRIPTEN AND NOT CMAKE_SYSTEM_NAME STREQUAL "iOS")
     target_include_directories(BreakupTests PRIVATE src)
     target_link_libraries(BreakupTests PRIVATE raylib)
     add_test(NAME BreakupTests COMMAND BreakupTests)
+
+    add_executable(DustTests tests/dust_tests.cpp src/objects/dust.cpp src/objects/sprites.cpp)
+    target_include_directories(DustTests PRIVATE src)
+    target_link_libraries(DustTests PRIVATE raylib)
+    add_test(NAME DustTests COMMAND DustTests)
 endif()

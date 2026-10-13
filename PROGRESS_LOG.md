@@ -12,6 +12,13 @@ owner can skim what happened without digging through git log. Format:
 - PR: <link or branch, if one was opened>
 ```
 
+## 2026-10-12 22:15 UTC — night run
+- Did: P1 "Effects polish part 2" (branch agents/2026-10-12-2215-impact-dust). Rain and speed streaks were already thin lines, so only debris dust was missing: new `src/objects/dust.*` (24-puff pool, soft tan sprites via `sprites.*`) puffs up on a hard ground landing (strength = impact speed / 40) and, small, on a safe touchdown (0.25). New `dustPuffs` setting: Low 0, Medium 10, High 24. New `DustTests`. No physics or gameplay change. Not release-relevant (visual polish).
+- Why: next open board item whose files no open PR touches; world-art and aircraft-config items are covered by other PRs.
+- Verified: real run, raylib 5.5 from source, Xvfb: 8/8 ctest pass; `--crash-test` on High with no fuel shows a soft tan cloud billowing around the wreck (screenshots 0.1-3.0 s), Low shows none; autoplay still RESULT: PASS. code-reviewer: no blockers. NOT seen: the safe-touchdown puff (the autoplay script in this base does not land) and R clearing dust (xdotool key did not reach the game); both only read in code.
+- Open: owner to judge the look; Medium touchdown gives only 3 puffs and may look faint; colour is the same on snow. Evolving from the part-2 item: clouds and the v3 effects detail stay open.
+- PR: PR into dev from agents/2026-10-12-2215-impact-dust, awaiting owner review
+
 ## 2026-10-08 09:20 UTC — day run
 - Did: P0 "A/D (rudder) turning feels dead" (branch agents/2026-10-08-0920-rudder-turn): `yawRate` 8 -> 22 deg/s and new `rudderBank` = 25 deg; with A/D held and no arrow input the plane eases into a bank toward the rudder side at `rollRate * authority`, and levels as before on release. Grounded taxi and the bank-turn formula are untouched. New flight test for A/D-only turns at 25 and 35 m/s. Radius 25 m/s: 179 m -> 44.8 m; 35 m/s: 250 m -> 68.7 m. Time for a 90 deg turn: 11.25 s -> 2.82 s (25 m/s), 11.25 s -> 3.10 s (35 m/s). Peak bank 0 -> 25 deg, altitude loss over the turn under 1 m. Release-relevant (feel).
 - Why: top open P0 item that is one small PR; CI autoplay (listed above it) is a 2-3 PR chain and needs this turn behaviour pinned first.
