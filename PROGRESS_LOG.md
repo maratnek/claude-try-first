@@ -12,6 +12,13 @@ owner can skim what happened without digging through git log. Format:
 - PR: <link or branch, if one was opened>
 ```
 
+## 2026-10-13 09:15 UTC — day run
+- Did: backlog 6 (Low-preset performance pass), first iteration, branch agents/2026-10-13-0915-low-perf. New debug-only `FLIGHT_BENCH` (uncapped frame rate, one `BENCH` line with mean/median/p95 ms per frame at exit; used with `--autoplay` for a fixed route). Measured: Low ~8.4 ms/frame, High ~11.2 ms (software GL under Xvfb). Skipping parts of the world on Low showed ground = ~3.4 ms of it (backdrop plane ~1.0, terrain ~1.6, overlap more), everything else in the world small (scatter ~0.1, clouds ~0.1, markers ~0.05, obstacles ~0.4). One change: the 50000 m backdrop plane is now four planes framing the heightmap patch (1 m overlap under its edge), so the pixels under the terrain are not shaded twice. Same look on every preset.
+- Why: biggest cheap, look-neutral cost. Result is small: Low mean 8.0-9.0 -> 7.98-8.13 ms (4 interleaved runs each, medians 7.35-7.97 -> 7.36-7.42), High about -0.15 ms. Within run-to-run noise of about 0.4 ms, so treat it as a small gain, not a proven one.
+- Verified: raylib 5.5 built from source, game built with -DFLIGHT_DEBUG, autoplay exits 0 on Low and High; screenshots base vs new differ only as much as base vs base (weather/particles are not deterministic). Not verified: the seam where the backdrop meets the terrain edge from the air near z = 700 m (autoplay never gets there), real-device GPU numbers (software GL here; mobile is likely less vertex-bound and more fill-bound), the Conan/CMake build.
+- Open: terrain triangle count is the next cost (a half-resolution mesh saved ~0.8 ms in a throwaway test but changes the Low hills; chunk culling would not). Particles and HUD not yet profiled. Owner to check the horizon seam by eye. Awaiting owner review.
+- PR: branch agents/2026-10-13-0915-low-perf, not pushed
+
 ## 2026-10-08 09:20 UTC — day run
 - Did: P0 "A/D (rudder) turning feels dead" (branch agents/2026-10-08-0920-rudder-turn): `yawRate` 8 -> 22 deg/s and new `rudderBank` = 25 deg; with A/D held and no arrow input the plane eases into a bank toward the rudder side at `rollRate * authority`, and levels as before on release. Grounded taxi and the bank-turn formula are untouched. New flight test for A/D-only turns at 25 and 35 m/s. Radius 25 m/s: 179 m -> 44.8 m; 35 m/s: 250 m -> 68.7 m. Time for a 90 deg turn: 11.25 s -> 2.82 s (25 m/s), 11.25 s -> 3.10 s (35 m/s). Peak bank 0 -> 25 deg, altitude loss over the turn under 1 m. Release-relevant (feel).
 - Why: top open P0 item that is one small PR; CI autoplay (listed above it) is a 2-3 PR chain and needs this turn behaviour pinned first.

@@ -147,9 +147,17 @@ void AddSoftObstacle(WorldState &world, float x, float z, float height, float ra
 }
 
 void DrawWorldObject(const WorldState &world, const GraphicsSettings &gfx, Vector3 viewPosition) {
-    // Huge flat backdrop so the ground reaches the horizon in every
-    // direction, even past the edge of the detailed heightmap below.
-    DrawPlane((Vector3){0.0f, -0.05f, 0.0f}, (Vector2){50000.0f, 50000.0f}, kGrass);
+    // Huge flat backdrop so the ground reaches the horizon in every direction, even past the edge of the
+    // detailed heightmap. Drawn as a frame around the heightmap patch (overlapping it by 1 m, under its
+    // edge) because a full plane would shade every pixel the terrain then covers a second time.
+    const float kBackdropHalf = 25000.0f, kOverlap = 1.0f;
+    float inner = world.worldSize * 0.5f - kOverlap;
+    float strip = kBackdropHalf - inner;
+    float stripCenter = (kBackdropHalf + inner) * 0.5f;
+    DrawPlane((Vector3){-stripCenter, -0.05f, 0.0f}, (Vector2){strip, kBackdropHalf * 2.0f}, kGrass);
+    DrawPlane((Vector3){stripCenter, -0.05f, 0.0f}, (Vector2){strip, kBackdropHalf * 2.0f}, kGrass);
+    DrawPlane((Vector3){0.0f, -0.05f, -stripCenter}, (Vector2){inner * 2.0f, strip}, kGrass);
+    DrawPlane((Vector3){0.0f, -0.05f, stripCenter}, (Vector2){inner * 2.0f, strip}, kGrass);
 
     float halfSize = world.worldSize * 0.5f;
     DrawModel(world.terrainModel, (Vector3){-halfSize, 0.0f, -halfSize}, 1.0f, WHITE);

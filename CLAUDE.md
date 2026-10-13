@@ -122,7 +122,7 @@ priority. Skip items marked "owner" (waiting on his decision) or
 | P1 | Plane look: materials, lighting and textures (wood looks like wood, metal like metal) + request a detailed textured model | open — world-art routine + asset-planner | "World art track" |
 | P1 | Game name + itch.io page, going public | owner | rollout plan |
 | P2 | Fuel consumption behind a flag | open | Backlog 5 |
-| P2 | Low-preset performance pass | open | Backlog 6 |
+| P2 | Low-preset performance pass | first iteration done (branch agents/2026-10-13-0915-low-perf: ground backdrop overdraw, `FLIGHT_BENCH` timing); terrain triangle count and chunk culling still open | Backlog 6 |
 | P2 | Aerobatics detection prototype | open | Backlog 7 |
 | P2 | iOS simulator readiness | open | Backlog 8 |
 | P2 | World improvements pick | owner | `design-notes/world-improvements.md` |
@@ -416,6 +416,11 @@ those stay proposals until he decides.
 6. **Performance pass on the Low preset:** measure frame time in a headless
    run, find the top costs (terrain draw, particles), cut them without
    changing the look on High. Target: iPhone 11-class headroom.
+   Progress: `FLIGHT_BENCH=1 ... --autoplay` prints ms per frame; software-GL
+   Low ~8.4 ms, of which ground (backdrop + terrain) ~3.4 ms, floor ~4.1 ms.
+   Done: backdrop as a frame around the terrain (~0.3-0.4 ms). Next: terrain
+   mesh cost (a half-resolution mesh saved ~0.8 ms; chunk culling would keep
+   the look), then particles/HUD.
 7. **Aerobatics detection prototype:** recognise loop, barrel roll,
    Immelmann from the flight state, unit-tested, not wired into rewards or
    UI yet (that is a progression decision).

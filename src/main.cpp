@@ -24,7 +24,9 @@
 
 #ifdef FLIGHT_DEBUG
 #include "autoplay.h"
+#include <algorithm>
 #include <cstdlib>
+#include <vector>
 #endif
 
 #ifdef __APPLE__
@@ -44,6 +46,7 @@ constexpr const char *kLevel1Id = "level1";
 #ifdef FLIGHT_DEBUG
 // Debug-only crash harness: --crash-test dives into the ground from FLIGHT_SPEED, saves PNGs named
 // "<FLIGHT_SHOT_PREFIX>-<seconds after impact>.png" and quits. FLIGHT_FUEL (0..1) and FLIGHT_PRESET (0..2) also apply.
+// FLIGHT_BENCH uncaps the frame rate and prints one BENCH line (wall ms per frame) at exit; use it with --autoplay for a repeatable route.
 struct CrashTest {
     bool active = false;
     float speed = 40.0f;
@@ -458,10 +461,31 @@ int main() {
 #ifdef __EMSCRIPTEN__
     emscripten_set_main_loop_arg(UpdateFrameCallback, &game, 0, 1);
 #else
+#ifdef FLIGHT_DEBUG
+    const bool bench = getenv("FLIGHT_BENCH") != nullptr;
+    std::vector<float> frameMs;
+    if (!bench) SetTargetFPS(60);
+#else
     SetTargetFPS(60);
+#endif
     while (!WindowShouldClose() && !game.quitRequested) {
+#ifdef FLIGHT_DEBUG
+        double frameStart = GetTime();
         UpdateFrame(game);
+        if (bench) frameMs.push_back((float)((GetTime() - frameStart) * 1000.0));
+#else
+        UpdateFrame(game);
+#endif
     }
+#ifdef FLIGHT_DEBUG
+    if (bench && !frameMs.empty()) {
+        std::sort(frameMs.begin(), frameMs.end());
+        double sum = 0.0;
+        for (float ms : frameMs) sum += ms;
+        printf("BENCH preset=%s frames=%d mean_ms=%.3f median_ms=%.3f p95_ms=%.3f\n", GraphicsPresetName(game.gfx),
+               (int)frameMs.size(), sum / frameMs.size(), frameMs[frameMs.size() / 2], frameMs[frameMs.size() * 95 / 100]);
+    }
+#endif
 
     UnloadEngineAudio(game.engineAudio);
     CloseAudioDevice();
