@@ -225,6 +225,7 @@ void UpdateFrame(Game &g) {
 #ifdef FLIGHT_DEBUG
         if (debugStart) chosen = &Level1Def();
 #endif
+        if (!chosen) chosen = &Level1Def();
         SelectLevel(g, *chosen);
         resetRun();
         AdvanceWeather(world);
