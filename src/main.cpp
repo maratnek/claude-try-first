@@ -348,7 +348,7 @@ void UpdateFrame(Game &g) {
                                                       : "Arrows = pitch/roll, A/D = rudder, W/S = engine power";
     DrawText(controlsText, ox, 10 + oy, FitFontSize(controlsText, 20, hudWidth), DARKGRAY);
     const char *statusText = TextFormat("Speed: %.1f m/s   Altitude: %.1f m   Power: %d%%   %s",
-                         plane.speed, plane.position.y, (int)roundf(plane.enginePower * 100.0f), plane.airborne ? "AIRBORNE" : "ON GROUND - raise power (W), pull up to take off; brake: power 0, then S");
+                         plane.speed, plane.position.y, (int)roundf(plane.enginePower * 100.0f), plane.airborne ? "AIRBORNE" : "ON GROUND - raise power (W), pull up to take off; brake: Space/B");
     DrawText(statusText, ox, 35 + oy, FitFontSize(statusText, 20, hudWidth), DARKGRAY);
     DrawLevelHUD(level, plane.damaged);
     if (g.screen == Screen::Playing && plane.airborne) {
@@ -372,7 +372,7 @@ void UpdateFrame(Game &g) {
         DrawText("Landed safely - take off again", ox, 150 + oy, 30, DARKGREEN);
     }
     if (g.screen == Screen::Playing && level.gateCrossed && g.inputState.touchUsed) {
-        DrawText("Power to zero, then hold - to brake after landing", ox, 215 + oy, 24, DARKGRAY);
+        DrawText("Power to zero, then hold - to brake after landing (Space/B = brake)", ox, 215 + oy, 24, DARKGRAY);
     }
     DrawFPS(ox, 60 + oy);
     DrawText(TextFormat("Graphics: %s (F1)", GraphicsPresetName(g.gfx)), ox + 100, 60 + oy, 20, DARKGRAY);

@@ -60,6 +60,7 @@ FlightInput ReadFlightInput(InputState &state, bool endButtonsActive, bool setti
     in.roll = KeyAxis(KEY_LEFT, KEY_RIGHT);
     in.yaw = KeyAxis(KEY_A, KEY_D);
     in.throttle = KeyAxis(KEY_W, KEY_S);
+    in.brake = IsKeyDown(KEY_SPACE) || IsKeyDown(KEY_B);
     in.restart = IsKeyPressed(KEY_R);
     in.exit = IsKeyPressed(KEY_Q);
     in.menu = IsKeyPressed(KEY_M);

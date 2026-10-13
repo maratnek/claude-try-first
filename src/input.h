@@ -9,6 +9,7 @@ struct FlightInput {
     float roll = 0.0f;
     float yaw = 0.0f;
     float throttle = 0.0f;
+    bool brake = false;
     bool restart = false;
     bool exit = false;
     bool menu = false;
