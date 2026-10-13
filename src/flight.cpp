@@ -55,6 +55,8 @@ PlaneParams BiplaneParams() {
     p.landingMaxNoseDown = 25.0f;
     p.landingMaxNoseUp = 12.0f;
     p.fuelCapacity = 100.0f;
+    p.fuelBurnFull = 100.0f / 600.0f;
+    p.fuelBurnIdle = 0.01f;
     return p;
 }
 
@@ -63,6 +65,13 @@ void UpdatePlaneControls(PlaneState &plane, const PlaneParams &params, const Fli
     float rollInput = input.roll;
     float yawInput = input.yaw;
     plane.enginePower = Clamp(plane.enginePower + input.throttle * params.throttleRate * dt, 0.0f, 1.0f);
+    if (params.fuelBurnEnabled) {
+        if (plane.fuel > 0.0f) {
+            float burn = params.fuelBurnIdle + (params.fuelBurnFull - params.fuelBurnIdle) * plane.enginePower;
+            plane.fuel = fmaxf(plane.fuel - burn * dt, 0.0f);
+        }
+        if (plane.fuel <= 0.0f) plane.enginePower = 0.0f;
+    }
 
     float authority = Authority(plane.speed, params.controlSpeed);
     bool stalled = plane.airborne && plane.speed < params.stallSpeed;

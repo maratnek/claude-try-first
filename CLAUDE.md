@@ -125,7 +125,7 @@ priority. Skip items marked "owner" (waiting on his decision) or
 | P1 | Plane choice (hangar): pick the right plane per level; seaplane with water landing | open — after aircraft configs | "Campaign" |
 | P1 | Plane look: materials, lighting and textures (wood looks like wood, metal like metal) + request a detailed textured model | open — world-art routine + asset-planner | "World art track" |
 | P1 | Game name + itch.io page, going public | owner | rollout plan |
-| P2 | Fuel consumption behind a flag | open | Backlog 5 |
+| P2 | Fuel consumption behind a flag | flag + tests done, off by default, not enabled in any level (branch agents/2026-10-13-0407-fuel-flag) | Backlog 5 |
 | P2 | Low-preset performance pass | open | Backlog 6 |
 | P2 | Aerobatics detection prototype | open | Backlog 7 |
 | P2 | iOS simulator readiness | open | Backlog 8 |
@@ -454,7 +454,12 @@ those stay proposals until he decides.
    must play identically (the regression test from item 2 proves it).
 5. **Fuel consumption tied to engine power**, with an empty tank cutting
    the engine (glide home). Keep it off by default behind a `PlaneParams`
-   flag until the owner has flown it; report the numbers.
+   flag until the owner has flown it; report the numbers. [partly done:
+   `PlaneParams::fuelBurnEnabled` (default off, level 1 unchanged), burn
+   0.167 units/s at full power (~10 min from full), 0.01 idle, power forced
+   to 0 at empty, HUD readout only when enabled, tests in
+   `tests/flight_tests.cpp`; branch agents/2026-10-13-0407-fuel-flag. Not
+   enabled in any level yet, awaiting the owner flying it.]
 6. **Performance pass on the Low preset:** measure frame time in a headless
    run, find the top costs (terrain draw, particles), cut them without
    changing the look on High. Target: iPhone 11-class headroom.
