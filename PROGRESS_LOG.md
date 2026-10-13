@@ -12,6 +12,13 @@ owner can skim what happened without digging through git log. Format:
 - PR: <link or branch, if one was opened>
 ```
 
+## 2026-10-13 22:15 UTC — night run
+- Did: Backlog 4, scatter and clouds (branch agents/2026-10-13-2215-scatter-cloud-data, stacked on the hill-data-redo PR): seeds, counts, ranges and margins of `GenerateScatter` / `GenerateClouds` moved into `ScatterDef` / `CloudsDef` in `LevelDef`. Level 1 values are the old literals, random call order unchanged. New `ScatterCloudTests` pins the generated props (1800) and clouds (30, 114 puffs) by hash taken from the pre-change code. No visual or gameplay change. Not release-relevant.
+- Why: next open step of data-driven levels; a level 2 can now bring its own tree and cloud layout without code changes.
+- Verified: raylib 5.5 built from source, 8/8 ctest pass; autoplay under Xvfb on this branch and on the base gives byte-identical results files, screenshots match apart from random speed-streak noise (which also differs between two runs of the same build). code-reviewer: no blockers. Not run: sound (no audio device), crash path, macOS/Conan build (CI is the first run). CI: see PR body.
+- Open: level selection as data; owner review. Awaiting owner review.
+- PR: see branch above, awaiting owner review
+
 ## 2026-10-13 16:08 UTC — evening run
 - Did: Backlog 4, hill formula (branch agents/2026-10-13-1608-hill-data-redo, replaces #93, which no longer merged into dev): hill coefficients moved from literals in `ComputeRawHeight` into `HillDef` inside `TerrainDef`; `HillHeight01` (raylib-free) uses the same operation order. `LevelDefTests` compares it bit-for-bit with the old inline formula at 36 points. No visual or gameplay change. Not release-relevant.
 - Why: #93 conflicted with dev and had no owner comment, so it was redone on a fresh branch; it is the next step toward level 2 being data, not code.
