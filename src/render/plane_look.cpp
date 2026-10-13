@@ -65,7 +65,10 @@ void LoadPlaneLook(PlaneLook &look) {
     SetShaderValue(look.shader, look.lightLoc, &sun, SHADER_UNIFORM_VEC3);
 }
 
-void UnloadPlaneLook(PlaneLook &look) {
+void UnloadPlaneLook(PlaneLook &look, Model &model) {
+    GraphicsSettings off;
+    off.planeShading = false;
+    ApplyPlaneLook(look, model, off);
     if (look.loaded) UnloadShader(look.shader);
     look.loaded = false;
 }

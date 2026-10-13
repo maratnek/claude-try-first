@@ -418,8 +418,8 @@ int main() {
 
     UnloadEngineAudio(game.engineAudio);
     CloseAudioDevice();
+    UnloadPlaneLook(game.planeLook, game.planeModel.model);
     UnloadPlaneModel(game.planeModel);
-    UnloadPlaneLook(game.planeLook);
     UnloadLevel(game.level);
     UnloadWorld(game.world);
     CloseWindow();

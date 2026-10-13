@@ -9,10 +9,10 @@ struct PlaneLook {
 };
 
 void LoadPlaneLook(PlaneLook &look);
-void UnloadPlaneLook(PlaneLook &look);
+// Call before UnloadModel: the model would otherwise free the shared shader once per material.
+void UnloadPlaneLook(PlaneLook &look, Model &model);
 
-// Gives every material of the model the cel shader (or back the raylib default one); cheap enough to call each frame.
+// Cheap enough to call each frame.
 void ApplyPlaneLook(PlaneLook &look, Model &model, const GraphicsSettings &gfx);
 
-// Sun direction in plane space for the current attitude, so the bands stay fixed in the world as the plane turns.
 void UpdatePlaneLight(PlaneLook &look, float yawDeg, float pitchDeg, float rollDeg);
