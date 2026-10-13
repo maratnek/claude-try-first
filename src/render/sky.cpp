@@ -1,11 +1,12 @@
 #include "sky.h"
+#include "sun.h"
 #include <cmath>
 
 namespace {
 
 const Color kSkyZenith = {58, 120, 200, 255};
 const Color kSkyHorizon = {190, 220, 240, 255};
-const Vector3 kSunDir = {0.25f, 0.08f, 0.96f};
+const Vector3 kSunDir = kSunDirection;
 const float kHazeAbove = 0.06f;
 const float kHazeBelow = 0.14f;
 const unsigned char kHazeAlpha = 150;

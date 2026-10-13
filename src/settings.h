@@ -18,6 +18,7 @@ struct GraphicsSettings {
     bool pilotHead = true;
     bool damageVisuals = true;
     bool blobShadow = true;
+    bool planeShadow = true;
     bool terrainColors = true;
     bool skyGradient = true;
     bool sunDisc = true;

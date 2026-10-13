@@ -1,6 +1,7 @@
 #include "world_draw.h"
 #include "ground_look.h"
 #include "tree_look.h"
+#include "sun.h"
 #include "raymath.h"
 #include "rlgl.h"
 #include <cmath>
@@ -79,6 +80,74 @@ void DrawBlobShadow(const WorldState &world, Vector3 planePosition, float yawDeg
         Vector3 v1 = {c.x + fwd.x * p1a + right.x * p1b, y, c.z + fwd.y * p1a + right.y * p1b};
         rlVertex3f(c.x, c.y, c.z); rlVertex3f(v0.x, v0.y, v0.z); rlVertex3f(v1.x, v1.y, v1.z);
         rlVertex3f(c.x, c.y, c.z); rlVertex3f(v1.x, v1.y, v1.z); rlVertex3f(v0.x, v0.y, v0.z);
+    }
+    rlEnd();
+    rlDrawRenderBatchActive();
+    rlEnableDepthMask();
+}
+
+namespace {
+
+struct ShadowPoly { int count; Vector2 p[8]; };
+
+// Local x is right, z is forward; pieces abut instead of overlapping so the translucent fill does not double up.
+const ShadowPoly kShadowPieces[] = {
+    {7, {{0.0f, 2.0f}, {0.45f, 1.5f}, {0.45f, -1.2f}, {0.2f, -2.3f}, {-0.2f, -2.3f}, {-0.45f, -1.2f}, {-0.45f, 1.5f}}},
+    {4, {{0.45f, 0.7f}, {3.0f, 0.7f}, {3.0f, -0.6f}, {0.45f, -0.6f}}},
+    {4, {{-0.45f, 0.7f}, {-0.45f, -0.6f}, {-3.0f, -0.6f}, {-3.0f, 0.7f}}},
+    {4, {{0.45f, -1.7f}, {1.2f, -1.7f}, {1.2f, -2.3f}, {0.45f, -2.3f}}},
+    {4, {{-0.45f, -1.7f}, {-0.45f, -2.3f}, {-1.2f, -2.3f}, {-1.2f, -1.7f}}},
+};
+
+}  // namespace
+
+void DrawPlaneShadow(const WorldState &world, Vector3 planePosition, float yawDegrees, float pitchDegrees, float rollDegrees) {
+    const float kMaxAltitude = 60.0f;
+    const float kReach = 3.0f;
+    const float kLift = 0.15f;
+
+    // The shadow lands far to the side of the plane, where the terrain is not the terrain under the plane: find the
+    // ground height at the landing spot (two passes, the spot depends on the height) and flatten the shadow there.
+    auto highestNear = [&](float x, float z) {
+        float h = GetGroundHeight(world, x, z);
+        for (int i = 0; i < 4; i++) {
+            float sx = (i & 1 ? 1.0f : -1.0f) * kReach, sz = (i & 2 ? 1.0f : -1.0f) * kReach;
+            h = fmaxf(h, GetGroundHeight(world, x + sx, z + sz));
+        }
+        return h;
+    };
+    float groundY = highestNear(planePosition.x, planePosition.z);
+    for (int pass = 0; pass < 2; pass++) {
+        float reach = fmaxf(planePosition.y - groundY, 0.0f) / kSunDirection.y;
+        groundY = highestNear(planePosition.x - kSunDirection.x * reach, planePosition.z - kSunDirection.z * reach);
+    }
+
+    float altitude = planePosition.y - groundY;
+    if (altitude >= kMaxAltitude) return;
+    float t = Clamp(altitude / kMaxAltitude, 0.0f, 1.0f);
+    unsigned char alpha = (unsigned char)(120.0f * (1.0f - t));
+    float y = groundY + kLift;
+
+    auto project = [&](Vector2 local) {
+        Vector3 v = {local.x, 0.0f, local.y};
+        v = Vector3RotateByAxisAngle(v, {0.0f, 0.0f, 1.0f}, -rollDegrees * DEG2RAD);
+        v = Vector3RotateByAxisAngle(v, {1.0f, 0.0f, 0.0f}, -pitchDegrees * DEG2RAD);
+        v = Vector3RotateByAxisAngle(v, {0.0f, 1.0f, 0.0f}, yawDegrees * DEG2RAD);
+        Vector3 w = Vector3Add(planePosition, v);
+        float h = fmaxf(w.y - y, 0.0f) / kSunDirection.y;
+        return Vector3{w.x - kSunDirection.x * h, y, w.z - kSunDirection.z * h};
+    };
+
+    rlDisableDepthMask();
+    rlBegin(RL_TRIANGLES);
+    rlColor4ub(0, 0, 0, alpha);
+    for (const ShadowPoly &poly : kShadowPieces) {
+        Vector3 first = project(poly.p[0]);
+        for (int i = 1; i + 1 < poly.count; i++) {
+            Vector3 a = project(poly.p[i]), b = project(poly.p[i + 1]);
+            rlVertex3f(first.x, first.y, first.z); rlVertex3f(a.x, a.y, a.z); rlVertex3f(b.x, b.y, b.z);
+            rlVertex3f(first.x, first.y, first.z); rlVertex3f(b.x, b.y, b.z); rlVertex3f(a.x, a.y, a.z);
+        }
     }
     rlEnd();
     rlDrawRenderBatchActive();

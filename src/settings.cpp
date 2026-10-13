@@ -22,6 +22,7 @@ void ApplyGraphicsPreset(GraphicsSettings &settings, GraphicsPreset preset) {
     settings.pilotHead = !low;
     settings.damageVisuals = !low;
     settings.blobShadow = true;
+    settings.planeShadow = !low;
     settings.terrainColors = !low;
     settings.groundDetail = !low;
     settings.terrainRelief = !low;

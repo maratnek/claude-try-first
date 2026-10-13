@@ -272,7 +272,8 @@ void UpdateFrame(Game &g) {
     EndMode3D();
     DrawHorizonHaze(camera, g.gfx);
     BeginMode3D(camera);
-    if (g.gfx.blobShadow) DrawBlobShadow(world, plane.position, plane.yaw);
+    if (g.gfx.planeShadow) DrawPlaneShadow(world, plane.position, plane.yaw, plane.pitch, plane.roll);
+    else if (g.gfx.blobShadow) DrawBlobShadow(world, plane.position, plane.yaw);
     ApplyPlaneLook(g.planeLook, planeModel.model, g.gfx);
     UpdatePlaneLight(g.planeLook, plane.yaw, plane.pitch, plane.roll);
     DrawPlaneObject(planeModel, g.planeAnim, plane.position, plane.yaw, plane.pitch, plane.roll, g.gfx.propBlur, DebrisDetachedParts(g.debris), DebrisDetachedGroups(g.debris), plane.damaged && g.gfx.damageVisuals);
@@ -390,6 +391,7 @@ int main() {
     if (const char *preset = getenv("FLIGHT_PRESET")) ApplyGraphicsPreset(game.gfx, static_cast<GraphicsPreset>(atoi(preset) % 3));
     if (const char *relief = getenv("FLIGHT_RELIEF")) game.gfx.terrainRelief = atoi(relief) != 0;
     if (const char *shading = getenv("FLIGHT_PLANE_SHADING")) game.gfx.planeShading = atoi(shading) != 0;
+    if (const char *shadow = getenv("FLIGHT_PLANE_SHADOW")) game.gfx.planeShadow = atoi(shadow) != 0;
     if (const char *cards = getenv("FLIGHT_TREE_CARDS")) game.gfx.treeCards = atoi(cards) != 0;
 #endif
     GenerateWorld(game.world, game.gfx);

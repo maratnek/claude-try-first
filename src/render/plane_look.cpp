@@ -1,4 +1,5 @@
 #include "render/plane_look.h"
+#include "render/sun.h"
 #include "raymath.h"
 #include "rlgl.h"
 
@@ -52,8 +53,6 @@ const char *kFragment = GLSL_HEAD
     "    " FS_OUT " = vec4(base.rgb*tint, base.a);\n"
     "}\n";
 
-const Vector3 kSun = {0.5f, 0.8f, 0.3f};
-
 }  // namespace
 
 void LoadPlaneLook(PlaneLook &look) {
@@ -61,7 +60,7 @@ void LoadPlaneLook(PlaneLook &look) {
     look.loaded = look.shader.id > 0 && look.shader.id != rlGetShaderIdDefault();
     if (!look.loaded) return;
     look.lightLoc = GetShaderLocation(look.shader, "lightDir");
-    Vector3 sun = Vector3Normalize(kSun);
+    Vector3 sun = Vector3Normalize(kSunDirection);
     SetShaderValue(look.shader, look.lightLoc, &sun, SHADER_UNIFORM_VEC3);
 }
 
@@ -80,7 +79,7 @@ void ApplyPlaneLook(PlaneLook &look, Model &model, const GraphicsSettings &gfx) 
 
 void UpdatePlaneLight(PlaneLook &look, float yawDeg, float pitchDeg, float rollDeg) {
     if (!look.loaded) return;
-    Vector3 v = Vector3Normalize(kSun);
+    Vector3 v = Vector3Normalize(kSunDirection);
     v = Vector3RotateByAxisAngle(v, {0.0f, 1.0f, 0.0f}, -yawDeg * DEG2RAD);
     v = Vector3RotateByAxisAngle(v, {1.0f, 0.0f, 0.0f}, pitchDeg * DEG2RAD);
     v = Vector3RotateByAxisAngle(v, {0.0f, 0.0f, 1.0f}, rollDeg * DEG2RAD);
