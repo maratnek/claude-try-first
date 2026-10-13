@@ -84,6 +84,7 @@ stateDiagram-v2
     Menu --> Playing: Играть
     Playing --> Crashed: удар о препятствие / жёсткая посадка
     Crashed --> Playing: R — заново
+    Playing --> Playing: R на земле до взлёта — заново
     Crashed --> Menu: M — в меню
     Playing --> Finished: ворота 1000 м пройдены, взлёт, посадка и скорость ≤ 8 м/с
     Finished --> Playing: R — заново

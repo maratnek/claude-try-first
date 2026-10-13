@@ -211,7 +211,8 @@ void UpdateFrame(Game &g) {
         resetRun();
         EnterMenu(g.menu);
         g.screen = Screen::Menu;
-    } else if (input.restart && (level.crashed || g.screen == Screen::Finished || HasLandedSafely(plane))) {
+    } else if (input.restart && (level.crashed || g.screen == Screen::Finished || HasLandedSafely(plane) ||
+                                (g.screen == Screen::Playing && !plane.airborne))) {
         resetRun();
         AdvanceWeather(world);
         g.screen = Screen::Playing;
