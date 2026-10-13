@@ -12,6 +12,13 @@ owner can skim what happened without digging through git log. Format:
 - PR: <link or branch, if one was opened>
 ```
 
+## 2026-10-13 02:40 UTC — art run (world art track, step 7: plane cel shading)
+- Did: Plane look (branch agents/2026-10-13-0240-art-plane-look, stacked on #117 and the whole art chain): `src/render/plane_look.*` adds a small cel shader (three flat light bands, warm in the light and cool in the shade, GLSL 330 and ES 100 variants embedded as strings) applied to the plane's materials. New toggle `gfx.planeShading` (on in Medium/High, off in Low); debug-only `--view-shot` flag and `FLIGHT_PLANE_SHADING=0|1` for before/after shots. `docs/ARCHITECTURE.md` updated. No gameplay, physics or controls touched.
+- Why: the plane was drawn unlit, one flat colour per part; bands give volume in the 1990s-cartoon direction.
+- Verified: raylib 5.5 built from source, game built in a scratch copy with FLIGHT_DEBUG, run under Xvfb on High with shading off/on, and on Low. High: wing undersides, fuselage sides and tail now step into cooler darker bands; Low: unchanged. Low cost: zero (shader off). High/Medium: one extra uniform upload per frame, same draw calls. Not verified: GLSL ES 100 variant on a real Web/iOS GPU (compiles on desktop GL 330 only), light bands on moving parts (propeller/rudder use the plane-space light, ignoring their own hinge rotation), debris uses the plane's last light direction. CI status: see PR.
+- Open: outlines (bold clean outline is the art direction; needs a second pass or inverted hull) are the next plane step; owner to look at band strength.
+- PR: see branch above, awaiting owner review.
+
 ## 2026-10-13 00:45 UTC — art run (world art track, step 6: valley/ridge shading)
 - Did: Terrain relief tint (branch agents/2026-10-13-0045-art-terrain-shading, stacked on the ground-detail branch agents/2026-10-12-2145-art-ground-detail): per-vertex colour is tinted by heightmap curvature, valleys darker and cooler, ridges warmer (`ReliefTint`, `TerrainCurvature` in `src/render/ground_look.cpp`). New toggle `gfx.terrainRelief` (on in Medium/High, off in Low); debug-only env `FLIGHT_RELIEF=0|1` for before/after shots. `docs/ARCHITECTURE.md` updated. No gameplay, physics or controls touched.
 - Why: owner wants the ground to stop looking flat and 2000s; cel-style warm/cool contrast on hills reads height.
