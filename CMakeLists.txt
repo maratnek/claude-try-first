@@ -141,6 +141,11 @@ if(NOT EMSCRIPTEN AND NOT CMAKE_SYSTEM_NAME STREQUAL "iOS")
     target_link_libraries(FlightTests PRIVATE raylib)
     add_test(NAME FlightTests COMMAND FlightTests)
 
+    add_executable(AerobaticsTests tests/aerobatics_tests.cpp src/aerobatics.cpp src/flight.cpp src/level_def.cpp)
+    target_include_directories(AerobaticsTests PRIVATE src)
+    target_link_libraries(AerobaticsTests PRIVATE raylib)
+    add_test(NAME AerobaticsTests COMMAND AerobaticsTests)
+
     add_executable(AutoplayTests tests/autoplay_tests.cpp src/autoplay.cpp)
     target_include_directories(AutoplayTests PRIVATE src)
     target_link_libraries(AutoplayTests PRIVATE raylib)
