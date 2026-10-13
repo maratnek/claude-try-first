@@ -99,3 +99,13 @@ ProgressData ParseProgress(const std::string &text) {
     }
     return data;
 }
+
+std::string FormatRecordLine(float bestTime, int stars) {
+    if (bestTime < 0.0f) return "";
+    int tenths = (int)(bestTime * 10.0f + 0.5f);
+    if (stars < 0) stars = 0;
+    if (stars > 3) stars = 3;
+    char buf[64];
+    snprintf(buf, sizeof buf, "Best: %d:%02d.%d   Stars: %d/3", tenths / 600, tenths / 10 % 60, tenths % 10, stars);
+    return buf;
+}

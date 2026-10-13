@@ -158,6 +158,10 @@ if(NOT EMSCRIPTEN AND NOT CMAKE_SYSTEM_NAME STREQUAL "iOS")
     target_include_directories(ProgressTests PRIVATE src)
     add_test(NAME ProgressTests COMMAND ProgressTests)
 
+    add_executable(MenuRecordTests tests/menu_record_tests.cpp src/progress.cpp)
+    target_include_directories(MenuRecordTests PRIVATE src)
+    add_test(NAME MenuRecordTests COMMAND MenuRecordTests)
+
     add_executable(LevelDefTests tests/level_def_tests.cpp src/level_def.cpp)
     target_include_directories(LevelDefTests PRIVATE src)
     add_test(NAME LevelDefTests COMMAND LevelDefTests)

@@ -1,4 +1,5 @@
 #pragma once
+#include <string>
 #include <vector>
 
 enum class MenuAction { None, Play, Exit };
@@ -12,6 +13,7 @@ struct MenuState {
     std::vector<MenuEntry> entries;
     int selected = 0;
     bool touchHeld = false;
+    std::string recordLine;
 };
 
 void InitMenu(MenuState &menu);
