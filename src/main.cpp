@@ -272,7 +272,7 @@ void UpdateFrame(Game &g) {
     EndMode3D();
     DrawHorizonHaze(camera, g.gfx);
     BeginMode3D(camera);
-    if (g.gfx.planeShadow) DrawPlaneShadow(world, plane.position, plane.yaw, plane.pitch, plane.roll);
+    if (g.gfx.blobShadow && g.gfx.planeShadow) DrawPlaneShadow(world, plane.position, plane.yaw, plane.pitch, plane.roll);
     else if (g.gfx.blobShadow) DrawBlobShadow(world, plane.position, plane.yaw);
     ApplyPlaneLook(g.planeLook, planeModel.model, g.gfx);
     UpdatePlaneLight(g.planeLook, plane.yaw, plane.pitch, plane.roll);
