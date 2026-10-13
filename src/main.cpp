@@ -5,6 +5,7 @@
 #include "flight.h"
 #include "input.h"
 #include "level.h"
+#include "level_select_screen.h"
 #include "menu.h"
 #include "progress.h"
 #include "safe_area.h"
@@ -37,7 +38,7 @@
 #endif
 
 namespace {
-enum class Screen { Menu, Playing, Crashed, Finished };
+enum class Screen { Menu, LevelSelect, Playing, Crashed, Finished };
 
 constexpr const char *kLevel1Id = "level1";
 
@@ -57,6 +58,7 @@ constexpr float kCrashTestShots[] = {0.1f, 0.3f, 1.0f, 3.0f};
 struct Game {
     Screen screen = Screen::Menu;
     MenuState menu;
+    LevelSelectState levelSelect;
     EngineAudio engineAudio;
     Camera3D camera = {0};
     PlaneModel planeModel;
@@ -139,7 +141,7 @@ void UpdateFrame(Game &g) {
     if (g.autoplay.active) dt = kAutoplayDt;
 #endif
 
-    bool inRun = g.screen != Screen::Menu;
+    bool inRun = g.screen != Screen::Menu && g.screen != Screen::LevelSelect;
     FlightInput input = ReadFlightInput(g.inputState, level.crashed || g.screen == Screen::Finished, inRun);
 #ifdef FLIGHT_DEBUG
     AutoplayInput(g.autoplay, input);
@@ -160,13 +162,15 @@ void UpdateFrame(Game &g) {
 
     MenuAction menuAction = MenuAction::None;
     if (g.screen == Screen::Menu) menuAction = UpdateMenu(g.menu);
+    LevelSelectAction selectAction = LevelSelectAction::None;
+    if (g.screen == Screen::LevelSelect) selectAction = UpdateLevelSelect(g.levelSelect, g.progress, dt);
 
     bool crashOrResultsButton = (g.screen == Screen::Crashed || g.screen == Screen::Finished) &&
                                 (input.menu || input.restart);
 #ifndef SETTINGS_MOBILE_OR_WEB
     if (level.crashed && input.exit) crashOrResultsButton = true;
 #endif
-    if (menuAction != MenuAction::None || crashOrResultsButton) PlayClickSound(engineAudio);
+    if (menuAction != MenuAction::None || selectAction != LevelSelectAction::None || crashOrResultsButton) PlayClickSound(engineAudio);
 
     auto resetRun = [&]() {
         plane = planeStart;
@@ -184,26 +188,38 @@ void UpdateFrame(Game &g) {
     };
 
 #ifdef FLIGHT_DEBUG
-    if (g.crashTest.active && g.screen == Screen::Menu) menuAction = MenuAction::Play;
-    if (AutoplayWantsPlay(g.autoplay) && g.screen == Screen::Menu) menuAction = MenuAction::Play;
+    bool debugStart = (g.crashTest.active || AutoplayWantsPlay(g.autoplay)) && g.screen == Screen::Menu;
 #endif
-    if (g.screen == Screen::Menu) {
-        if (menuAction == MenuAction::Play) {
-            resetRun();
-            AdvanceWeather(world);
-            g.screen = Screen::Playing;
+    bool startLevel = selectAction == LevelSelectAction::Open;
 #ifdef FLIGHT_DEBUG
-            if (g.crashTest.active) {
-                plane.position.y = GetGroundHeight(world, 0.0f, 0.0f) + 60.0f;
-                plane.airborne = true;
-                plane.speed = g.crashTest.speed;
-                plane.pitch = -30.0f;
-                plane.enginePower = 0.5f;
-            }
+    startLevel = startLevel || debugStart;
 #endif
+    if (g.screen == Screen::Menu && !startLevel) {
+        if (menuAction == MenuAction::Play) {
+            EnterLevelSelect(g.levelSelect, g.progress);
+            SetExitKey(KEY_NULL);
+            g.screen = Screen::LevelSelect;
         } else if (menuAction == MenuAction::Exit) {
             g.quitRequested = true;
         }
+    } else if (g.screen == Screen::LevelSelect && selectAction == LevelSelectAction::Back) {
+        SetExitKey(KEY_ESCAPE);
+        EnterMenu(g.menu);
+        g.screen = Screen::Menu;
+    } else if (startLevel) {
+        SetExitKey(KEY_ESCAPE);
+        resetRun();
+        AdvanceWeather(world);
+        g.screen = Screen::Playing;
+#ifdef FLIGHT_DEBUG
+        if (g.crashTest.active) {
+            plane.position.y = GetGroundHeight(world, 0.0f, 0.0f) + 60.0f;
+            plane.airborne = true;
+            plane.speed = g.crashTest.speed;
+            plane.pitch = -30.0f;
+            plane.enginePower = 0.5f;
+        }
+#endif
     } else if ((g.screen == Screen::Crashed || g.screen == Screen::Finished) && input.menu) {
         resetRun();
         EnterMenu(g.menu);
@@ -253,6 +269,7 @@ void UpdateFrame(Game &g) {
         } else if (IsRunFinished(level, plane.airborne, plane.speed)) {
             RecordFinish(level);
             RecordLevelResult(g.progress, kLevel1Id, level.elapsed, ComputeStars(level, plane.damaged));
+            UnlockNextLevel(g.progress, g.levelSelect.cards, kLevel1Id);
             SaveProgress(g.progress);
             g.screen = Screen::Finished;
         }
@@ -324,6 +341,14 @@ void UpdateFrame(Game &g) {
                  85 + (int)GetSafeArea().top, 20, DARKGRAY);
     }
 
+    if (g.screen == Screen::LevelSelect) {
+        DrawLevelSelect(g.levelSelect, g.progress);
+#ifdef FLIGHT_DEBUG
+        DebugEndOfFrame(g, dt);
+#endif
+        EndDrawing();
+        return;
+    }
     if (g.screen == Screen::Menu) {
         DrawMenu(g.menu);
 #ifdef FLIGHT_DEBUG
@@ -427,6 +452,7 @@ int main() {
     LoadPlaneModel(game.planeModel, AssetPath("models/biplane-1920.glb"));
 
     InitMenu(game.menu);
+    InitLevelSelect(game.levelSelect);
     EnterMenu(game.menu);
     InitGraphicsSettings(game.gfx);
 #ifdef FLIGHT_DEBUG

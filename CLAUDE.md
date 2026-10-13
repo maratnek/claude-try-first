@@ -114,9 +114,9 @@ priority. Skip items marked "owner" (waiting on his decision) or
 | P1 | Headless physics regression tests in CI | open | Backlog 2 |
 | P1 | Save/progress persistence layer | data layer done (branch agents/2026-10-07-1907-progress-store), not wired into the game | Backlog 3 |
 | P1 | Data-driven level definition | gate/medal wiring done (branches agents/2026-10-07-2210-level-def, agents/2026-10-07-2310-level-gate-medals): level 1 content incl. gate distance and medal times in `src/level_def.*`; hill formula, scatter/clouds as data and level selection still open; start position and terrain shape done (branch agents/2026-10-08-0510-level-start-terrain) | Backlog 4 |
-| P1 | Campaign design note: tutorial levels, mountains, water/seaplane, stage types, teasers, plane choice | open — game-designer, do first | "Campaign (owner decision 2026-10-09)" |
+| P1 | Campaign design note: tutorial levels, mountains, water/seaplane, stage types, teasers, plane choice | written (`design-notes/campaign.md`), awaiting owner review of 3 open questions | "Campaign (owner decision 2026-10-09)" |
 | P1 | Stage system: a level is a sequence of stages of different types (data in `LevelDef`) | open — after the design note | "Campaign" |
-| P1 | Level select with locked, darkened teaser levels; unlocks saved via `src/progress.*` | open — after the design note | "Campaign" |
+| P1 | Level select with locked, darkened teaser levels; unlocks saved via `src/progress.*` | first iteration done (branch agents/2026-10-13-0110-level-select): cards, unlock rules, teasers, saved unlock flag; silhouette strips, results Next/Level select and `--unlock-all` still open | "Campaign" |
 | P1 | Tutorial levels (learn to fly step by step), then mountains level, then water level | open — content PRs after the stage system | "Campaign" |
 | P1 | Plane choice (hangar): pick the right plane per level; seaplane with water landing | open — after aircraft configs | "Campaign" |
 | P1 | Plane look: materials, lighting and textures (wood looks like wood, metal like metal) + request a detailed textured model | open — world-art routine + asset-planner | "World art track" |
