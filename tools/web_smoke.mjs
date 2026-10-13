@@ -22,6 +22,8 @@ const server = http.createServer((req, res) => {
 await new Promise((r) => server.listen(0, '127.0.0.1', r));
 const url = `http://127.0.0.1:${server.address().port}/`;
 
+const PIXEL_DELTA = 48;
+
 const failures = [];
 const browser = await chromium.launch({
   args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'],
@@ -47,24 +49,38 @@ await page.waitForTimeout(3000);
 const loadingText = await page.textContent('#loading-text');
 if (/Failed to load/.test(loadingText)) failures.push(`loading shows: ${loadingText}`);
 
-const shot = path.join(outDir, 'menu.png');
-await page.screenshot({ path: shot });
+async function sampleFrame(file) {
+  const dataUrl = 'data:image/png;base64,' + fs.readFileSync(file).toString('base64');
+  return page.evaluate(async (src) => {
+    const img = new Image();
+    img.src = src;
+    await img.decode();
+    const c = document.createElement('canvas');
+    c.width = 160; c.height = 90;
+    const ctx = c.getContext('2d');
+    ctx.drawImage(img, 0, 0, 160, 90);
+    const d = ctx.getImageData(0, 0, 160, 90).data;
+    const seen = new Set();
+    for (let i = 0; i < d.length; i += 4) seen.add((d[i] >> 4) << 8 | (d[i + 1] >> 4) << 4 | (d[i + 2] >> 4));
+    return { colours: seen.size, pixels: Array.from(d) };
+  }, dataUrl);
+}
+
+function changedFraction(a, b) {
+  let changed = 0;
+  for (let i = 0; i < a.pixels.length; i += 4) {
+    const delta = Math.abs(a.pixels[i] - b.pixels[i]) + Math.abs(a.pixels[i + 1] - b.pixels[i + 1]) + Math.abs(a.pixels[i + 2] - b.pixels[i + 2]);
+    if (delta > PIXEL_DELTA) changed++;
+  }
+  return changed / (a.pixels.length / 4);
+}
+
+const menuShot = path.join(outDir, 'menu.png');
+await page.screenshot({ path: menuShot });
 // The menu draws sky, ground and text, so a drawn frame has many distinct colours; a black or flat canvas has few.
-const colours = await page.evaluate(async (dataUrl) => {
-  const img = new Image();
-  img.src = dataUrl;
-  await img.decode();
-  const c = document.createElement('canvas');
-  c.width = 160; c.height = 90;
-  const ctx = c.getContext('2d');
-  ctx.drawImage(img, 0, 0, 160, 90);
-  const d = ctx.getImageData(0, 0, 160, 90).data;
-  const seen = new Set();
-  for (let i = 0; i < d.length; i += 4) seen.add((d[i] >> 4) << 8 | (d[i + 1] >> 4) << 4 | (d[i + 2] >> 4));
-  return seen.size;
-}, 'data:image/png;base64,' + fs.readFileSync(shot).toString('base64'));
-console.log(`distinct colours in menu frame: ${colours}`);
-if (colours < 12) failures.push(`menu frame looks blank (${colours} distinct colours)`);
+const menuFrame = await sampleFrame(menuShot);
+console.log(`distinct colours in menu frame: ${menuFrame.colours}`);
+if (menuFrame.colours < 12) failures.push(`menu frame looks blank (${menuFrame.colours} distinct colours)`);
 
 fs.writeFileSync(path.join(outDir, 'console.txt'), log.join('\n') + '\n');
 await browser.close();
