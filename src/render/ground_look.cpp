@@ -80,31 +80,68 @@ Texture2D MakeGroundDetailTexture() {
 
 const Color kGroundGrass = {80, 150, 90, 255};
 
+namespace {
+
+int TerrainColorMode(const GraphicsSettings &gfx) {
+    if (!gfx.terrainColors) return 0;
+    return gfx.terrainRelief ? 2 : 1;
+}
+
+const std::vector<unsigned char> &TerrainColorSet(const WorldState &world, int mode) {
+    return mode == 0 ? world.terrainFlatColors : (mode == 1 ? world.terrainShadedColors : world.terrainReliefColors);
+}
+
+// Positive on ridges, negative in valleys; flat ground and constant slopes give 0, so the flight corridor keeps its colour.
+float TerrainCurvature(const WorldState &world, float x, float z) {
+    float step = world.worldSize / (float)(world.gridSize - 1) * 3.0f;
+    float around = GetGroundHeight(world, x + step, z) + GetGroundHeight(world, x - step, z) +
+                   GetGroundHeight(world, x, z + step) + GetGroundHeight(world, x, z - step);
+    return (GetGroundHeight(world, x, z) * 4.0f - around) / world.maxHeight;
+}
+
+Color ReliefTint(Color c, float curvature) {
+    const Color valley = {58, 104, 96, 255};
+    const Color ridge = {206, 190, 110, 255};
+    float t = Clamp(curvature * 6.0f, -1.0f, 1.0f);
+    Color shaded = LerpColor(c, t < 0.0f ? valley : ridge, fabsf(t) * (t < 0.0f ? 0.5f : 0.35f));
+    float dark = t < 0.0f ? 1.0f + 0.25f * t : 1.0f;
+    shaded.r = (unsigned char)(shaded.r * dark);
+    shaded.g = (unsigned char)(shaded.g * dark);
+    shaded.b = (unsigned char)(shaded.b * dark);
+    return shaded;
+}
+
+}  // namespace
+
 void BuildTerrainColors(WorldState &world, Mesh &mesh, const GraphicsSettings &gfx) {
     int colorBytes = mesh.vertexCount * 4;
     world.terrainShadedColors.assign(colorBytes, 255);
+    world.terrainReliefColors.assign(colorBytes, 255);
     world.terrainFlatColors.assign(colorBytes, 255);
     for (int v = 0; v < mesh.vertexCount; v++) {
         Vector3 n = {mesh.normals[v * 3], mesh.normals[v * 3 + 1], mesh.normals[v * 3 + 2]};
         Color c = TerrainVertexColor(mesh.vertices[v * 3 + 1] / world.maxHeight, n);
-        world.terrainShadedColors[v * 4] = c.r;
-        world.terrainShadedColors[v * 4 + 1] = c.g;
-        world.terrainShadedColors[v * 4 + 2] = c.b;
-        world.terrainFlatColors[v * 4] = kGroundGrass.r;
-        world.terrainFlatColors[v * 4 + 1] = kGroundGrass.g;
-        world.terrainFlatColors[v * 4 + 2] = kGroundGrass.b;
+        Color r = ReliefTint(c, TerrainCurvature(world, mesh.vertices[v * 3], mesh.vertices[v * 3 + 2]));
+        unsigned char *shaded = &world.terrainShadedColors[v * 4];
+        unsigned char *relief = &world.terrainReliefColors[v * 4];
+        unsigned char *flat = &world.terrainFlatColors[v * 4];
+        shaded[0] = c.r; shaded[1] = c.g; shaded[2] = c.b;
+        relief[0] = r.r; relief[1] = r.g; relief[2] = r.b;
+        flat[0] = kGroundGrass.r; flat[1] = kGroundGrass.g; flat[2] = kGroundGrass.b;
     }
-    const std::vector<unsigned char> &initial = gfx.terrainColors ? world.terrainShadedColors : world.terrainFlatColors;
-    world.terrainColored = gfx.terrainColors;
+    int mode = TerrainColorMode(gfx);
+    const std::vector<unsigned char> &initial = TerrainColorSet(world, mode);
+    world.terrainColorMode = mode;
     mesh.colors = (unsigned char *)MemAlloc(colorBytes);
     for (int i = 0; i < colorBytes; i++) mesh.colors[i] = initial[i];
 }
 
 void ApplyTerrainColors(WorldState &world, const GraphicsSettings &gfx) {
-    if (world.terrainColored == gfx.terrainColors) return;
-    const std::vector<unsigned char> &src = gfx.terrainColors ? world.terrainShadedColors : world.terrainFlatColors;
+    int mode = TerrainColorMode(gfx);
+    if (world.terrainColorMode == mode) return;
+    const std::vector<unsigned char> &src = TerrainColorSet(world, mode);
     UpdateMeshBuffer(world.terrainModel.meshes[0], 3, src.data(), (int)src.size(), 0);
-    world.terrainColored = gfx.terrainColors;
+    world.terrainColorMode = mode;
 }
 
 void DrawGroundBackdrop() {

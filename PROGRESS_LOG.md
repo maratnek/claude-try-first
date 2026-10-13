@@ -12,6 +12,13 @@ owner can skim what happened without digging through git log. Format:
 - PR: <link or branch, if one was opened>
 ```
 
+## 2026-10-13 00:45 UTC — art run (world art track, step 6: valley/ridge shading)
+- Did: Terrain relief tint (branch agents/2026-10-13-0045-art-terrain-shading, stacked on the ground-detail branch agents/2026-10-12-2145-art-ground-detail): per-vertex colour is tinted by heightmap curvature, valleys darker and cooler, ridges warmer (`ReliefTint`, `TerrainCurvature` in `src/render/ground_look.cpp`). New toggle `gfx.terrainRelief` (on in Medium/High, off in Low); debug-only env `FLIGHT_RELIEF=0|1` for before/after shots. `docs/ARCHITECTURE.md` updated. No gameplay, physics or controls touched.
+- Why: owner wants the ground to stop looking flat and 2000s; cel-style warm/cool contrast on hills reads height.
+- Verified: raylib 5.5 built from source, game built in a scratch copy with FLIGHT_DEBUG, run under Xvfb (--crash-test) on High with relief on/off and on Low. Those views are over the flat flight corridor, where curvature is 0 by design, so the hill tint itself is NOT visually confirmed in game. Low cost: zero (flat colours, nothing computed per frame; relief colours are precomputed once at startup on every preset, a few ms). CI status: see PR.
+- Open: look at hills from a higher/side view on High; tint strengths (0.5 valley, 0.35 ridge) are guesses.
+- PR: see branch above, awaiting owner review.
+
 ## 2026-10-12 21:45 UTC — art run (world art track, step 5: ground detail texture)
 - Did: Ground detail (branch agents/2026-10-12-2145-art-ground-detail, stacked on #109): a 128x128 tileable grass-noise texture generated in code (`BuildGroundDetail` in `src/render/ground_look.cpp`), terrain UVs tiled every 24 m, texture multiplies the vertex colours. New toggle `gfx.groundDetail` (on in Medium/High, off in Low). `docs/ARCHITECTURE.md` updated. No gameplay, physics or controls touched.
 - Why: step 5 of the world art track; flat colour gave no sense of height or speed near the ground.

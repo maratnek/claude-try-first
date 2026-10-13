@@ -366,6 +366,7 @@ int main() {
     InitGraphicsSettings(game.gfx);
 #ifdef FLIGHT_DEBUG
     if (const char *preset = getenv("FLIGHT_PRESET")) ApplyGraphicsPreset(game.gfx, static_cast<GraphicsPreset>(atoi(preset) % 3));
+    if (const char *relief = getenv("FLIGHT_RELIEF")) game.gfx.terrainRelief = atoi(relief) != 0;
 #endif
     GenerateWorld(game.world, game.gfx);
 

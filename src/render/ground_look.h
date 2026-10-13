@@ -5,10 +5,10 @@
 
 extern const Color kGroundGrass;
 
-// Fills world.terrainShadedColors/terrainFlatColors for every vertex and sets mesh.colors to the set matching gfx.terrainColors.
+// Fills world.terrainShadedColors/terrainReliefColors/terrainFlatColors for every vertex and sets mesh.colors to the set matching gfx.terrainColors/terrainRelief.
 void BuildTerrainColors(WorldState &world, Mesh &terrainMesh, const GraphicsSettings &gfx);
 
-// Swaps the terrain vertex colours to match gfx.terrainColors; no-op when already current.
+// Swaps the terrain vertex colours to match gfx.terrainColors/terrainRelief; no-op when already current.
 void ApplyTerrainColors(WorldState &world, const GraphicsSettings &gfx);
 
 // Huge flat backdrop so the ground reaches the horizon in every direction, even past the edge of the detailed heightmap.

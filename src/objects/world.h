@@ -24,8 +24,9 @@ struct WorldState {
     std::vector<float> heights;   // gridSize * gridSize, row-major
     Model terrainModel{};
     std::vector<unsigned char> terrainShadedColors;  // RGBA per vertex
+    std::vector<unsigned char> terrainReliefColors;  // shaded + valley/ridge tint
     std::vector<unsigned char> terrainFlatColors;
-    bool terrainColored = false;
+    int terrainColorMode = -1;  // 0 flat, 1 shaded, 2 relief
     Texture2D groundDetail{};
     bool groundDetailOn = false;
     std::vector<Obstacle> obstacles;
