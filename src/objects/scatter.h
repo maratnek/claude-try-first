@@ -3,6 +3,7 @@
 #include <vector>
 
 struct WorldState;
+struct ScatterDef;
 
 enum class ScatterKind { Tree, Rock };
 
@@ -19,7 +20,7 @@ struct ScatterState {
     std::vector<ScatterProp> props;
 };
 
-void GenerateScatter(ScatterState &scatter, const WorldState &world);
+void GenerateScatter(ScatterState &scatter, const WorldState &world, const ScatterDef &def);
 
 // Draws one pine in the same style as the scatter trees, height meters tall from base.
 void DrawPineTree(Vector3 base, float height, float yaw, unsigned char tint);

@@ -1,4 +1,5 @@
 #include "clouds.h"
+#include "level_def.h"
 #include "raymath.h"
 #include "rlgl.h"
 #include <cmath>
@@ -6,7 +7,6 @@
 
 namespace {
 
-const int kMaxClouds = 30;
 const int kSegments = 7;
 const int kRings = 4;
 
@@ -56,15 +56,15 @@ void AddPuff(Vector3 center, Vector3 radii) {
 
 }  // namespace
 
-void GenerateClouds(CloudsState &clouds) {
+void GenerateClouds(CloudsState &clouds, const CloudsDef &def) {
     clouds.clouds.clear();
-    uint32_t rng = 7741903u;
-    for (int i = 0; i < kMaxClouds; i++) {
+    uint32_t rng = def.seed;
+    for (int i = 0; i < def.count; i++) {
         Cloud c;
-        c.position = (Vector3){RandomRange(rng, -260.0f, 260.0f), RandomRange(rng, 55.0f, 120.0f),
-                               RandomRange(rng, -150.0f, 1150.0f)};
-        float size = RandomRange(rng, 9.0f, 18.0f);
-        int puffCount = 3 + (int)(Random01(rng) * 3.0f);
+        c.position = (Vector3){RandomRange(rng, def.xMin, def.xMax), RandomRange(rng, def.yMin, def.yMax),
+                               RandomRange(rng, def.zMin, def.zMax)};
+        float size = RandomRange(rng, def.sizeMin, def.sizeMax);
+        int puffCount = def.puffsMin + (int)(Random01(rng) * (float)def.puffsSpread);
         float extent = 0.0f;
         for (int p = 0; p < puffCount; p++) {
             CloudPuff puff;

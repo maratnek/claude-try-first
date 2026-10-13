@@ -159,6 +159,11 @@ if(NOT EMSCRIPTEN AND NOT CMAKE_SYSTEM_NAME STREQUAL "iOS")
     target_include_directories(LevelDefTests PRIVATE src)
     add_test(NAME LevelDefTests COMMAND LevelDefTests)
 
+    add_executable(ScatterCloudTests tests/scatter_cloud_tests.cpp src/objects/scatter.cpp src/objects/clouds.cpp src/level_def.cpp)
+    target_include_directories(ScatterCloudTests PRIVATE src src/objects)
+    target_link_libraries(ScatterCloudTests PRIVATE raylib)
+    add_test(NAME ScatterCloudTests COMMAND ScatterCloudTests)
+
     add_executable(TouchLayoutTests tests/touch_layout_tests.cpp src/touch_layout.cpp)
     target_include_directories(TouchLayoutTests PRIVATE src)
     add_test(NAME TouchLayoutTests COMMAND TouchLayoutTests)

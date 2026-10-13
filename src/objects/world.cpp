@@ -125,8 +125,8 @@ void GenerateWorld(WorldState &world, const GraphicsSettings &gfx) {
     for (const ObstacleDef &o : Level1Def().hardObstacles) AddHardObstacle(world, o.x, o.z, o.height, o.radius);
     for (const ObstacleDef &o : Level1Def().softObstacles) AddSoftObstacle(world, o.x, o.z, o.height, o.radius);
 
-    GenerateScatter(world.scatter, world);
-    GenerateClouds(world.clouds);
+    GenerateScatter(world.scatter, world, Level1Def().scatter);
+    GenerateClouds(world.clouds, Level1Def().clouds);
 }
 
 void AddHardObstacle(WorldState &world, float x, float z, float height, float radius) {

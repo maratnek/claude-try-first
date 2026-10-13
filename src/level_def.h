@@ -30,10 +30,34 @@ struct TerrainDef {
     HillDef hill;
 };
 
+struct ScatterDef {
+    unsigned int seed;
+    int maxProps;
+    int attemptsPerProp;
+    float edgeMargin;
+    float corridorMargin;
+    float obstacleClearance;
+    float sink;
+    float rockChance;
+    float scaleMin, scaleMax;
+};
+
+struct CloudsDef {
+    unsigned int seed;
+    int count;
+    float xMin, xMax;
+    float yMin, yMax;
+    float zMin, zMax;
+    float sizeMin, sizeMax;
+    int puffsMin, puffsSpread;
+};
+
 struct LevelDef {
     float startX, startZ;
     float startHeightAboveGround;
     TerrainDef terrain;
+    ScatterDef scatter;
+    CloudsDef clouds;
     float gateDistance;
     float medalGold, medalSilver, medalBronze;
     bool requireLanding;

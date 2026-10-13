@@ -2,6 +2,8 @@
 #include "raylib.h"
 #include <vector>
 
+struct CloudsDef;
+
 struct CloudPuff {
     Vector3 offset;
     Vector3 radii;
@@ -18,6 +20,6 @@ struct CloudsState {
     std::vector<Cloud> clouds;
 };
 
-void GenerateClouds(CloudsState &clouds);
+void GenerateClouds(CloudsState &clouds, const CloudsDef &def);
 
 void DrawClouds(const CloudsState &clouds, int count, Vector3 viewPosition, float drawDistance);

@@ -1,5 +1,6 @@
 #include "scatter.h"
 #include "world.h"
+#include "level_def.h"
 #include "raymath.h"
 #include "rlgl.h"
 #include <cmath>
@@ -7,10 +8,6 @@
 
 namespace {
 
-const int kMaxProps = 1800;
-const float kCorridorMargin = 20.0f;
-const float kObstacleClearance = 12.0f;
-const float kSink = 0.4f;
 const float kTreeHeight = 6.0f;  // AddTree's top at scale 1
 
 uint32_t NextRandom(uint32_t &state) {
@@ -87,19 +84,19 @@ void AddRock(const ScatterProp &p) {
 
 }  // namespace
 
-void GenerateScatter(ScatterState &scatter, const WorldState &world) {
+void GenerateScatter(ScatterState &scatter, const WorldState &world, const ScatterDef &def) {
     scatter.props.clear();
-    uint32_t rng = 20240611u;
-    float halfExtent = world.worldSize * 0.5f - 40.0f;
-    float minX = world.flatHalfWidth + kCorridorMargin;
+    uint32_t rng = def.seed;
+    float halfExtent = world.worldSize * 0.5f - def.edgeMargin;
+    float minX = world.flatHalfWidth + def.corridorMargin;
 
     int attempts = 0;
-    while ((int)scatter.props.size() < kMaxProps && attempts < kMaxProps * 8) {
+    while ((int)scatter.props.size() < def.maxProps && attempts < def.maxProps * def.attemptsPerProp) {
         attempts++;
         float x = (Random01(rng) * 2.0f - 1.0f) * halfExtent;
         float z = (Random01(rng) * 2.0f - 1.0f) * halfExtent;
-        bool kindRoll = Random01(rng) < 0.3f;
-        float scale = 1.2f + Random01(rng) * 1.2f;
+        bool kindRoll = Random01(rng) < def.rockChance;
+        float scale = def.scaleMin + Random01(rng) * (def.scaleMax - def.scaleMin);
         float yaw = Random01(rng) * 2.0f * PI;
         unsigned char tint = (unsigned char)(NextRandom(rng) & 0xFF);
         if (fabsf(x) < minX) continue;
@@ -107,13 +104,13 @@ void GenerateScatter(ScatterState &scatter, const WorldState &world) {
         bool blocked = false;
         for (const Obstacle &o : world.obstacles) {
             float dx = x - o.position.x, dz = z - o.position.z;
-            float r = o.radius + kObstacleClearance;
+            float r = o.radius + def.obstacleClearance;
             if (dx * dx + dz * dz < r * r) { blocked = true; break; }
         }
         if (blocked) continue;
 
         ScatterProp p;
-        p.position = (Vector3){x, GetGroundHeight(world, x, z) - kSink, z};
+        p.position = (Vector3){x, GetGroundHeight(world, x, z) - def.sink, z};
         p.scale = scale;
         p.yaw = yaw;
         p.kind = kindRoll ? ScatterKind::Rock : ScatterKind::Tree;

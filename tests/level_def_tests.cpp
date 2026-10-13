@@ -60,6 +60,16 @@ int main() {
         for (const CheckpointDef &c : d.checkpoints) if (std::fabs(c.x) >= d.terrain.flatHalfWidth) return false;
         return true;
     }());
+    Expect("scatter def", d.scatter.seed == 20240611u && d.scatter.maxProps == 1800 && d.scatter.attemptsPerProp == 8 &&
+                              Near(d.scatter.edgeMargin, 40.0f) && Near(d.scatter.corridorMargin, 20.0f) &&
+                              Near(d.scatter.obstacleClearance, 12.0f) && Near(d.scatter.sink, 0.4f) &&
+                              Near(d.scatter.rockChance, 0.3f) && Near(d.scatter.scaleMin, 1.2f) &&
+                              Near(d.scatter.scaleMax, 2.4f));
+    Expect("clouds def", d.clouds.seed == 7741903u && d.clouds.count == 30 && Near(d.clouds.xMin, -260.0f) &&
+                             Near(d.clouds.xMax, 260.0f) && Near(d.clouds.yMin, 55.0f) && Near(d.clouds.yMax, 120.0f) &&
+                             Near(d.clouds.zMin, -150.0f) && Near(d.clouds.zMax, 1150.0f) &&
+                             Near(d.clouds.sizeMin, 9.0f) && Near(d.clouds.sizeMax, 18.0f) &&
+                             d.clouds.puffsMin == 3 && d.clouds.puffsSpread == 3);
     Expect("gate distance", Near(d.gateDistance, 1000.0f));
     Expect("medal times", Near(d.medalGold, 24.0f) && Near(d.medalSilver, 30.0f) && Near(d.medalBronze, 40.0f));
     Expect("landing rules", d.requireLanding && Near(d.landingZoneLength, 300.0f) &&

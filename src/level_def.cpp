@@ -14,6 +14,8 @@ LevelDef MakeLevel1() {
     d.startZ = 0.0f;
     d.startHeightAboveGround = 0.3f;
     d.terrain = {64, 1400.0f, 10.0f, 40.0f, 0.12f, {0.5f, 0.25f, 0.015f, 0.25f, 0.012f, 0.12f, 0.05f, 0.04f}};
+    d.scatter = {20240611u, 1800, 8, 40.0f, 20.0f, 12.0f, 0.4f, 0.3f, 1.2f, 2.4f};
+    d.clouds = {7741903u, 30, -260.0f, 260.0f, 55.0f, 120.0f, -150.0f, 1150.0f, 9.0f, 18.0f, 3, 3};
     d.gateDistance = 1000.0f;
     d.medalGold = 24.0f;
     d.medalSilver = 30.0f;
