@@ -11,7 +11,7 @@ struct PlaneParams {
     float gravity;       // m/s^2
     float liftDamping;   // 1/s, how fast lift cancels a fall at full lift
     float groundDrag;    // m/s^2 rolling resistance
-    float brakeDecel;    // m/s^2 wheel brake, grounded with engine power at zero
+    float brakeDecel;    // m/s^2 wheel brake, grounded: input.brake at any power, or throttle-down at power zero
     float dragLinear;    // 1/s
     float dragQuad;      // 1/m
     float stallSpeed;    // m/s, airborne below this the nose drops
@@ -71,9 +71,10 @@ struct PlaneState {
 // with no pitch input, pitch settles to it (clamped well under liftoffPitch
 // so slope alone never lifts the plane off). While grounded, the plane rolls
 // along the ground on its heading only and needs enough speed and nose-up
-// pitch to lift off; with power at zero, holding throttle-down brakes the
-// wheels. groundHeight is the terrain height directly under the plane, used
-// both for ground-rolling and as a soft floor once airborne. When the
+// pitch to lift off; input.brake brakes the wheels at any
+// engine power (never in the air), and so does holding throttle-down at
+// power zero. groundHeight is the terrain height directly under the plane,
+// used both for ground-rolling and as a soft floor once airborne. When the
 // airborne plane reaches the ground, plane.landing becomes Safe (plane
 // returns to ground-rolling) or Hard (caller should treat it as a crash); it
 // resets on the next liftoff.

@@ -114,7 +114,7 @@ void UpdatePlaneControls(PlaneState &plane, const PlaneParams &params, const Fli
         plane.speed -= params.gravity * sinf(plane.pitch * DEG2RAD) * dt;
     } else {
         plane.speed -= params.groundDrag * dt;
-        if (input.throttle < 0.0f && plane.enginePower <= 0.0f) plane.speed -= params.brakeDecel * dt;
+        if (input.brake || (input.throttle < 0.0f && plane.enginePower <= 0.0f)) plane.speed -= params.brakeDecel * dt;
     }
     plane.speed = Clamp(plane.speed, 0.0f, params.maxSpeed);
 

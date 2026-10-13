@@ -105,7 +105,7 @@ priority. Skip items marked "owner" (waiting on his decision) or
 | P1 | Engine and exhaust: a visible radial engine (as in `assets/models/biplane-1920-v2.glb`) and exhaust smoke from the exhaust pipes, thicker with engine power, puffs at start-up; reuse `src/objects/sprites.*`; preset-switchable | open — owner request 2026-10-12; model update by the owner in Claude Design | owner flies it |
 | P0 | Weather that matches the season: snow over green summer grass breaks immersion (owner raised it twice) | open — owner request 2026-10-12 | "Weather and season" |
 | P1 | Shadows and lighting: the plane's shadow is only a round blob; cast a plane-shaped shadow and give the plane and world a proper sun light | open — owner request 2026-10-12, world-art routine | "World art track" |
-| P1 | Brakes: a dedicated wheel-brake key (Space/B) on the ground at any power, a BRAKE touch button after touchdown, HUD hint; today braking needs power 0 + S | open — owner request 2026-10-09 | owner flies it |
+| P1 | Brakes: a dedicated wheel-brake key (Space/B) on the ground at any power, a BRAKE touch button after touchdown, HUD hint; today braking needs power 0 + S | done, awaiting owner review (keyboard; touch button still open) | owner flies it |
 | P1 | Menu look: 1920s cartoon main menu with key art and a side panel of what the game offers | waiting for the owner's generated art (`asset-requests/pending/menu-*.md`); layout and fonts can start | "Art direction" |
 | P0 | Effects polish part 1: smoke, fireball, snow → soft sprites | done, merged 2026-10-09 | "Next up" below |
 | P1 | Aircraft configs: each aircraft's flight parameters in its own data file, sourced from real specs | open | "Aircraft configs" |

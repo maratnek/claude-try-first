@@ -328,6 +328,60 @@ void TestRollout(const PlaneParams &p) {
     Report("braked rollout from max speed", MeasureRollout(p, p.landingMaxSpeed, -1.0f), 10.0f, 100.0f);
 }
 
+struct Stop { float time; float distance; };
+
+Stop MeasureStop(const PlaneParams &p, float speed, float power, bool brake) {
+    PlaneState s;
+    s.speed = speed;
+    s.enginePower = power;
+    s.position.y = p.wheelHeight;
+    s.landing = LandingResult::Safe;
+    FlightInput in;
+    in.brake = brake;
+    int i = 0;
+    for (; i < 60 * 120 && s.speed > 0.1f; i++) {
+        UpdatePlaneControls(s, p, in, kDt, 0.0f, 0.0f);
+    }
+    return {i * kDt, s.position.z};
+}
+
+void TestBrake(const PlaneParams &p) {
+    FlightInput on;
+    on.brake = true;
+    FlightInput off;
+
+    PlaneState braked;
+    braked.position.y = p.wheelHeight;
+    braked.speed = 10.0f;
+    braked.enginePower = 0.5f;
+    PlaneState coasting = braked;
+    for (int i = 0; i < 60; i++) {
+        UpdatePlaneControls(braked, p, on, kDt, 0.0f, 0.0f);
+        UpdatePlaneControls(coasting, p, off, kDt, 0.0f, 0.0f);
+    }
+    Report("brake at power 0.5 slows by 1s", coasting.speed - braked.speed, p.brakeDecel * 0.95f, p.brakeDecel * 1.05f);
+
+    PlaneState flyingBraked = Airborne(25.0f, 500.0f, p.levelPower);
+    PlaneState flying = flyingBraked;
+    for (int i = 0; i < 60; i++) {
+        UpdatePlaneControls(flyingBraked, p, on, kDt, 0.0f, 0.0f);
+        UpdatePlaneControls(flying, p, off, kDt, 0.0f, 0.0f);
+    }
+    Report("brake in air speed change", flyingBraked.speed - flying.speed, 0.0f, 0.0f);
+    Report("brake in air altitude change", flyingBraked.position.y - flying.position.y, 0.0f, 0.0f);
+
+    Stop plain0 = MeasureStop(p, 20.0f, 0.0f, false);
+    Stop brake0 = MeasureStop(p, 20.0f, 0.0f, true);
+    Stop plain5 = MeasureStop(p, 20.0f, 0.5f, false);
+    Stop brake5 = MeasureStop(p, 20.0f, 0.5f, true);
+    if (g_verbose) {
+        printf("stop from 20 m/s, power 0:   no brake %.2f s / %.1f m, brake %.2f s / %.1f m\n", plain0.time, plain0.distance, brake0.time, brake0.distance);
+        printf("stop from 20 m/s, power 0.5: no brake %.2f s / %.1f m, brake %.2f s / %.1f m\n", plain5.time, plain5.distance, brake5.time, brake5.distance);
+    }
+    Expect("brake shortens stop at power 0", brake0.time < plain0.time && brake0.distance < plain0.distance);
+    Expect("brake stops at power 0.5", brake5.time < 119.0f);
+}
+
 void TestRollClamp(const PlaneParams &p) {
     const float dirs[2] = {1.0f, -1.0f};
     for (float dir : dirs) {
@@ -364,6 +418,7 @@ int main(int argc, char **argv) {
     TestLanding(p);
     TestRollClamp(p);
     TestRollout(p);
+    TestBrake(p);
     if (g_failures) printf("%d check(s) failed\n", g_failures);
     else printf("all flight checks passed\n");
     return g_failures ? 1 : 0;
