@@ -12,6 +12,13 @@ owner can skim what happened without digging through git log. Format:
 - PR: <link or branch, if one was opened>
 ```
 
+## 2026-10-13 15:20 UTC — day run
+- Did: P2 "iOS simulator readiness", first iteration (branch agents/2026-10-13-1520-ios-progress): on iOS `LoadProgress`/`SaveProgress` were no-op stubs, so best times and stars were lost on every app restart. They now read and write `$HOME/Documents/progress.cfg` (the app sandbox's writable folder) with plain `std::fstream`; no raylib, no Objective-C. Desktop and Web paths untouched. Not release-relevant for the itch.io Web build (it only matters for the later iOS build).
+- Why: every higher board item is already covered by an open PR or stacked on one; this is the first unstarted item that shares no files with the open PRs.
+- Verified: the iOS branch of `progress_store.cpp` was compiled on Linux with a stub `TargetConditionals.h` and run against a temp HOME: save then load round-trips (`level.level1=21.500,2`); a missing HOME folder gives defaults and does not crash. NOT run on a simulator or device; the `ios-sim` CI job (macos-14, continue-on-error) only compiles it. CI status: see PR.
+- Open: confirm on a simulator that `$HOME/Documents` exists and is writable and the best time survives a relaunch. Still missing for iOS readiness: touch-on-simulator check, audio session, .app artifact in CI.
+- PR: PR into dev from agents/2026-10-13-1520-ios-progress, awaiting owner review
+
 ## 2026-10-08 09:20 UTC — day run
 - Did: P0 "A/D (rudder) turning feels dead" (branch agents/2026-10-08-0920-rudder-turn): `yawRate` 8 -> 22 deg/s and new `rudderBank` = 25 deg; with A/D held and no arrow input the plane eases into a bank toward the rudder side at `rollRate * authority`, and levels as before on release. Grounded taxi and the bank-turn formula are untouched. New flight test for A/D-only turns at 25 and 35 m/s. Radius 25 m/s: 179 m -> 44.8 m; 35 m/s: 250 m -> 68.7 m. Time for a 90 deg turn: 11.25 s -> 2.82 s (25 m/s), 11.25 s -> 3.10 s (35 m/s). Peak bank 0 -> 25 deg, altitude loss over the turn under 1 m. Release-relevant (feel).
 - Why: top open P0 item that is one small PR; CI autoplay (listed above it) is a 2-3 PR chain and needs this turn behaviour pinned first.

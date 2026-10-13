@@ -419,7 +419,7 @@ those stay proposals until he decides.
 7. **Aerobatics detection prototype:** recognise loop, barrel roll,
    Immelmann from the flight state, unit-tested, not wired into rewards or
    UI yet (that is a progression decision).
-8. **iOS simulator readiness:** whatever the iOS build still lacks that
+8. **iOS simulator readiness:** [partly done: progress persistence on iOS via `$HOME/Documents/progress.cfg`, branch agents/2026-10-13-1520-ios-progress, not yet run on a simulator] whatever the iOS build still lacks that
    needs no Apple account (touch on simulator, audio session, safe-area
    checks, CI artifact of the .app).
 

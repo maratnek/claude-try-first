@@ -18,9 +18,34 @@ void SaveProgress(const ProgressData &data) {
 }
 
 #elif defined(SETTINGS_MOBILE_OR_WEB)
+#include <cstdlib>
+#include <fstream>
+#include <sstream>
 
-ProgressData LoadProgress() { return ProgressData{}; }
-void SaveProgress(const ProgressData &) {}
+namespace {
+// The app sandbox's $HOME/Documents is writable and survives app restarts; the .app bundle itself is read-only.
+std::string ProgressPath() {
+    const char *home = std::getenv("HOME");
+    return home ? std::string(home) + "/Documents/progress.cfg" : std::string();
+}
+}  // namespace
+
+ProgressData LoadProgress() {
+    std::string path = ProgressPath();
+    if (path.empty()) return ProgressData{};
+    std::ifstream in(path);
+    if (!in) return ProgressData{};
+    std::stringstream text;
+    text << in.rdbuf();
+    return ParseProgress(text.str());
+}
+
+void SaveProgress(const ProgressData &data) {
+    std::string path = ProgressPath();
+    if (path.empty()) return;
+    std::ofstream out(path, std::ios::trunc);
+    if (out) out << SerializeProgress(data);
+}
 
 #else
 #include "raylib.h"
