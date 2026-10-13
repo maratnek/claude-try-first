@@ -1,7 +1,7 @@
 #include "rain.h"
 #include <cmath>
 #include "raymath.h"
-#include "rlgl.h"
+#include "sprites.h"
 
 namespace {
 const float kHalfWidth = 45.0f;
@@ -10,7 +10,8 @@ const float kAbove = 40.0f;
 const float kFallSpeed = 28.0f;
 const float kWindX = 4.0f;
 const float kDropLength = 1.6f;
-const unsigned char kAlpha = 110;
+const float kDropWidth = 0.08f;
+const unsigned char kAlpha = 150;
 
 float Wrap(float value, float center, float size, float below) {
     float lo = center - below;
@@ -64,17 +65,11 @@ void DrawRain(const RainState &rain, int dropCount) {
 
     Vector3 trail = Vector3Scale(Vector3Normalize({kWindX, -kFallSpeed, 0.0f}), -kDropLength);
 
-    rlDisableDepthMask();
-    rlCheckRenderBatchLimit(2 * dropCount);
-    rlBegin(RL_LINES);
+    BillboardAxes axes = CurrentBillboardAxes();
+    BeginSprites(SpriteKind::Streak, false);
     for (int i = 0; i < dropCount; i++) {
         const Vector3 &a = rain.positions[i];
-        rlColor4ub(190, 210, 255, kAlpha);
-        rlVertex3f(a.x, a.y, a.z);
-        rlColor4ub(190, 210, 255, 0);
-        rlVertex3f(a.x + trail.x, a.y + trail.y, a.z + trail.z);
+        DrawStreakSprite(axes, Vector3Add(a, trail), a, kDropWidth, {190, 210, 255, 0}, {190, 210, 255, kAlpha});
     }
-    rlEnd();
-    rlDrawRenderBatchActive();
-    rlEnableDepthMask();
+    EndSprites();
 }
