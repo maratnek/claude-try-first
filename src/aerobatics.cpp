@@ -80,12 +80,15 @@ void UpdateAerobaticsAttitude(AerobaticsTracker &t, const AttitudeSample &s, boo
         Complete(t, Trick::Loop);
         return;
     }
+    // Why: any full roll counts; the path shape (a true barrel roll arcs around the flight line) is not checked.
     if (roll >= kFullTurnDeg && pitch < kMaxOffAxisPitchDeg && headingKept) {
         Complete(t, Trick::BarrelRoll);
         return;
     }
 
-    if (!t.halfLoopDone && pitch >= kHalfTurnDeg && roll < kMaxOffAxisRollDeg) {
+    if (pitch < kHalfTurnDeg) {
+        t.halfLoopDone = false;
+    } else if (!t.halfLoopDone && roll < kMaxOffAxisRollDeg) {
         t.halfLoopDone = true;
         t.rollAtHalfLoop = t.rollTravel;
     }

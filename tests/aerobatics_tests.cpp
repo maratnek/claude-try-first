@@ -7,8 +7,10 @@ namespace {
 int g_failures = 0;
 
 void Expect(const char *name, bool cond) {
-    if (!cond) g_failures++;
-    if (!cond) printf("FAIL %s\n", name);
+    if (!cond) {
+        g_failures++;
+        printf("FAIL %s\n", name);
+    }
 }
 
 constexpr float kDt = 1.0f / 60.0f;
@@ -130,6 +132,31 @@ int main() {
             UpdateAerobatics(t, plane, kDt);
         }
         Expect("clamped PlaneState attitude never completes a trick", TakeCompletedTrick(t) == Trick::None);
+    }
+
+    {
+        AerobaticsTracker t;
+        std::vector<AttitudeSample> seq = Level();
+        Ramp(seq, At(0, 0, 0), At(200, 0, 0), 3.0f);
+        Ramp(seq, At(200, 0, 0), At(0, 0, 0), 3.0f);
+        Ramp(seq, At(0, 0, 0), At(0, 150, 0), 1.0f);
+        Ramp(seq, At(0, 150, 0), At(0, 150, 0), 0.5f);
+        Expect("abandoned half loop then roll is no trick", Fly(t, seq).empty());
+    }
+    {
+        AerobaticsTracker t;
+        std::vector<AttitudeSample> seq = Level();
+        Ramp(seq, At(0, 0, 0), At(200, 0, 0), 3.0f);
+        Ramp(seq, At(200, 0, 0), At(100, 0, 0), 2.0f);
+        Ramp(seq, At(100, 0, 0), At(100, 160, 0), 1.0f);
+        Expect("half loop undone to 100 degrees then roll is no trick", Fly(t, seq).empty());
+    }
+    {
+        AerobaticsTracker t;
+        std::vector<AttitudeSample> seq = Level();
+        Ramp(seq, At(0, 0, 0), At(0, 200, 0), 25.0f);
+        Ramp(seq, At(0, 200, 0), At(0, 360, 0), 1.0f);
+        Expect("roll slower than the 20 s timeout is no trick", Fly(t, seq).empty());
     }
 
     if (g_failures == 0) printf("AerobaticsTests passed\n");
