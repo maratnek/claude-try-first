@@ -5,6 +5,8 @@ namespace {
 
 LevelDef MakeLevel1() {
     LevelDef d;
+    d.id = "level1";
+    d.name = "Valley Run";
     d.startX = 0.0f;
     d.startZ = 0.0f;
     d.startHeightAboveGround = 0.3f;
@@ -35,14 +37,73 @@ LevelDef MakeLevel1() {
         {6.0f, 420.0f, 14.0f, 2.5f},
         {-5.0f, 620.0f, 10.0f, 2.5f},
     };
+    d.stages = {
+        {StageType::Takeoff, "Takeoff", 0.0f},
+        {StageType::Rings, "Rings", d.checkpoints.back().z},
+        {StageType::Gate, "Gate", d.gateDistance},
+    };
+    if (d.requireLanding) d.stages.push_back({StageType::RunwayLanding, "Landing", 0.0f});
+    return d;
+}
+
+// Approach rings sit on a ~4 degree glide path to the runway threshold at gateDistance.
+LevelDef MakeTutTakeoff() {
+    LevelDef d;
+    d.id = "tut_takeoff";
+    d.name = "First Wings";
+    d.startX = 0.0f;
+    d.startZ = 0.0f;
+    d.startHeightAboveGround = 0.3f;
+    // maxHeight 0 would divide by zero in the heightmap normalisation; 1 m over a wide flat corridor is flat enough.
+    d.terrain = {64, 1400.0f, 1.0f, 100.0f, 0.12f};
+    d.gateDistance = 700.0f;
+    d.medalGold = 20.0f;
+    d.medalSilver = 26.0f;
+    d.medalBronze = 36.0f;
+    d.requireLanding = true;
+    d.landingZoneLength = 300.0f;
+    d.landingZoneWidth = 40.0f;
+    d.rolloutSpeed = 8.0f;
+    d.checkpoints = {
+        {0.0f, 25.0f, 100.0f, 14.0f},
+        {0.0f, 50.0f, 250.0f, 14.0f},
+        {0.0f, 28.0f, 300.0f, 12.0f},
+        {0.0f, 22.4f, 380.0f, 12.0f},
+        {0.0f, 16.8f, 460.0f, 12.0f},
+        {0.0f, 11.2f, 540.0f, 12.0f},
+        {0.0f, 5.6f, 620.0f, 12.0f},
+    };
+    d.stages = {
+        {StageType::Takeoff, "Takeoff", 0.0f},
+        {StageType::Rings, "Climb", 250.0f},
+        {StageType::Rings, "Approach", d.checkpoints.back().z},
+        {StageType::RunwayLanding, "Landing", 0.0f},
+    };
     return d;
 }
 
 }  // namespace
 
+const LevelDef &TutTakeoffDef() {
+    static const LevelDef def = MakeTutTakeoff();
+    return def;
+}
+
 const LevelDef &Level1Def() {
     static const LevelDef def = MakeLevel1();
     return def;
+}
+
+const std::vector<const LevelDef *> &CampaignLevels() {
+    static const std::vector<const LevelDef *> levels = {&TutTakeoffDef(), &Level1Def()};
+    return levels;
+}
+
+const LevelDef *FindLevel(const std::string &id) {
+    for (const LevelDef *def : CampaignLevels()) {
+        if (id == def->id) return def;
+    }
+    return nullptr;
 }
 
 bool CrossesRingHole(float ax, float ay, float az, float bx, float by, float bz, float cx, float cy, float cz, float holeRadius) {

@@ -1,4 +1,5 @@
 #pragma once
+#include <string>
 #include <vector>
 
 struct CheckpointDef {
@@ -22,7 +23,18 @@ struct TerrainDef {
     float edgeFade;
 };
 
+enum class StageType { Takeoff, Rings, Gate, RunwayLanding };
+
+// endZ is relative to the start (like CheckpointDef::z); only Rings and Gate use it.
+struct StageDef {
+    StageType type;
+    const char *title;
+    float endZ;
+};
+
 struct LevelDef {
+    const char *id = "";
+    const char *name = "";
     float startX, startZ;
     float startHeightAboveGround;
     TerrainDef terrain;
@@ -35,9 +47,16 @@ struct LevelDef {
     std::vector<CheckpointDef> checkpoints;
     std::vector<ObstacleDef> hardObstacles;
     std::vector<ObstacleDef> softObstacles;
+    std::vector<StageDef> stages;
 };
 
+const LevelDef &TutTakeoffDef();
 const LevelDef &Level1Def();
+
+const std::vector<const LevelDef *> &CampaignLevels();
+
+// Null when no campaign level has this id.
+const LevelDef *FindLevel(const std::string &id);
 
 // True when the segment from (ax,ay,az) to (bx,by,bz) crosses the ring plane z = cz
 // at a point closer than holeRadius to the ring centre (cx,cy).

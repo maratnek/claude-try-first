@@ -46,12 +46,12 @@ Color MedalColor(Medal medal) {
     }
 }
 
-const char *NextTargetLine(Medal medal, int stars) {
+const char *NextTargetLine(const LevelDef &def, Medal medal, int stars) {
     switch (medal) {
         case Medal::Gold: return stars == 3 ? "Gold - perfect run!" : "Gold - perfect run needs 3 stars";
-        case Medal::Silver: return TextFormat("Silver! Gold at %.1f s", Level1Def().medalGold);
-        case Medal::Bronze: return TextFormat("Bronze! Silver at %.1f s", Level1Def().medalSilver);
-        default: return TextFormat("Bronze at %.1f s", Level1Def().medalBronze);
+        case Medal::Silver: return TextFormat("Silver! Gold at %.1f s", def.medalGold);
+        case Medal::Bronze: return TextFormat("Bronze! Silver at %.1f s", def.medalSilver);
+        default: return TextFormat("Bronze at %.1f s", def.medalBronze);
     }
 }
 }  // namespace
@@ -64,16 +64,35 @@ int CountPassed(const LevelState &level) {
     return n;
 }
 
-void InitLevel(LevelState &level) {
-    level.targetDistance = Level1Def().gateDistance;
+void BuildCheckpoints(LevelState &level) {
+    level.targetDistance = level.def->gateDistance;
     Vector3 s = level.startPosition;
     level.checkpoints.clear();
-    for (const CheckpointDef &c : Level1Def().checkpoints) {
+    for (const CheckpointDef &c : level.def->checkpoints) {
         level.checkpoints.push_back({(Vector3){s.x + c.x, s.y + c.y, s.z + c.z}, c.radius});
     }
+}
 
+void InitLevel(LevelState &level) {
+    BuildCheckpoints(level);
     Mesh ringMesh = GenMeshTorus(kRingTube, 2.0f, 12, 32);
     level.checkpointModel = LoadModelFromMesh(ringMesh);
+}
+
+void UpdateStage(LevelState &level, Vector3 planePosition, bool airborne) {
+    const std::vector<StageDef> &stages = level.def->stages;
+    while (level.stageIndex + 1 < (int)stages.size()) {
+        const StageDef &stage = stages[level.stageIndex];
+        bool done = false;
+        switch (stage.type) {
+            case StageType::Takeoff: done = airborne; break;
+            case StageType::Rings: done = planePosition.z - level.startPosition.z >= stage.endZ; break;
+            case StageType::Gate: done = level.gateCrossed; break;
+            case StageType::RunwayLanding: break;
+        }
+        if (!done) break;
+        level.stageIndex++;
+    }
 }
 
 void UpdateLevel(LevelState &level, Vector3 planePosition, bool airborne, float dt) {
@@ -102,12 +121,14 @@ void UpdateLevel(LevelState &level, Vector3 planePosition, bool airborne, float 
     }
     level.lastPlanePosition = planePosition;
     level.hasLastPlanePosition = true;
+
+    UpdateStage(level, planePosition, airborne);
 }
 
 bool IsRunFinished(const LevelState &level, bool airborne, float speed) {
     if (!level.gateCrossed) return false;
-    if (!Level1Def().requireLanding) return true;
-    return level.hasFlown && !airborne && speed <= Level1Def().rolloutSpeed;
+    if (!level.def->requireLanding) return true;
+    return level.hasFlown && !airborne && speed <= level.def->rolloutSpeed;
 }
 
 int ComputeStars(const LevelState &level, bool damaged) {
@@ -117,10 +138,10 @@ int ComputeStars(const LevelState &level, bool damaged) {
     return kStarsFinished;
 }
 
-Medal ComputeMedal(float elapsed) {
-    if (elapsed <= Level1Def().medalGold) return Medal::Gold;
-    if (elapsed <= Level1Def().medalSilver) return Medal::Silver;
-    if (elapsed <= Level1Def().medalBronze) return Medal::Bronze;
+Medal ComputeMedal(const LevelDef &def, float elapsed) {
+    if (elapsed <= def.medalGold) return Medal::Gold;
+    if (elapsed <= def.medalSilver) return Medal::Silver;
+    if (elapsed <= def.medalBronze) return Medal::Bronze;
     return Medal::None;
 }
 
@@ -140,9 +161,9 @@ void DrawFinishGate(const LevelState &level) {
     DrawCylinder((Vector3){gatePos.x + 4.0f, 0.0f, gatePos.z}, 0.3f, 0.3f, 8.0f, 10, GOLD);
     DrawCube((Vector3){gatePos.x, 8.0f, gatePos.z}, 8.6f, 0.4f, 0.4f, GOLD);
 
-    if (Level1Def().requireLanding) {
-        DrawCube((Vector3){gatePos.x, 0.05f, gatePos.z + Level1Def().landingZoneLength / 2.0f},
-                 Level1Def().landingZoneWidth, 0.1f, Level1Def().landingZoneLength, (Color){80, 200, 100, 255});
+    if (level.def->requireLanding) {
+        DrawCube((Vector3){gatePos.x, 0.05f, gatePos.z + level.def->landingZoneLength / 2.0f},
+                 level.def->landingZoneWidth, 0.1f, level.def->landingZoneLength, (Color){80, 200, 100, 255});
     }
 }
 
@@ -166,9 +187,12 @@ void DrawLevelHUD(const LevelState &level, bool damaged) {
                          passedCount, (int)level.checkpoints.size()),
              10 + (int)sa.left, 85 + (int)sa.top, 20, DARKGRAY);
 
+    DrawText(TextFormat("Stage %d/%d: %s", level.stageIndex + 1, (int)level.def->stages.size(), level.def->stages[level.stageIndex].title),
+             10 + (int)sa.left, 110 + (int)sa.top, 20, DARKGRAY);
+
     DrawText(damaged ? "Plane: DAMAGED" : "Plane: OK", 10 + (int)sa.left, 180 + (int)sa.top, 20, damaged ? MAROON : DARKGREEN);
 
-    if (level.gateCrossed && Level1Def().requireLanding) {
+    if (level.gateCrossed && level.def->requireLanding) {
         const char *banner = level.hasFlown ? "GATE! Land to finish" : "GATE! Take off and land to finish";
         DrawText(banner, (GetScreenWidth() - MeasureText(banner, 40)) / 2, 110 + (int)sa.top, 40, GOLD);
     }
@@ -212,7 +236,7 @@ void DrawResultsScreen(const LevelState &level, bool damaged) {
                  i < stars ? GOLD : (Color){120, 120, 120, 255});
     }
 
-    Medal medal = ComputeMedal(level.elapsed);
+    Medal medal = ComputeMedal(*level.def, level.elapsed);
     float medalX = cx + 170.0f * s;
     DrawCircle((int)medalX, y(95), 22.0f * s, MedalColor(medal));
     DrawCentered(MedalName(medal), (int)medalX, y(125), sz(20), MedalColor(medal));
@@ -240,11 +264,12 @@ void DrawResultsScreen(const LevelState &level, bool damaged) {
         DrawCentered(line, cx, y(245 + i * 32), sz(26), goals[i].met ? WHITE : unmet);
     }
 
-    DrawCentered(NextTargetLine(medal, stars), cx, y(365), sz(26), MedalColor(medal));
+    DrawCentered(NextTargetLine(*level.def, medal, stars), cx, y(365), sz(26), MedalColor(medal));
 }
 
 void ResetLevelProgress(LevelState &level) {
     level.distanceFlown = 0.0f;
+    level.stageIndex = 0;
     level.gateCrossed = false;
     level.crashed = false;
     level.hasFlown = false;
