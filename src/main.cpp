@@ -12,6 +12,7 @@
 #include "objects/world.h"
 #include "render/ground_look.h"
 #include "render/plane_look.h"
+#include "render/tree_look.h"
 #include "render/sky.h"
 #include "render/world_draw.h"
 #include "objects/smoke.h"
@@ -380,6 +381,7 @@ int main() {
 
     LoadPlaneModel(game.planeModel, AssetPath("models/biplane-1920.glb"));
     LoadPlaneLook(game.planeLook);
+    LoadTreeLook();
 
     InitMenu(game.menu);
     EnterMenu(game.menu);
@@ -388,6 +390,7 @@ int main() {
     if (const char *preset = getenv("FLIGHT_PRESET")) ApplyGraphicsPreset(game.gfx, static_cast<GraphicsPreset>(atoi(preset) % 3));
     if (const char *relief = getenv("FLIGHT_RELIEF")) game.gfx.terrainRelief = atoi(relief) != 0;
     if (const char *shading = getenv("FLIGHT_PLANE_SHADING")) game.gfx.planeShading = atoi(shading) != 0;
+    if (const char *cards = getenv("FLIGHT_TREE_CARDS")) game.gfx.treeCards = atoi(cards) != 0;
 #endif
     GenerateWorld(game.world, game.gfx);
 
@@ -418,6 +421,7 @@ int main() {
 
     UnloadEngineAudio(game.engineAudio);
     CloseAudioDevice();
+    UnloadTreeLook();
     UnloadPlaneLook(game.planeLook, game.planeModel.model);
     UnloadPlaneModel(game.planeModel);
     UnloadLevel(game.level);

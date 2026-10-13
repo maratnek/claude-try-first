@@ -121,7 +121,7 @@ void GenerateScatter(ScatterState &scatter, const WorldState &world) {
     }
 }
 
-void DrawScatter(const ScatterState &scatter, float density, Vector3 viewPosition, float drawDistance) {
+void DrawScatter(const ScatterState &scatter, float density, Vector3 viewPosition, float drawDistance, bool skipTrees) {
     size_t count = (size_t)(Clamp(density, 0.0f, 1.0f) * (float)scatter.props.size());
     if (count == 0) return;
     float maxDistSq = drawDistance * drawDistance;
@@ -129,6 +129,7 @@ void DrawScatter(const ScatterState &scatter, float density, Vector3 viewPositio
     rlDisableBackfaceCulling();
     for (size_t i = 0; i < count; i++) {
         const ScatterProp &p = scatter.props[i];
+        if (skipTrees && p.kind == ScatterKind::Tree) continue;
         float dx = p.position.x - viewPosition.x, dz = p.position.z - viewPosition.z;
         if (dx * dx + dz * dz > maxDistSq) continue;
         rlCheckRenderBatchLimit(64);

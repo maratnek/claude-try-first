@@ -26,6 +26,7 @@ void ApplyGraphicsPreset(GraphicsSettings &settings, GraphicsPreset preset) {
     settings.groundDetail = !low;
     settings.terrainRelief = !low;
     settings.planeShading = !low;
+    settings.treeCards = !low;
     settings.obstacleWires = high;
     settings.scatterDensity = low ? 0.0f : (high ? 1.0f : 0.35f);
     settings.cloudCount = low ? 0 : (high ? 30 : 12);

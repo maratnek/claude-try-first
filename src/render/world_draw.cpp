@@ -1,5 +1,6 @@
 #include "world_draw.h"
 #include "ground_look.h"
+#include "tree_look.h"
 #include "raymath.h"
 #include "rlgl.h"
 #include <cmath>
@@ -10,7 +11,9 @@ void DrawWorldObject(const WorldState &world, const GraphicsSettings &gfx, Vecto
     float halfSize = world.worldSize * 0.5f;
     DrawModel(world.terrainModel, (Vector3){-halfSize, 0.0f, -halfSize}, 1.0f, WHITE);
 
-    DrawScatter(world.scatter, gfx.scatterDensity, viewPosition, 450.0f);
+    bool cards = gfx.treeCards && TreeCardsAvailable();
+    DrawScatter(world.scatter, gfx.scatterDensity, viewPosition, 450.0f, cards);
+    if (cards) DrawTreeCards(world.scatter, gfx.scatterDensity, viewPosition, 450.0f);
     DrawClouds(world.clouds, gfx.cloudCount, viewPosition, 600.0f);
 
     if (gfx.distanceMarkers) {

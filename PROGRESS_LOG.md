@@ -12,6 +12,13 @@ owner can skim what happened without digging through git log. Format:
 - PR: <link or branch, if one was opened>
 ```
 
+## 2026-10-13 18:40 UTC — art run (world art track, step 8: trees as textured cards)
+- Did: Trees (branch agents/2026-10-13-1839-art-tree-cards, stacked on #120 plane look, which is stacked on the rest of the art chain): `src/render/tree_look.*` draws every tree as two crossed cards with a cartoon canopy texture generated in code (round blobs, bold dark outline, three flat colour bands, trunk) through a small alpha-cutout shader. New toggle `gfx.treeCards` (on in Medium/High, off in Low); old cone trees stay as fallback; debug-only `FLIGHT_TREE_CARDS=0|1`. `DrawScatter` got a `skipTrees` flag. `docs/ARCHITECTURE.md` updated. No gameplay, physics or controls touched (tree collision is unchanged, they are decorative).
+- Why: the cone trees read as low-poly 2000s; outlined round canopies match the 1990s-cartoon direction.
+- Verified: raylib 5.5 built from source, game built in a scratch copy with FLIGHT_DEBUG, run under Xvfb with --view-shot on High cards off/on, Medium and Low. High after: rounded outlined trees, trunks, no holes in terrain or sky behind cards. Low cost: zero (Low has scatterDensity 0, so no trees and no card pass). High/Medium: 2 quads (4 triangles) per tree instead of about 20, one shader switch per frame. Not verified: GLSL ES 100 variant on a real Web/iOS GPU; cards are not lit by the sun, only tinted per tree. CI status: see PR.
+- Open: owner to judge the tree style; no lighting or fog on cards yet (haze band covers the far ones).
+- PR: see branch above, awaiting owner review.
+
 ## 2026-10-13 02:40 UTC — art run (world art track, step 7: plane cel shading)
 - Did: Plane look (branch agents/2026-10-13-0240-art-plane-look, stacked on #117 and the whole art chain): `src/render/plane_look.*` adds a small cel shader (three flat light bands, warm in the light and cool in the shade, GLSL 330 and ES 100 variants embedded as strings) applied to the plane's materials. New toggle `gfx.planeShading` (on in Medium/High, off in Low); debug-only `--view-shot` flag and `FLIGHT_PLANE_SHADING=0|1` for before/after shots. `docs/ARCHITECTURE.md` updated. No gameplay, physics or controls touched.
 - Why: the plane was drawn unlit, one flat colour per part; bands give volume in the 1990s-cartoon direction.

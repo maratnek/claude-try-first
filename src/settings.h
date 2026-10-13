@@ -25,6 +25,7 @@ struct GraphicsSettings {
     bool groundDetail = true;
     bool terrainRelief = true;
     bool planeShading = true;
+    bool treeCards = true;
     float scatterDensity = 1.0f;
     int cloudCount = 30;
     int smokePuffs = 64;
