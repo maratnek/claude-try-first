@@ -12,6 +12,12 @@ owner can skim what happened without digging through git log. Format:
 - PR: <link or branch, if one was opened>
 ```
 
+## 2026-10-13 02:30 UTC — night run
+- Did: P1 "Tutorial levels", step 0 (branch agents/2026-10-13-0230-multi-level-plumbing, stacked on #118): the level opened in level select is now the one played. `GenerateWorld(world, def, gfx)` builds terrain and obstacles from the def; `SelectLevel` in `main.cpp` regenerates the world only when the def changes and sets start position, checkpoints (`BuildCheckpoints`, ring model still loaded once) and best time by `def->id`; progress record and unlock use `level.def->id`; `ComputeMedal(def, elapsed)`. Debug autoplay/crash-test still force level 1. No visible change. Not release-relevant yet.
+- Why: tutorial levels (campaign PRs 3-4) need a second `LevelDef` to be pure data; everything was hard-wired to `Level1Def()`.
+- Verified: see PR body (build, ctest, real run).
+- Open: still hard-wired to level 1: cloud Z range, hill sine coefficients, the `level1` colour case in level select. The world-regeneration branch needs a second playable def to run for real.
+- PR: PR into dev from agents/2026-10-13-0230-multi-level-plumbing, stacked on #118, awaiting owner review
 ## 2026-10-13 01:10 UTC — night run
 - Did: P1 "Level select with locked teaser levels" (campaign PR 2, branch agents/2026-10-13-0110-level-select, stacked on the stage-system PR #115): Play opens a row of five cards (First Wings, Slalom Field, Valley Run, Ridge Pass, Blue Lagoon). Only Valley Run is playable; the others are darkened "Coming soon" teasers that shake when selected. Finishing a level writes the next card's unlock flag next to the existing best-time save. Card and unlock rules are in raylib-free `src/level_select.*` with `LevelSelectTests`; the screen is `src/level_select_screen.*`. Debug autoplay and `--crash-test` skip the screen.
 - Why: the stage system is in review and level select is the next campaign step; it shows players the next levels already in the first itch.io build.
