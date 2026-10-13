@@ -63,8 +63,8 @@ void ApplyTerrainColors(WorldState &world, const GraphicsSettings &gfx) {
     world.terrainColored = gfx.terrainColors;
 }
 
-void GenerateWorld(WorldState &world, const GraphicsSettings &gfx) {
-    const TerrainDef &terrain = Level1Def().terrain;
+void GenerateWorld(WorldState &world, const LevelDef &def, const GraphicsSettings &gfx) {
+    const TerrainDef &terrain = def.terrain;
     world.gridSize = terrain.gridSize;
     world.worldSize = terrain.worldSize;
     world.maxHeight = terrain.maxHeight;
@@ -123,8 +123,8 @@ void GenerateWorld(WorldState &world, const GraphicsSettings &gfx) {
     world.terrainModel.materials[0].maps[MATERIAL_MAP_DIFFUSE].color = WHITE;
 
     world.obstacles.clear();
-    for (const ObstacleDef &o : Level1Def().hardObstacles) AddHardObstacle(world, o.x, o.z, o.height, o.radius);
-    for (const ObstacleDef &o : Level1Def().softObstacles) AddSoftObstacle(world, o.x, o.z, o.height, o.radius);
+    for (const ObstacleDef &o : def.hardObstacles) AddHardObstacle(world, o.x, o.z, o.height, o.radius);
+    for (const ObstacleDef &o : def.softObstacles) AddSoftObstacle(world, o.x, o.z, o.height, o.radius);
 
     GenerateScatter(world.scatter, world);
     GenerateClouds(world.clouds);
