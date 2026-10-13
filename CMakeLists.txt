@@ -58,6 +58,8 @@ add_executable(FlightGame
     src/input.cpp
     src/level.cpp
     src/level_def.cpp
+    src/level_select.cpp
+    src/level_select_screen.cpp
     src/menu.cpp
     src/progress.cpp
     src/progress_store.cpp
@@ -158,6 +160,10 @@ if(NOT EMSCRIPTEN AND NOT CMAKE_SYSTEM_NAME STREQUAL "iOS")
     add_executable(LevelDefTests tests/level_def_tests.cpp src/level_def.cpp)
     target_include_directories(LevelDefTests PRIVATE src)
     add_test(NAME LevelDefTests COMMAND LevelDefTests)
+
+    add_executable(LevelSelectTests tests/level_select_tests.cpp src/level_select.cpp src/level_def.cpp src/progress.cpp)
+    target_include_directories(LevelSelectTests PRIVATE src)
+    add_test(NAME LevelSelectTests COMMAND LevelSelectTests)
 
     add_executable(TouchLayoutTests tests/touch_layout_tests.cpp src/touch_layout.cpp)
     target_include_directories(TouchLayoutTests PRIVATE src)
