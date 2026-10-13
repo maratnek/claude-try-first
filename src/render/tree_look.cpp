@@ -59,7 +59,6 @@ struct Blob { float x, y, r; };
 
 Color Px(int r, int g, int b) { return (Color){(unsigned char)r, (unsigned char)g, (unsigned char)b, 255}; }
 
-// Canopy of overlapping round blobs with a bold dark outline and three flat colour bands lit from the upper right; trunk below.
 Image MakeTreeImage() {
     Image img = GenImageColor(kTexW, kTexH, BLANK);
     Color *px = (Color *)img.data;
@@ -110,6 +109,7 @@ void LoadTreeLook() {
     SetTextureFilter(gTexture, TEXTURE_FILTER_BILINEAR);
     SetTextureWrap(gTexture, TEXTURE_WRAP_CLAMP);
     gLoaded = gTexture.id > 0;
+    if (!gLoaded) UnloadShader(gShader);
 }
 
 void UnloadTreeLook() {

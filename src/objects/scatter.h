@@ -21,5 +21,4 @@ struct ScatterState {
 
 void GenerateScatter(ScatterState &scatter, const WorldState &world);
 
-// skipTrees leaves trees to the textured-card pass (render/tree_look); rocks are always drawn here.
 void DrawScatter(const ScatterState &scatter, float density, Vector3 viewPosition, float drawDistance, bool skipTrees = false);
