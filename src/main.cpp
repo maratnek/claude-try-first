@@ -111,6 +111,11 @@ const char *AssetPath(const char *relative) {
 #endif
 }
 
+void RefreshMenuRecord(Game &g) {
+    LevelRecord *record = FindLevelRecord(g.progress, kLevel1Id);
+    g.menu.recordLine = record ? FormatRecordLine(record->bestTime, record->stars) : "";
+}
+
 #ifdef FLIGHT_DEBUG
 void DebugEndOfFrame(Game &g, float dt) {
     if (g.crashTest.active && g.screen == Screen::Crashed) {
@@ -210,6 +215,7 @@ void UpdateFrame(Game &g) {
     } else if ((g.screen == Screen::Crashed || g.screen == Screen::Finished) && input.menu) {
         resetRun();
         EnterMenu(g.menu);
+        RefreshMenuRecord(g);
         g.screen = Screen::Menu;
     } else if (input.restart && (level.crashed || g.screen == Screen::Finished || HasLandedSafely(plane))) {
         resetRun();
@@ -457,6 +463,7 @@ int main() {
     InitLevel(game.level);
     game.progress = LoadProgress();
     if (LevelRecord *record = FindLevelRecord(game.progress, kLevel1Id)) game.level.bestTime = record->bestTime;
+    RefreshMenuRecord(game);
 
 #ifdef __EMSCRIPTEN__
     emscripten_set_main_loop_arg(UpdateFrameCallback, &game, 0, 1);

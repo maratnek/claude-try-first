@@ -10,6 +10,7 @@ constexpr float kEntrySpacing = 20.0f;
 constexpr int kEntrySlots = 2;
 constexpr float kHintReserve = 90.0f;
 constexpr int kTitleSize = 80;
+constexpr int kRecordSize = 30;
 
 Rectangle EntryRect(int index) {
     Rectangle safe = GetSafeRect();
@@ -71,7 +72,15 @@ void DrawMenu(const MenuState &menu) {
     int titleWidth = MeasureText(title, kTitleSize);
     int titleSize = kTitleSize;
     if (titleWidth > safe.width * 0.9f) titleSize = (int)(kTitleSize * safe.width * 0.9f / titleWidth);
-    DrawText(title, cx - MeasureText(title, titleSize) / 2, (int)(safe.y + safe.height * 0.08f), titleSize, WHITE);
+    int titleY = (int)(safe.y + safe.height * 0.08f);
+    DrawText(title, cx - MeasureText(title, titleSize) / 2, titleY, titleSize, WHITE);
+    if (!menu.recordLine.empty()) {
+        const char *record = menu.recordLine.c_str();
+        int recordSize = kRecordSize;
+        int recordWidth = MeasureText(record, kRecordSize);
+        if (recordWidth > safe.width * 0.9f) recordSize = (int)(kRecordSize * safe.width * 0.9f / recordWidth);
+        DrawText(record, cx - MeasureText(record, recordSize) / 2, titleY + titleSize + 16, recordSize, WHITE);
+    }
     for (int i = 0; i < (int)menu.entries.size(); i++) {
         Rectangle r = EntryRect(i);
         bool selected = i == menu.selected;

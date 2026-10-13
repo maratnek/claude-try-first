@@ -21,6 +21,8 @@ bool RecordLevelResult(ProgressData &data, const std::string &id, float time, in
 bool HasUnlock(const ProgressData &data, const std::string &id);
 void AddUnlock(ProgressData &data, const std::string &id);
 
+std::string FormatRecordLine(float bestTime, int stars);
+
 std::string SerializeProgress(const ProgressData &data);
 // Unknown keys and malformed lines are skipped; an empty or unversioned text gives defaults.
 ProgressData ParseProgress(const std::string &text);
