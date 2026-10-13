@@ -14,6 +14,7 @@ constexpr float kStartPositionTolerance = 0.05f;
 constexpr float kStartMaxSpeed = 0.5f;
 constexpr float kMinRudderHeadingChange = 12.0f;
 constexpr float kMinBankHeadingChange = 22.0f;
+constexpr float kMaxRolloutEndSpeed = 15.0f;
 
 std::atomic<int> g_logErrors{0};
 
@@ -34,6 +35,10 @@ constexpr AutoplayStep kScript[] = {
     {"bank_left", 3.0f, 0.5f, 0, 0.35f, 0},
     {"wings_level", 2.0f, 0.5f, 0, 0, 0},
     {"bank_right", 3.0f, 0.5f, 0, -0.35f, 0},
+    {"level_out", 1.5f, -1, 0.1f, 0, 0},
+    {"descend", 4.0f, -1, 0, 0, 0},
+    {"flare", 1.5f, -1, 0.1f, 0, 0},
+    {"rollout", 6.0f, -1, 0, 0, 0},
 };
 static_assert(sizeof(kScript) / sizeof(kScript[0]) == kStepCount);
 
@@ -47,7 +52,7 @@ void CountingTraceLog(int level, const char *text, va_list args) {
 }
 
 AutoplaySnapshot Snapshot(const PlaneState &plane, bool crashed) {
-    return {plane.position, plane.yaw, plane.speed, plane.airborne, crashed};
+    return {plane.position, plane.yaw, plane.speed, plane.airborne, crashed, plane.landing};
 }
 
 void Fail(std::vector<std::string> &out, const char *format, ...) {
@@ -92,6 +97,12 @@ std::vector<std::string> CheckAutoplayResults(const AutoplaySnapshot *ends, int 
         Fail(out, "no liftoff by the end of rotate");
     if (endCount < kStepCount && (endCount == 0 || !ends[endCount - 1].crashed))
         Fail(out, "script ended early after %d of %d steps", endCount, kStepCount);
+    if (endCount == kStepCount && !ends[kStepRollout].crashed) {
+        const AutoplaySnapshot &end = ends[kStepRollout];
+        if (end.airborne) Fail(out, "still airborne at the end of rollout");
+        else if (end.landing != LandingResult::Safe) Fail(out, "no safe landing recorded by the end of rollout");
+        else if (end.speed > kMaxRolloutEndSpeed) Fail(out, "rollout ended at %.1f m/s, need at most %.1f", end.speed, kMaxRolloutEndSpeed);
+    }
     CheckHeadingChange(out, ends, endCount, kStepRudderD, "rudder D", -1.0f, kMinRudderHeadingChange);
     CheckHeadingChange(out, ends, endCount, kStepRudderA, "rudder A", 1.0f, kMinRudderHeadingChange);
     CheckHeadingChange(out, ends, endCount, kStepBankLeft, "bank left", 1.0f, kMinBankHeadingChange);

@@ -15,6 +15,10 @@ enum AutoplayStepId {
     kStepBankLeft,
     kStepWingsLevel,
     kStepBankRight,
+    kStepLevelOut,
+    kStepDescend,
+    kStepFlare,
+    kStepRollout,
     kStepCount,
 };
 
@@ -24,6 +28,7 @@ struct AutoplaySnapshot {
     float speed = 0.0f;
     bool airborne = false;
     bool crashed = false;
+    LandingResult landing = LandingResult::None;
 };
 
 struct AutoplayState {
