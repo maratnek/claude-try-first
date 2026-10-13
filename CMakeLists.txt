@@ -76,6 +76,7 @@ add_executable(FlightGame
     src/objects/explosion.cpp
     src/objects/character.cpp
     src/render/sky.cpp
+    src/render/plane_look.cpp
     src/render/ground_look.cpp
     src/render/world_draw.cpp
 )

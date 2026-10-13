@@ -11,6 +11,7 @@
 #include "objects/plane.h"
 #include "objects/world.h"
 #include "render/ground_look.h"
+#include "render/plane_look.h"
 #include "render/sky.h"
 #include "render/world_draw.h"
 #include "objects/smoke.h"
@@ -48,6 +49,8 @@ struct CrashTest {
     float timer = 0.0f;
     int nextShot = 0;
     const char *prefix = "crash";
+    bool viewShot = false;
+    float viewTimer = 0.0f;
 };
 constexpr float kCrashTestShots[] = {0.1f, 0.3f, 1.0f, 3.0f};
 #endif
@@ -58,6 +61,7 @@ struct Game {
     EngineAudio engineAudio;
     Camera3D camera = {0};
     PlaneModel planeModel;
+    PlaneLook planeLook;
     PlaneAnim planeAnim;
     WorldState world;
     SmokeState smoke;
@@ -156,7 +160,7 @@ void UpdateFrame(Game &g) {
     };
 
 #ifdef FLIGHT_DEBUG
-    if (g.crashTest.active && g.screen == Screen::Menu) menuAction = MenuAction::Play;
+    if ((g.crashTest.active || g.crashTest.viewShot) && g.screen == Screen::Menu) menuAction = MenuAction::Play;
 #endif
     if (g.screen == Screen::Menu) {
         if (menuAction == MenuAction::Play) {
@@ -170,6 +174,13 @@ void UpdateFrame(Game &g) {
                 plane.speed = g.crashTest.speed;
                 plane.pitch = -30.0f;
                 plane.enginePower = 0.5f;
+            }
+            if (g.crashTest.viewShot) {
+                plane.position.y = GetGroundHeight(world, 0.0f, 0.0f) + 40.0f;
+                plane.airborne = true;
+                plane.speed = 35.0f;
+                plane.roll = 25.0f;
+                plane.enginePower = 0.7f;
             }
 #endif
         } else if (menuAction == MenuAction::Exit) {
@@ -261,6 +272,8 @@ void UpdateFrame(Game &g) {
     DrawHorizonHaze(camera, g.gfx);
     BeginMode3D(camera);
     if (g.gfx.blobShadow) DrawBlobShadow(world, plane.position, plane.yaw);
+    ApplyPlaneLook(g.planeLook, planeModel.model, g.gfx);
+    UpdatePlaneLight(g.planeLook, plane.yaw, plane.pitch, plane.roll);
     DrawPlaneObject(planeModel, g.planeAnim, plane.position, plane.yaw, plane.pitch, plane.roll, g.gfx.propBlur, DebrisDetachedParts(g.debris), DebrisDetachedGroups(g.debris), plane.damaged && g.gfx.damageVisuals);
     DrawDebris(g.debris, planeModel);
     if (g.gfx.smokePuffs > 0) DrawSmoke(g.smoke, camera);
@@ -315,6 +328,12 @@ void UpdateFrame(Game &g) {
     if (g.screen == Screen::Finished) DrawResultsScreen(level, plane.damaged, g.inputState.touchUsed);
     DrawTouchOverlay(g.inputState, level.crashed || g.screen == Screen::Finished, true, TextFormat("Gfx: %s", GraphicsPresetName(g.gfx)));
 #ifdef FLIGHT_DEBUG
+    if (g.crashTest.viewShot && g.screen == Screen::Playing && (g.crashTest.viewTimer += dt) >= 0.5f) {
+        Image shot = LoadImageFromScreen();
+        ExportImage(shot, TextFormat("%s-view.png", g.crashTest.prefix));
+        UnloadImage(shot);
+        g.quitRequested = true;
+    }
     if (g.crashTest.active && g.screen == Screen::Crashed) {
         g.crashTest.timer += dt;
         if (g.crashTest.nextShot < (int)(sizeof(kCrashTestShots) / sizeof(kCrashTestShots[0])) &&
@@ -360,6 +379,7 @@ int main() {
     game.camera.projection = CAMERA_PERSPECTIVE;
 
     LoadPlaneModel(game.planeModel, AssetPath("models/biplane-1920.glb"));
+    LoadPlaneLook(game.planeLook);
 
     InitMenu(game.menu);
     EnterMenu(game.menu);
@@ -367,6 +387,7 @@ int main() {
 #ifdef FLIGHT_DEBUG
     if (const char *preset = getenv("FLIGHT_PRESET")) ApplyGraphicsPreset(game.gfx, static_cast<GraphicsPreset>(atoi(preset) % 3));
     if (const char *relief = getenv("FLIGHT_RELIEF")) game.gfx.terrainRelief = atoi(relief) != 0;
+    if (const char *shading = getenv("FLIGHT_PLANE_SHADING")) game.gfx.planeShading = atoi(shading) != 0;
 #endif
     GenerateWorld(game.world, game.gfx);
 
@@ -377,6 +398,7 @@ int main() {
     if (const char *fuel = getenv("FLIGHT_FUEL")) game.planeStart.fuel = game.planeParams.fuelCapacity * (float)atof(fuel);
     for (int i = 1; i < argc; i++) {
         if (TextIsEqual(argv[i], "--crash-test")) game.crashTest.active = true;
+        if (TextIsEqual(argv[i], "--view-shot")) game.crashTest.viewShot = true;
     }
     if (const char *speed = getenv("FLIGHT_SPEED")) game.crashTest.speed = (float)atof(speed);
     if (const char *prefix = getenv("FLIGHT_SHOT_PREFIX")) game.crashTest.prefix = prefix;
@@ -397,6 +419,7 @@ int main() {
     UnloadEngineAudio(game.engineAudio);
     CloseAudioDevice();
     UnloadPlaneModel(game.planeModel);
+    UnloadPlaneLook(game.planeLook);
     UnloadLevel(game.level);
     UnloadWorld(game.world);
     CloseWindow();
