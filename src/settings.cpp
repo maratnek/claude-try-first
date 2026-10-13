@@ -28,6 +28,7 @@ void ApplyGraphicsPreset(GraphicsSettings &settings, GraphicsPreset preset) {
     settings.scatterDensity = low ? 0.12f : (high ? 1.0f : 0.35f);
     settings.cloudCount = low ? 5 : (high ? 30 : 12);
     settings.smokePuffs = low ? 12 : (high ? 64 : 24);
+    settings.exhaustPuffs = low ? 8 : (high ? 32 : 16);
     settings.debrisPieces = low ? 4 : (high ? 12 : 6);
     settings.explosionFire = true;
     settings.explosionSmoke = low ? 12 : (high ? 64 : 32);

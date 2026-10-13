@@ -71,6 +71,7 @@ add_executable(FlightGame
     src/objects/scatter.cpp
     src/objects/clouds.cpp
     src/objects/smoke.cpp
+    src/objects/exhaust.cpp
     src/objects/sprites.cpp
     src/objects/streaks.cpp
     src/objects/rain.cpp
@@ -171,4 +172,10 @@ if(NOT EMSCRIPTEN AND NOT CMAKE_SYSTEM_NAME STREQUAL "iOS")
     target_include_directories(BreakupTests PRIVATE src)
     target_link_libraries(BreakupTests PRIVATE raylib)
     add_test(NAME BreakupTests COMMAND BreakupTests)
+
+    add_executable(ExhaustTests tests/exhaust_tests.cpp src/objects/exhaust.cpp src/objects/sprites.cpp src/objects/plane.cpp
+        src/objects/break_data.cpp src/objects/glb_nodes.cpp src/flight.cpp src/level_def.cpp)
+    target_include_directories(ExhaustTests PRIVATE src)
+    target_link_libraries(ExhaustTests PRIVATE raylib)
+    add_test(NAME ExhaustTests COMMAND ExhaustTests)
 endif()
