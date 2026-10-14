@@ -146,12 +146,16 @@ void RunCrash(const Scene &scene, const Crash &c, Terrain terrain, const char *l
     Expect(name, debris.count > 0);
 
     float elapsed = 0.0f;
+    float lowestEver = 1e9f;
     bool allSettled = false;
     while (!allSettled && elapsed < kMaxSettleTime) {
         UpdateDebris(debris, world, kDt);
         elapsed += kDt;
         allSettled = true;
-        for (int i = 0; i < debris.count; i++) allSettled = allSettled && debris.pieces[i].settled;
+        for (int i = 0; i < debris.count; i++) {
+            allSettled = allSettled && debris.pieces[i].settled;
+            lowestEver = fminf(lowestEver, DebrisLowestClearance(debris.pieces[i], world));
+        }
     }
     snprintf(name, sizeof(name), "%s %s: all pieces settle", label, c.name);
     Expect(name, allSettled);
@@ -160,6 +164,9 @@ void RunCrash(const Scene &scene, const Crash &c, Terrain terrain, const char *l
     for (int i = 0; i < debris.count; i++) lowest = fminf(lowest, DebrisLowestClearance(debris.pieces[i], world));
     snprintf(name, sizeof(name), "%s %s: lowest clearance %.3f >= -%.2f", label, c.name, lowest, kEpsilon);
     Expect(name, lowest >= -kEpsilon);
+
+    snprintf(name, sizeof(name), "%s %s: mid-fall lowest clearance %.3f >= -%.2f", label, c.name, lowestEver, kEpsilon);
+    Expect(name, lowestEver >= -kEpsilon);
 }
 
 }  // namespace
