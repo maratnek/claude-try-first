@@ -12,6 +12,12 @@ owner can skim what happened without digging through git log. Format:
 - PR: <link or branch, if one was opened>
 ```
 
+## 2026-10-14 04:10 UTC — night run
+- Did: P1 "Results screen: Next level" (branch agents/2026-10-14-0410-results-next-level, stacked on #140). After finishing a level, N / Enter / a NEXT button loads the next openable level (`NextOpenableCard` in `src/level_select.*`, unit-tested). No button when the next card is a teaser or the level is the last. End-button row now shrinks to fit narrow screens.
+- Why: release path is tutorial 1 -> tutorial 2 -> Valley Run; before this the results screen dead-ended at Restart/Menu, so a new player had to go back through the menu after every level.
+- Verified: real run under Xvfb (raylib 5.5 from source, real xdotool keys, screenshots): finished First Wings, N loaded Slalom Field at the start; finished it, Enter loaded Valley Run; on Valley Run (next = Coming soon) no button and N/Enter do nothing. 8/8 ctest pass. code-reviewer: no blockers. After the tester found the hint overlapping MENU at 640x360, the hint was removed and button width made adaptive; that last change was rebuilt and ctest-checked but NOT re-screenshotted. Not driven: mouse click on NEXT, touch.
+- Open: owner to check the checklist in the PR; CI result in the PR body. Awaiting owner review. Release-relevant (tutorial flow).
+- PR: see PR into dev from the branch above (stacked on #140, merge #129/#140 first).
 ## 2026-10-13 02:30 UTC — night run
 - Did: P1 "Tutorial levels", step 0 (branch agents/2026-10-13-0230-multi-level-plumbing, stacked on #118): the level opened in level select is now the one played. `GenerateWorld(world, def, gfx)` builds terrain and obstacles from the def; `SelectLevel` in `main.cpp` regenerates the world only when the def changes and sets start position, checkpoints (`BuildCheckpoints`, ring model still loaded once) and best time by `def->id`; progress record and unlock use `level.def->id`; `ComputeMedal(def, elapsed)`. Debug autoplay/crash-test still force level 1. No visible change. Not release-relevant yet.
 - Why: tutorial levels (campaign PRs 3-4) need a second `LevelDef` to be pure data; everything was hard-wired to `Level1Def()`.
