@@ -31,7 +31,7 @@ int main() {
     Expect("campaign order", orderOk);
     Expect("names", cards[0].name == "First Wings" && cards[1].name == "Slalom Field" && cards[2].name == "Valley Run" &&
                         cards[3].name == "Ridge Pass" && cards[4].name == "Blue Lagoon");
-    Expect("tutorial and level1 have content", !cards[0].comingSoon && !cards[2].comingSoon && cards[1].comingSoon && cards[3].comingSoon && cards[4].comingSoon);
+    Expect("tutorials and level1 have content", !cards[0].comingSoon && !cards[1].comingSoon && !cards[2].comingSoon && cards[3].comingSoon && cards[4].comingSoon);
     bool taglines = true;
     for (const LevelCard &c : cards) taglines = taglines && !c.tagline.empty();
     Expect("every card has a tagline", taglines);
@@ -46,6 +46,9 @@ int main() {
     Expect("level1 condition empty", UnlockConditionText(level1, cards, fresh).empty());
     Expect("teaser says coming soon", UnlockConditionText(mountains, cards, fresh) == "Coming soon");
     Expect("first card playable from the start", IsOpenable(cards[0], fresh) && UnlockConditionText(cards[0], cards, fresh).empty());
+
+    Expect("slalom locked on fresh save", !IsUnlocked(cards[1], fresh) && !IsOpenable(cards[1], fresh));
+    Expect("slalom says to finish First Wings", UnlockConditionText(cards[1], cards, fresh) == "Finish First Wings to unlock");
 
     ProgressData finished;
     RecordLevelResult(finished, "level1", 30.0f, 2);
@@ -70,7 +73,7 @@ int main() {
     Expect("flag written once", !UnlockNextLevel(p, cards, "level1") && p.unlocks.size() == 1);
     Expect("last card unlocks nothing", !UnlockNextLevel(p, cards, "lake"));
     Expect("unknown id unlocks nothing", !UnlockNextLevel(p, cards, "nope"));
-    Expect("level before always-open card writes nothing", !UnlockNextLevel(p, cards, "tut_turns"));
+    Expect("level before always-open card writes nothing", !UnlockNextLevel(p, cards, "tut_turns") && p.unlocks.size() == 1);
     Expect("flags survive a save round trip", HasUnlock(ParseProgress(SerializeProgress(p)), "level_mountains"));
 
     Expect("move right", MoveSelection(1, 1, 5) == 2);
@@ -82,7 +85,13 @@ int main() {
     Expect("default selection is the first unfinished card on a fresh save", DefaultSelection(cards, fresh) == 0);
     ProgressData tutDone;
     RecordLevelResult(tutDone, "tut_takeoff", 40.0f, 1);
-    Expect("default selection moves on after the tutorial is finished", DefaultSelection(cards, tutDone) == 2);
+    Expect("finishing First Wings opens Slalom Field", IsOpenable(cards[1], tutDone));
+    Expect("default selection moves to Slalom Field after First Wings", DefaultSelection(cards, tutDone) == 1);
+    ProgressData bothDone = tutDone;
+    RecordLevelResult(bothDone, "tut_turns", 90.0f, 1);
+    Expect("default selection moves on after both tutorials", DefaultSelection(cards, bothDone) == 2);
+    ProgressData tutFlagged;
+    Expect("finishing First Wings writes the slalom flag", UnlockNextLevel(tutFlagged, cards, "tut_takeoff") && IsOpenable(cards[1], tutFlagged));
     Expect("best time", CardBestTime(level1, finished) > 29.9f && CardBestTime(level1, ProgressData{}) < 0.0f);
 
     if (g_failures == 0) printf("level select tests passed\n");

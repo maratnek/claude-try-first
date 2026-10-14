@@ -106,7 +106,8 @@ int main() {
     }
 
     const LevelDef &t = TutTakeoffDef();
-    Expect("registry holds tutorial then level 1", CampaignLevels().size() == 2 && CampaignLevels()[0] == &t && CampaignLevels()[1] == &d);
+    const LevelDef &u = TutTurnsDef();
+    Expect("registry holds both tutorials then level 1", CampaignLevels().size() == 3 && CampaignLevels()[0] == &t && CampaignLevels()[1] == &u && CampaignLevels()[2] == &d);
     Expect("campaign ids unique", [&] {
         for (size_t i = 0; i < CampaignLevels().size(); i++)
             for (size_t j = i + 1; j < CampaignLevels().size(); j++)
@@ -145,6 +146,33 @@ int main() {
     Expect("tut: stages", t.stages.size() == 4 && t.stages[0].type == StageType::Takeoff && t.stages[1].type == StageType::Rings &&
                               t.stages[2].type == StageType::Rings && t.stages[3].type == StageType::RunwayLanding &&
                               Near(t.stages[1].endZ, 250.0f) && Near(t.stages[2].endZ, t.checkpoints.back().z));
+    Expect("FindLevel tut_turns", FindLevel("tut_turns") == &u && std::string(u.name) == "Slalom Field");
+    Expect("slalom: no landing required", !u.requireLanding);
+    Expect("slalom: no obstacles", u.hardObstacles.empty() && u.softObstacles.empty());
+    Expect("slalom: terrain nearly flat", u.terrain.maxHeight <= 1.0f);
+    Expect("slalom: medals ordered", u.medalGold < u.medalSilver && u.medalSilver < u.medalBronze);
+    Expect("slalom: eleven rings", u.checkpoints.size() == 11);
+    if (u.checkpoints.size() == 11) {
+        bool ordered = true, inCorridor = true, alternates = true, spaced = true;
+        for (size_t i = 0; i < u.checkpoints.size(); i++) {
+            const CheckpointDef &c = u.checkpoints[i];
+            if (i > 0 && c.z <= u.checkpoints[i - 1].z) ordered = false;
+            if (std::fabs(c.x) + c.radius >= u.terrain.flatHalfWidth) inCorridor = false;
+            if (i > 0 && i < 8 && c.x * u.checkpoints[i - 1].x >= 0.0f) alternates = false;
+            if (i > 0 && !Near(c.z - u.checkpoints[i - 1].z, 180.0f)) spaced = false;
+        }
+        Expect("slalom: rings sorted by z", ordered);
+        Expect("slalom: rings inside flat corridor", inCorridor);
+        Expect("slalom: turn rings alternate sides", alternates);
+        Expect("slalom: rings 180 m apart", spaced);
+        Expect("slalom: arrow rings are wider than A/D rings", std::fabs(u.checkpoints[0].x) > std::fabs(u.checkpoints[4].x));
+        Expect("slalom: throttle rings on the centreline", u.checkpoints[8].x == 0.0f && u.checkpoints[9].x == 0.0f && u.checkpoints[10].x == 0.0f);
+        Expect("slalom: gate beyond last ring", u.gateDistance > u.checkpoints.back().z + u.checkpoints.back().radius);
+    }
+    Expect("slalom: stages", u.stages.size() == 5 && u.stages[0].type == StageType::Takeoff && u.stages[1].type == StageType::Rings &&
+                                 u.stages[2].type == StageType::Rings && u.stages[3].type == StageType::Rings && u.stages[4].type == StageType::Gate &&
+                                 Near(u.stages[1].endZ, 690.0f) && Near(u.stages[2].endZ, 1410.0f) && Near(u.stages[3].endZ, 1950.0f) &&
+                                 Near(u.stages[4].endZ, u.gateDistance));
     Expect("FindLevel level1", FindLevel("level1") == &d);
     Expect("FindLevel unknown id", FindLevel("level9") == nullptr);
 

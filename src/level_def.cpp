@@ -82,7 +82,51 @@ LevelDef MakeTutTakeoff() {
     return d;
 }
 
+LevelDef MakeTutTurns() {
+    LevelDef d;
+    d.id = "tut_turns";
+    d.name = "Slalom Field";
+    d.startX = 0.0f;
+    d.startZ = 0.0f;
+    d.startHeightAboveGround = 0.3f;
+    d.terrain = {64, 1400.0f, 1.0f, 100.0f, 0.12f};
+    d.gateDistance = 2100.0f;
+    d.medalGold = 85.0f;
+    d.medalSilver = 105.0f;
+    d.medalBronze = 130.0f;
+    d.requireLanding = false;
+    d.landingZoneLength = 300.0f;
+    d.landingZoneWidth = 40.0f;
+    d.rolloutSpeed = 8.0f;
+    d.checkpoints = {
+        {-45.0f, 40.0f, 150.0f, 14.0f},
+        {45.0f, 40.0f, 330.0f, 14.0f},
+        {-45.0f, 40.0f, 510.0f, 14.0f},
+        {45.0f, 40.0f, 690.0f, 14.0f},
+        {-30.0f, 40.0f, 870.0f, 14.0f},
+        {30.0f, 40.0f, 1050.0f, 14.0f},
+        {-30.0f, 40.0f, 1230.0f, 14.0f},
+        {30.0f, 40.0f, 1410.0f, 14.0f},
+        {0.0f, 40.0f, 1590.0f, 14.0f},
+        {0.0f, 30.0f, 1770.0f, 14.0f},
+        {0.0f, 40.0f, 1950.0f, 14.0f},
+    };
+    d.stages = {
+        {StageType::Takeoff, "Takeoff", 0.0f},
+        {StageType::Rings, "Bank with the arrows", 690.0f},
+        {StageType::Rings, "A and D swing the nose", 1410.0f},
+        {StageType::Rings, "Throttle: W and S", d.checkpoints.back().z},
+        {StageType::Gate, "Gate", d.gateDistance},
+    };
+    return d;
+}
+
 }  // namespace
+
+const LevelDef &TutTurnsDef() {
+    static const LevelDef def = MakeTutTurns();
+    return def;
+}
 
 const LevelDef &TutTakeoffDef() {
     static const LevelDef def = MakeTutTakeoff();
@@ -95,7 +139,7 @@ const LevelDef &Level1Def() {
 }
 
 const std::vector<const LevelDef *> &CampaignLevels() {
-    static const std::vector<const LevelDef *> levels = {&TutTakeoffDef(), &Level1Def()};
+    static const std::vector<const LevelDef *> levels = {&TutTakeoffDef(), &TutTurnsDef(), &Level1Def()};
     return levels;
 }
 

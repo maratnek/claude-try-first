@@ -51,6 +51,7 @@ struct LevelDef {
 };
 
 const LevelDef &TutTakeoffDef();
+const LevelDef &TutTurnsDef();
 const LevelDef &Level1Def();
 
 const std::vector<const LevelDef *> &CampaignLevels();
