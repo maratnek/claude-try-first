@@ -31,3 +31,6 @@ int DefaultSelection(const std::vector<LevelCard> &cards, const ProgressData &da
 
 // Writes the unlock flag of the card after finishedId; true if a flag was newly added.
 bool UnlockNextLevel(ProgressData &data, const std::vector<LevelCard> &cards, const std::string &finishedId);
+
+// Index of the card right after finishedId when it is openable, else -1.
+int NextOpenableCard(const std::vector<LevelCard> &cards, const ProgressData &data, const std::string &finishedId);

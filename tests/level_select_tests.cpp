@@ -94,6 +94,16 @@ int main() {
     Expect("finishing First Wings writes the slalom flag", UnlockNextLevel(tutFlagged, cards, "tut_takeoff") && IsOpenable(cards[1], tutFlagged));
     Expect("best time", CardBestTime(level1, finished) > 29.9f && CardBestTime(level1, ProgressData{}) < 0.0f);
 
+    ProgressData nextData;
+    Expect("next is locked before the finish is recorded", NextOpenableCard(cards, nextData, "tut_takeoff") == -1);
+    RecordLevelResult(nextData, "tut_takeoff", 40.0f, 1);
+    Expect("next openable after finishing First Wings", NextOpenableCard(cards, nextData, "tut_takeoff") == 1);
+    Expect("unknown id has no next", NextOpenableCard(cards, nextData, "nope") == -1);
+    Expect("last card has no next", NextOpenableCard(cards, nextData, cards.back().id) == -1);
+    for (size_t i = 0; i + 1 < cards.size(); i++) {
+        if (cards[i + 1].comingSoon) Expect("teaser is never next", NextOpenableCard(cards, nextData, cards[i].id) == -1);
+    }
+
     if (g_failures == 0) printf("level select tests passed\n");
     return g_failures == 0 ? 0 : 1;
 }

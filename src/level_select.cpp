@@ -93,3 +93,11 @@ bool UnlockNextLevel(ProgressData &data, const std::vector<LevelCard> &cards, co
     }
     return false;
 }
+
+int NextOpenableCard(const std::vector<LevelCard> &cards, const ProgressData &data, const std::string &finishedId) {
+    for (size_t i = 0; i + 1 < cards.size(); i++) {
+        if (cards[i].id != finishedId) continue;
+        return IsOpenable(cards[i + 1], data) ? (int)(i + 1) : -1;
+    }
+    return -1;
+}
