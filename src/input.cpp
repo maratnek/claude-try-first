@@ -22,15 +22,10 @@ Rectangle ThrottleDownRect() {
             GetScreenHeight() - sa.bottom - kButtonSize - kButtonMargin, kButtonSize, kButtonSize};
 }
 
-Rectangle RestartRect() {
+Rectangle EndButtonRect(int index, int count) {
     const float w = 220.0f, h = 60.0f, gap = 20.0f;
-    return {GetScreenWidth() * 0.5f - gap * 0.5f - w, GetScreenHeight() - GetSafeArea().bottom - h - 20.0f, w, h};
-}
-
-Rectangle MenuRect() {
-    Rectangle r = RestartRect();
-    r.x += r.width + 20.0f;
-    return r;
+    float total = count * w + (count - 1) * gap;
+    return {GetScreenWidth() * 0.5f - total * 0.5f + index * (w + gap), GetScreenHeight() - GetSafeArea().bottom - h - 20.0f, w, h};
 }
 
 SettingsButtons SettingsRects() {
@@ -54,7 +49,7 @@ float KeyAxis(int positive, int negative) {
 
 }  // namespace
 
-FlightInput ReadFlightInput(InputState &state, bool endButtonsActive, bool settingsActive) {
+FlightInput ReadFlightInput(InputState &state, bool endButtonsActive, bool settingsActive, bool nextAvailable) {
     FlightInput in;
     in.pitch = KeyAxis(KEY_DOWN, KEY_UP);
     in.roll = KeyAxis(KEY_LEFT, KEY_RIGHT);
@@ -63,6 +58,7 @@ FlightInput ReadFlightInput(InputState &state, bool endButtonsActive, bool setti
     in.restart = IsKeyPressed(KEY_R);
     in.exit = IsKeyPressed(KEY_Q);
     in.menu = IsKeyPressed(KEY_M);
+    in.next = nextAvailable && (IsKeyPressed(KEY_N) || IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_KP_ENTER));
 
     int count = GetTouchPointCount();
     if (count > 0) state.touchUsed = true;
@@ -70,6 +66,7 @@ FlightInput ReadFlightInput(InputState &state, bool endButtonsActive, bool setti
     bool stickFound = false;
     bool restartTouched = false;
     bool menuTouched = false;
+    bool nextTouched = false;
     bool gfxTouched = false;
     bool volDownTouched = false;
     bool volUpTouched = false;
@@ -77,8 +74,10 @@ FlightInput ReadFlightInput(InputState &state, bool endButtonsActive, bool setti
     float halfWidth = GetScreenWidth() * 0.5f;
     Rectangle up = ThrottleUpRect();
     Rectangle down = ThrottleDownRect();
-    Rectangle restartRect = RestartRect();
-    Rectangle menuRect = MenuRect();
+    int endCount = nextAvailable ? 3 : 2;
+    Rectangle restartRect = EndButtonRect(0, endCount);
+    Rectangle menuRect = EndButtonRect(1, endCount);
+    Rectangle nextRect = EndButtonRect(2, endCount);
     SettingsButtons settings = SettingsRects();
 
     bool settingsClickable = settingsActive && (state.touchUsed || endButtonsActive);
@@ -91,6 +90,7 @@ FlightInput ReadFlightInput(InputState &state, bool endButtonsActive, bool setti
         if (isTouch && CheckCollisionPointRec(p, down)) throttle -= 1.0f;
         if (endButtonsActive && CheckCollisionPointRec(p, restartRect)) restartTouched = true;
         if (endButtonsActive && CheckCollisionPointRec(p, menuRect)) menuTouched = true;
+        if (endButtonsActive && nextAvailable && CheckCollisionPointRec(p, nextRect)) nextTouched = true;
         bool onSettings = false;
         if (settingsClickable) {
             bool g = TouchBoxContains(settings.gfx, p.x, p.y);
@@ -123,6 +123,8 @@ FlightInput ReadFlightInput(InputState &state, bool endButtonsActive, bool setti
     state.restartHeld = restartTouched;
     if (menuTouched && !state.menuHeld) in.menu = true;
     state.menuHeld = menuTouched;
+    if (nextTouched && !state.nextHeld) in.next = true;
+    state.nextHeld = nextTouched;
 
     if (gfxTouched && !state.gfxHeld) in.cycleGraphics = true;
     if (volDownTouched && !state.volDownHeld) in.volumeStep -= 1;
@@ -134,7 +136,7 @@ FlightInput ReadFlightInput(InputState &state, bool endButtonsActive, bool setti
     return in;
 }
 
-void DrawTouchOverlay(const InputState &state, bool endButtonsShown, bool settingsShown, const char *gfxLabel) {
+void DrawTouchOverlay(const InputState &state, bool endButtonsShown, bool nextShown, bool settingsShown, const char *gfxLabel) {
     Color fill = {255, 255, 255, 60};
     Color line = {40, 40, 40, 140};
     Color btnFill = {255, 255, 255, 140};
@@ -142,14 +144,22 @@ void DrawTouchOverlay(const InputState &state, bool endButtonsShown, bool settin
     if (endButtonsShown) {
         const char *restartLabel = state.touchUsed ? "RESTART" : "RESTART (R)";
         const char *menuLabel = state.touchUsed ? "MENU" : "MENU (M)";
-        Rectangle r = RestartRect();
+        int endCount = nextShown ? 3 : 2;
+        Rectangle r = EndButtonRect(0, endCount);
         DrawRectangleRec(r, btnFill);
         DrawRectangleLinesEx(r, 2.0f, line);
         DrawText(restartLabel, (int)(r.x + (r.width - MeasureText(restartLabel, 26)) * 0.5f), (int)(r.y + 17), 26, BLACK);
-        Rectangle m = MenuRect();
+        Rectangle m = EndButtonRect(1, endCount);
         DrawRectangleRec(m, btnFill);
         DrawRectangleLinesEx(m, 2.0f, line);
         DrawText(menuLabel, (int)(m.x + (m.width - MeasureText(menuLabel, 26)) * 0.5f), (int)(m.y + 17), 26, BLACK);
+        if (nextShown) {
+            const char *nextLabel = state.touchUsed ? "NEXT" : "NEXT (N)";
+            Rectangle n = EndButtonRect(2, endCount);
+            DrawRectangleRec(n, btnFill);
+            DrawRectangleLinesEx(n, 2.0f, line);
+            DrawText(nextLabel, (int)(n.x + (n.width - MeasureText(nextLabel, 26)) * 0.5f), (int)(n.y + 17), 26, BLACK);
+        }
     }
 
     if (settingsShown && (state.touchUsed || endButtonsShown)) {

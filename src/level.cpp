@@ -216,7 +216,7 @@ void DrawCrashScreen(const LevelState &level, bool touchUsed) {
 #endif
 }
 
-void DrawResultsScreen(const LevelState &level, bool damaged) {
+void DrawResultsScreen(const LevelState &level, bool damaged, bool showNextHint) {
     DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), (Color){0, 0, 0, 150});
     Rectangle safe = GetSafeRect();
     float h = safe.height;
@@ -265,6 +265,7 @@ void DrawResultsScreen(const LevelState &level, bool damaged) {
     }
 
     DrawCentered(NextTargetLine(*level.def, medal, stars), cx, y(365), sz(26), MedalColor(medal));
+    if (showNextHint) DrawCentered("N: next level", cx, y(410), sz(22), WHITE);
 }
 
 void ResetLevelProgress(LevelState &level) {

@@ -155,7 +155,8 @@ void UpdateFrame(Game &g) {
 #endif
 
     bool inRun = g.screen != Screen::Menu && g.screen != Screen::LevelSelect;
-    FlightInput input = ReadFlightInput(g.inputState, level.crashed || g.screen == Screen::Finished, inRun);
+    int nextCard = g.screen == Screen::Finished ? NextOpenableCard(g.levelSelect.cards, g.progress, level.def->id) : -1;
+    FlightInput input = ReadFlightInput(g.inputState, level.crashed || g.screen == Screen::Finished, inRun, nextCard >= 0);
 #ifdef FLIGHT_DEBUG
     AutoplayInput(g.autoplay, input);
 #endif
@@ -179,7 +180,7 @@ void UpdateFrame(Game &g) {
     if (g.screen == Screen::LevelSelect) selectAction = UpdateLevelSelect(g.levelSelect, g.progress, dt);
 
     bool crashOrResultsButton = (g.screen == Screen::Crashed || g.screen == Screen::Finished) &&
-                                (input.menu || input.restart);
+                                (input.menu || input.restart || input.next);
 #ifndef SETTINGS_MOBILE_OR_WEB
     if (level.crashed && input.exit) crashOrResultsButton = true;
 #endif
@@ -204,6 +205,8 @@ void UpdateFrame(Game &g) {
     bool debugStart = (g.crashTest.active || AutoplayWantsPlay(g.autoplay)) && g.screen == Screen::Menu;
 #endif
     bool startLevel = selectAction == LevelSelectAction::Open;
+    const LevelDef *nextDef = nullptr;
+    if (g.screen == Screen::Finished && input.next && nextCard >= 0) nextDef = FindLevel(g.levelSelect.cards[nextCard].id);
 #ifdef FLIGHT_DEBUG
     startLevel = startLevel || debugStart;
 #endif
@@ -239,6 +242,11 @@ void UpdateFrame(Game &g) {
             plane.enginePower = 0.5f;
         }
 #endif
+    } else if (nextDef) {
+        SelectLevel(g, *nextDef);
+        resetRun();
+        AdvanceWeather(world);
+        g.screen = Screen::Playing;
     } else if ((g.screen == Screen::Crashed || g.screen == Screen::Finished) && input.menu) {
         resetRun();
         EnterMenu(g.menu);
@@ -418,8 +426,8 @@ void UpdateFrame(Game &g) {
     DrawFPS(ox, 60 + oy);
     DrawText(TextFormat("Graphics: %s (F1)", GraphicsPresetName(g.gfx)), ox + 100, 60 + oy, 20, DARKGRAY);
     if (level.crashed) DrawCrashScreen(level, g.inputState.touchUsed);
-    if (g.screen == Screen::Finished) DrawResultsScreen(level, plane.damaged);
-    DrawTouchOverlay(g.inputState, level.crashed || g.screen == Screen::Finished, true, TextFormat("Gfx: %s", GraphicsPresetName(g.gfx)));
+    if (g.screen == Screen::Finished) DrawResultsScreen(level, plane.damaged, nextCard >= 0 && !g.inputState.touchUsed);
+    DrawTouchOverlay(g.inputState, level.crashed || g.screen == Screen::Finished, nextCard >= 0, true, TextFormat("Gfx: %s", GraphicsPresetName(g.gfx)));
 #ifdef FLIGHT_DEBUG
     DebugEndOfFrame(g, dt);
 #endif

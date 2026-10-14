@@ -12,6 +12,7 @@ struct FlightInput {
     bool restart = false;
     bool exit = false;
     bool menu = false;
+    bool next = false;
     bool cycleGraphics = false;
     int volumeStep = 0;
 };
@@ -23,16 +24,18 @@ struct InputState {
     Vector2 stickPos = {0.0f, 0.0f};
     bool restartHeld = false;
     bool menuHeld = false;
+    bool nextHeld = false;
     bool gfxHeld = false;
     bool volDownHeld = false;
     bool volUpHeld = false;
 };
 
 // Combines keyboard, touch and mouse. The mouse only presses on-screen buttons; the stick and throttle are touch-only.
+// The Next button and N/Enter keys only register when nextAvailable.
 // Restart/Menu buttons only register when endButtonsActive (crashed or finished).
 // Graphics/volume buttons register when settingsActive and either touch has been used or an end screen is up.
-FlightInput ReadFlightInput(InputState &state, bool endButtonsActive, bool settingsActive);
+FlightInput ReadFlightInput(InputState &state, bool endButtonsActive, bool settingsActive, bool nextAvailable);
 
-// Draws the Restart/Menu buttons on end screens (always) and the settings buttons there; the stick and
+// Draws the Restart/Menu (and Next when nextShown) buttons on end screens (always) and the settings buttons there; the stick and
 // throttle buttons, and settings during flight, only once touch has been used.
-void DrawTouchOverlay(const InputState &state, bool endButtonsShown, bool settingsShown, const char *gfxLabel);
+void DrawTouchOverlay(const InputState &state, bool endButtonsShown, bool nextShown, bool settingsShown, const char *gfxLabel);
