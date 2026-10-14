@@ -67,7 +67,7 @@ void DrawLevelHUD(const LevelState &level, bool damaged);
 void DrawCrashScreen(const LevelState &level, bool touchUsed);
 
 // Dimmed overlay with stars, medal, time, delta vs best, a Finished/All rings/Clean checklist and the next medal target; layout scales with screen height. The Restart/Menu/Next buttons (mouse and touch) are drawn by DrawTouchOverlay.
-void DrawResultsScreen(const LevelState &level, bool damaged, bool showNextHint);
+void DrawResultsScreen(const LevelState &level, bool damaged);
 
 // Clears progress (distance, stageIndex, gateCrossed, crashed, hasFlown, elapsed, passed checkpoints) so the
 // level can be retried. Keeps the loaded model and the session best time.

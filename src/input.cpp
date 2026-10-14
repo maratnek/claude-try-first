@@ -23,7 +23,8 @@ Rectangle ThrottleDownRect() {
 }
 
 Rectangle EndButtonRect(int index, int count) {
-    const float w = 220.0f, h = 60.0f, gap = 20.0f;
+    const float h = 60.0f, gap = 20.0f;
+    float w = fminf(220.0f, (GetScreenWidth() - 20.0f - (count - 1) * gap) / count);
     float total = count * w + (count - 1) * gap;
     return {GetScreenWidth() * 0.5f - total * 0.5f + index * (w + gap), GetScreenHeight() - GetSafeArea().bottom - h - 20.0f, w, h};
 }
