@@ -2,6 +2,7 @@
 #include "level_def.h"
 #include <cmath>
 #include <cstdio>
+#include <vector>
 
 namespace {
 
@@ -139,6 +140,64 @@ float MeasureGateTime(const PlaneParams &p) {
         t += kDt;
     }
     return s.position.z >= Level1Def().gateDistance ? t : -1.0f;
+}
+
+struct RingRun { int passed; bool crashed; float time; float topSpeed; };
+
+RingRun FlyRings(const PlaneParams &p, const LevelDef &def, float cruiseSpeed, bool useRudder) {
+    constexpr float kRingTube = 0.07f;
+    constexpr float kPlaneHalfWidth = 0.5f;
+    PlaneState s;
+    s.position.y = p.wheelHeight;
+    FlightInput in;
+    std::vector<bool> passed(def.checkpoints.size(), false);
+    RingRun run = {0, false, 0.0f, 0.0f};
+    for (; run.time < 120.0f && s.position.z < def.gateDistance; run.time += kDt) {
+        size_t next = 0;
+        while (next < passed.size() && (passed[next] || def.checkpoints[next].z < s.position.z)) next++;
+        in = FlightInput();
+        in.throttle = s.speed < cruiseSpeed ? 1.0f : (s.speed > cruiseSpeed + 1.0f ? -1.0f : 0.0f);
+        if (!s.airborne) {
+            in.throttle = 1.0f;
+            in.pitch = s.speed >= p.liftoffSpeed ? 1.0f : 0.0f;
+        } else if (next < passed.size()) {
+            const CheckpointDef &c = def.checkpoints[next];
+            float dx = c.x - s.position.x, dz = c.z - s.position.z, dy = c.y - s.position.y;
+            float want = fmaxf(-40.0f, fminf(40.0f, atan2f(dx, dz) * 180.0f / kPi));
+            float headingErr = want - s.yaw;
+            if (useRudder) {
+                in.yaw = fmaxf(-1.0f, fminf(1.0f, headingErr / 8.0f));
+            } else {
+                float wantRoll = fmaxf(-50.0f, fminf(50.0f, headingErr * 2.5f));
+                in.roll = fmaxf(-1.0f, fminf(1.0f, (wantRoll - s.roll) / 8.0f));
+            }
+            float wantPitch = fmaxf(-12.0f, fminf(15.0f, atan2f(dy, fmaxf(dz, 1.0f)) * 180.0f / kPi * 2.0f));
+            in.pitch = fmaxf(-1.0f, fminf(1.0f, (wantPitch - s.pitch) / 5.0f));
+        }
+        Vector3 a = s.position;
+        UpdatePlaneControls(s, p, in, kDt, 0.0f, 0.0f);
+        run.topSpeed = fmaxf(run.topSpeed, s.speed);
+        if (s.position.y <= 0.0f && s.airborne) { run.crashed = true; break; }
+        for (size_t i = 0; i < passed.size(); i++) {
+            const CheckpointDef &c = def.checkpoints[i];
+            float hole = c.radius * (1.0f - kRingTube) - kPlaneHalfWidth;
+            if (!passed[i] && CrossesRingHole(a.x, a.y, a.z, s.position.x, s.position.y, s.position.z, c.x, c.y, c.z, hole)) {
+                passed[i] = true;
+                run.passed++;
+            }
+        }
+    }
+    return run;
+}
+
+void TestSlalomReachable(const PlaneParams &p) {
+    const LevelDef &d = TutTurnsDef();
+    int total = (int)d.checkpoints.size();
+    RingRun bank = FlyRings(p, d, 25.0f, false);
+    Expect("slalom: bank-steered pilot clears every ring at 25 m/s", !bank.crashed && bank.passed == total);
+    RingRun rudder = FlyRings(p, d, 25.0f, true);
+    Expect("slalom: rudder-steered pilot clears at least all but one ring at 25 m/s", !rudder.crashed && rudder.passed >= total - 1);
+    Report("slalom bank-steered run time s", bank.time, 60.0f, d.medalBronze);
 }
 
 void TestGateTime(const PlaneParams &p) {
@@ -351,6 +410,7 @@ int main(int argc, char **argv) {
     PlaneParams p = BiplaneParams();
     TestLiftoff(p);
     TestGateTime(p);
+    TestSlalomReachable(p);
     TestGlide(p);
     TestBank(p);
     TestRudderTurn(p);
