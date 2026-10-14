@@ -157,6 +157,8 @@ void UpdateFrame(Game &g) {
     float volumeDelta = (IsKeyPressed(KEY_EQUAL) ? 0.1f : 0.0f) - (IsKeyPressed(KEY_MINUS) ? 0.1f : 0.0f) + 0.1f * input.volumeStep;
     if (IsKeyPressed(KEY_MINUS) || IsKeyPressed(KEY_EQUAL) || input.volumeStep != 0) {
         g.masterVolume = SetMasterVolumeClamped(g.masterVolume + volumeDelta);
+        g.progress.volume = g.masterVolume;
+        SaveProgress(g.progress);
         g.volumeShownSeconds = 1.5f;
     }
     g.volumeShownSeconds = fmaxf(g.volumeShownSeconds - dt, 0.0f);
@@ -456,6 +458,7 @@ int main() {
     game.level.startPosition = game.planeStart.position;
     InitLevel(game.level);
     game.progress = LoadProgress();
+    game.masterVolume = SetMasterVolumeClamped(game.progress.volume);
     if (LevelRecord *record = FindLevelRecord(game.progress, kLevel1Id)) game.level.bestTime = record->bestTime;
 
 #ifdef __EMSCRIPTEN__
